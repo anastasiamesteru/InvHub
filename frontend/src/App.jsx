@@ -1,8 +1,8 @@
 import React from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
-import Invoice from './pages/Invoice';
-import Database from './pages/Database';
+import Invoice from './pages/Invoice/Invoice';
+import Database from './pages/Database/Database';
 import Report from './pages/Report';
 import Login from './pages/Login';
 import Register from './pages/Register';
