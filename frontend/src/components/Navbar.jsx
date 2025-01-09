@@ -1,9 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { assets } from '../assets/assets';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import './Navbar.css';
 
 const Navbar = () => {
+
+  //const navigate = useNavigate();
+  ///const [showMenu, setMenu] = useState(false);
+  //const [token, setToken] = useState(true);
+
   return (
     <div className="navbar">
       <img className="navbar-logo" src={assets.Logo} alt="Logo" />
