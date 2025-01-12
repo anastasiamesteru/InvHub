@@ -10,9 +10,9 @@ import Navbar from './components/Navbar';
 
 const App = () => {
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col min-h-screen w-full">
       {window.location.pathname !== '/login' && window.location.pathname !== '/register' && <Navbar />}
-      <main className="flex-grow w-full px-4 sm:px-8">
+      <main className="flex-grow min-h-screen w-full">
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
