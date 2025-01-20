@@ -1,45 +1,143 @@
 import React, { useState } from 'react';
 
 const Invoice = () => {
+    const [activeTab, setActiveTab] = useState('invoice');
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
     const [invoices, setInvoices] = useState([
         { id: 1, client: 'Client A', vendor: 'Vendor X', billingDate: '2025-01-01', status: 'Paid', amount: 500 },
         { id: 2, client: 'Client B', vendor: 'Vendor Y', billingDate: '2025-01-02', status: 'Paid', amount: 200 },
         { id: 3, client: 'Client C', vendor: 'Vendor Z', billingDate: '2025-01-03', status: 'Unpaid', amount: 800 }
     ]);
-    
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [newInvoice, setNewInvoice] = useState({
-        client: '',
-        vendor: '',
-        billingDate: '',
-        amount: '',
-    });
 
     const handleStatusChange = (invoiceId, newStatus) => {
-        setInvoices(prevInvoices =>
-            prevInvoices.map(invoice =>
+        setInvoices((prevInvoices) =>
+            prevInvoices.map((invoice) =>
                 invoice.id === invoiceId ? { ...invoice, status: newStatus } : invoice
             )
         );
     };
 
-    const openModal = () => setIsModalOpen(true);
-    const closeModal = () => setIsModalOpen(false);
-
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setNewInvoice(prevState => ({ ...prevState, [name]: value }));
+    const exportInvoices = () => {
+        console.log('Export invoices');
+    };
+    const openModal = () => {
+        setIsModalOpen(true);
     };
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        setInvoices([...invoices, { ...newInvoice, id: invoices.length + 1 }]);
-        setNewInvoice({ client: '', vendor: '', billingDate: '', amount: '' });
-        closeModal();
+    const closeModal = () => {
+        setIsModalOpen(false);
     };
+
+    const renderModalContent = () => {
+        if (activeTab === 'invoice') {
+          return (
+            <>
+              <h2 className="text-xl font-bold mb-4">Add a new invoice</h2>
+              <label htmlFor="client" className="block text-sm font-medium text-gray-700 mt-1">Client</label>
+              <input
+                type="text"
+                id="client"
+                className="mt-1 p-2 w-full border border-gray-300 rounded-md"
+                placeholder="Enter client name"
+              />
+      
+              <label htmlFor="vendor" className="block text-sm font-medium text-gray-700 mt-1">Vendor</label>
+              <input
+                type="text"
+                id="vendor"
+                className="mt-1 p-2 w-full border border-gray-300 rounded-md"
+                placeholder="Enter vendor name"
+              />
+      
+              <label htmlFor="billingDate" className="block text-sm font-medium text-gray-700 mt-1">Billing Date</label>
+              <input
+                type="date"
+                id="billingDate"
+                className="mt-1 p-2 w-full border border-gray-300 rounded-md"
+              />
+      
+              <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mt-1">Amount</label>
+              <input
+                type="number"
+                id="amount"
+                className="mt-1 p-2 w-full border border-gray-300 rounded-md"
+                placeholder="Enter invoice amount"
+              />
+      
+              <label htmlFor="status" className="block text-sm font-medium text-gray-700 mt-1">Status</label>
+              <select
+                id="status"
+                className="mt-1 p-2 w-full border border-gray-300 rounded-md"
+              >
+                <option value="Unpaid">Unpaid</option>
+                <option value="Paid">Paid</option>
+              </select>
+      
+              <div className="mt-4 flex justify-end">
+                <button
+                  onClick={closeModal}
+                  className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    // laceholder for save logic
+                    console.log('Invoice saved');
+                    closeModal();
+                  }}
+                  className="ml-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
+                >
+                  Save
+                </button>
+              </div>
+            </>
+          );
+        }
+      };
+      
+   {isModalOpen && (
+                <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50">
+                    <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+                        <div className="flex justify-between items-center">
+                            <h3 className="text-xl font-semibold">
+                                {(() => {
+                                    switch (activeTab) {
+                                        case 'clients':
+                                            return 'Add a new client';
+                                        case 'vendors':
+                                            return 'Add a new vendor';
+                                        case 'products':
+                                            return 'Add a new product';
+
+                                    }
+                                })()}
+                            </h3>
+                            <button
+                                className="text-gray-500 hover:text-gray-700"
+                                onClick={closeModal}
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        <form className="mt-4">
+                            {renderModalContent()}
+                            <div className="mt-4">
+                                <button
+                                    type="submit"
+                                    className="px-4 py-2 bg-blue-500 text-white font-semibold text-sm rounded-md hover:bg-blue-600 transition-colors w-full"
+                                >
+                                    Submit
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
 
     return (
-        <div className="p-4 w-full h-screen">
+        <div className="p-4 h-w-full h-screen">
             <div className="flex flex-col">
                 <h2 className="text-2xl font-bold text-black">Invoice</h2>
                 <div className="flex items-center justify-between border-b-2 border-blue-500">
@@ -56,7 +154,7 @@ const Invoice = () => {
                         </button>
                         <button
                             className="px-4 py-2 bg-white border-2 border-gray-700 text-gray-700 text-sm rounded-lg hover:bg-blue-500 hover:text-white hover:border-blue-500 transition-colors"
-                            onClick={() => console.log('Export invoices')}
+                            onClick={exportInvoices}
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 inline-block mr-2">
                                 <path fillRule="evenodd" d="M12 2.25a.75.75 0 0 1 .75.75v11.69l3.22-3.22a.75.75 0 1 1 1.06 1.06l-4.5 4.5a.75.75 0 0 1-1.06 0l-4.5-4.5a.75.75 0 1 1 1.06-1.06l3.22 3.22V3a.75.75 0 0 1 .75-.75Zm-9 13.5a.75.75 0 0 1 .75.75v2.25a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5V16.5a.75.75 0 0 1 1.5 0v2.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V16.5a.75.75 0 0 1 .75-.75Z" clipRule="evenodd" />
@@ -130,12 +228,24 @@ const Invoice = () => {
                     </tbody>
                 </table>
             </div>
-
-            {isModalOpen && (
+             {/* Modal Form */}
+             {isModalOpen && (
                 <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50">
                     <div className="bg-white p-6 rounded-lg shadow-lg w-96">
                         <div className="flex justify-between items-center">
-                            <h3 className="text-xl font-semibold">Create New Invoice</h3>
+                            <h3 className="text-xl font-semibold">
+                                {(() => {
+                                    switch (activeTab) {
+                                        case 'clients':
+                                            return 'Add a new client';
+                                        case 'vendors':
+                                            return 'Add a new vendor';
+                                        case 'products':
+                                            return 'Add a new product';
+
+                                    }
+                                })()}
+                            </h3>
                             <button
                                 className="text-gray-500 hover:text-gray-700"
                                 onClick={closeModal}
@@ -143,47 +253,8 @@ const Invoice = () => {
                                 ✕
                             </button>
                         </div>
-                        <form onSubmit={handleSubmit} className="mt-4">
-                            <div>
-                                <label className="block text-sm">Client</label>
-                                <input
-                                    type="text"
-                                    name="client"
-                                    value={newInvoice.client}
-                                    onChange={handleInputChange}
-                                    className="w-full p-2 border border-gray-300 rounded-md text-sm"
-                                />
-                            </div>
-                            <div className="mt-2">
-                                <label className="block text-sm">Vendor</label>
-                                <input
-                                    type="text"
-                                    name="vendor"
-                                    value={newInvoice.vendor}
-                                    onChange={handleInputChange}
-                                    className="w-full p-2 border border-gray-300 rounded-md text-sm"
-                                />
-                            </div>
-                            <div className="mt-2">
-                                <label className="block text-sm">Billing Date</label>
-                                <input
-                                    type="date"
-                                    name="billingDate"
-                                    value={newInvoice.billingDate}
-                                    onChange={handleInputChange}
-                                    className="w-full p-2 border border-gray-300 rounded-md text-sm"
-                                />
-                            </div>
-                            <div className="mt-2">
-                                <label className="block text-sm">Amount</label>
-                                <input
-                                    type="number"
-                                    name="amount"
-                                    value={newInvoice.amount}
-                                    onChange={handleInputChange}
-                                    className="w-full p-2 border border-gray-300 rounded-md text-sm"
-                                />
-                            </div>
+                        <form className="mt-4">
+                            {renderModalContent()}
                             <div className="mt-4">
                                 <button
                                     type="submit"
