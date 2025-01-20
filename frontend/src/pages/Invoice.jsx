@@ -2,42 +2,52 @@ import React, { useState } from 'react';
 
 const Invoice = () => {
     const [invoices, setInvoices] = useState([
-        //placeholders
         { id: 1, client: 'Client A', vendor: 'Vendor X', billingDate: '2025-01-01', status: 'Paid', amount: 500 },
         { id: 2, client: 'Client B', vendor: 'Vendor Y', billingDate: '2025-01-02', status: 'Paid', amount: 200 },
         { id: 3, client: 'Client C', vendor: 'Vendor Z', billingDate: '2025-01-03', status: 'Unpaid', amount: 800 }
     ]);
+    
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [newInvoice, setNewInvoice] = useState({
+        client: '',
+        vendor: '',
+        billingDate: '',
+        amount: '',
+    });
 
     const handleStatusChange = (invoiceId, newStatus) => {
-        setInvoices((prevInvoices) =>
-            prevInvoices.map((invoice) =>
+        setInvoices(prevInvoices =>
+            prevInvoices.map(invoice =>
                 invoice.id === invoiceId ? { ...invoice, status: newStatus } : invoice
             )
         );
     };
 
-    const createInvoice = () => {
-        console.log('Create new invoice');
+    const openModal = () => setIsModalOpen(true);
+    const closeModal = () => setIsModalOpen(false);
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setNewInvoice(prevState => ({ ...prevState, [name]: value }));
     };
 
-    const exportInvoices = () => {
-        console.log('Export invoices');
-    };
-
-    const deleteInvoices = () => {
-        console.log('Delete selected invoices');
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        setInvoices([...invoices, { ...newInvoice, id: invoices.length + 1 }]);
+        setNewInvoice({ client: '', vendor: '', billingDate: '', amount: '' });
+        closeModal();
     };
 
     return (
-        <div className="p-4 h-w-full h-screen" >
+        <div className="p-4 w-full h-screen">
             <div className="flex flex-col">
-                <h2 className="text-2xl font-bold text-black ">Invoice</h2>
-                <div className="flex items-center justify-between border-b-2 border-blue-500 ">
+                <h2 className="text-2xl font-bold text-black">Invoice</h2>
+                <div className="flex items-center justify-between border-b-2 border-blue-500">
                     <p className="text-gray-700 text-sm flex-1 py-4">Manage invoices, streamline payment processing, and filter through detailed financial records.</p>
-                    <div className="flex gap-2 items-center" >
+                    <div className="flex gap-2 items-center">
                         <button
                             className="px-4 py-2 bg-blue-500 border-2 border-blue-500 text-white font-semibold text-sm rounded-lg hover:bg-gray-700 hover:border-gray-700 transition-colors"
-                            onClick={createInvoice}
+                            onClick={openModal}
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 inline-block mr-2">
                                 <path fillRule="evenodd" d="M12 3.75a.75.75 0 0 1 .75.75v6.75h6.75a.75.75 0 0 1 0 1.5h-6.75v6.75a.75.75 0 0 1-1.5 0v-6.75H4.5a.75.75 0 0 1 0-1.5h6.75V4.5a.75.75 0 0 1 .75-.75Z" clipRule="evenodd" />
@@ -46,7 +56,7 @@ const Invoice = () => {
                         </button>
                         <button
                             className="px-4 py-2 bg-white border-2 border-gray-700 text-gray-700 text-sm rounded-lg hover:bg-blue-500 hover:text-white hover:border-blue-500 transition-colors"
-                            onClick={exportInvoices}
+                            onClick={() => console.log('Export invoices')}
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 inline-block mr-2">
                                 <path fillRule="evenodd" d="M12 2.25a.75.75 0 0 1 .75.75v11.69l3.22-3.22a.75.75 0 1 1 1.06 1.06l-4.5 4.5a.75.75 0 0 1-1.06 0l-4.5-4.5a.75.75 0 1 1 1.06-1.06l3.22 3.22V3a.75.75 0 0 1 .75-.75Zm-9 13.5a.75.75 0 0 1 .75.75v2.25a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5V16.5a.75.75 0 0 1 1.5 0v2.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V16.5a.75.75 0 0 1 .75-.75Z" clipRule="evenodd" />
@@ -120,6 +130,72 @@ const Invoice = () => {
                     </tbody>
                 </table>
             </div>
+
+            {isModalOpen && (
+                <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50">
+                    <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+                        <div className="flex justify-between items-center">
+                            <h3 className="text-xl font-semibold">Create New Invoice</h3>
+                            <button
+                                className="text-gray-500 hover:text-gray-700"
+                                onClick={closeModal}
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        <form onSubmit={handleSubmit} className="mt-4">
+                            <div>
+                                <label className="block text-sm">Client</label>
+                                <input
+                                    type="text"
+                                    name="client"
+                                    value={newInvoice.client}
+                                    onChange={handleInputChange}
+                                    className="w-full p-2 border border-gray-300 rounded-md text-sm"
+                                />
+                            </div>
+                            <div className="mt-2">
+                                <label className="block text-sm">Vendor</label>
+                                <input
+                                    type="text"
+                                    name="vendor"
+                                    value={newInvoice.vendor}
+                                    onChange={handleInputChange}
+                                    className="w-full p-2 border border-gray-300 rounded-md text-sm"
+                                />
+                            </div>
+                            <div className="mt-2">
+                                <label className="block text-sm">Billing Date</label>
+                                <input
+                                    type="date"
+                                    name="billingDate"
+                                    value={newInvoice.billingDate}
+                                    onChange={handleInputChange}
+                                    className="w-full p-2 border border-gray-300 rounded-md text-sm"
+                                />
+                            </div>
+                            <div className="mt-2">
+                                <label className="block text-sm">Amount</label>
+                                <input
+                                    type="number"
+                                    name="amount"
+                                    value={newInvoice.amount}
+                                    onChange={handleInputChange}
+                                    className="w-full p-2 border border-gray-300 rounded-md text-sm"
+                                />
+                            </div>
+                            <div className="mt-4">
+                                <button
+                                    type="submit"
+                                    className="px-4 py-2 bg-blue-500 text-white font-semibold text-sm rounded-md hover:bg-blue-600 transition-colors w-full"
+                                >
+                                    Submit
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
