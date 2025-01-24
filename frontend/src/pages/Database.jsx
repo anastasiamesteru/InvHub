@@ -237,26 +237,25 @@ const Database = () => {
     return (
         <div className="p-4 h-screen">
             <div className="flex flex-col">
-                <h2 className="text-2xl font-bold text-black">Database</h2>
-                <div className="flex items-center justify-between border-b-2 border-blue-500">
-                    <p className="text-gray-700 text-sm flex-1 py-4">
+                <div className="flex items-center justify-between border-b-2 border-purple-500">
+                    <p className="text-gray-700 text-m flex-1 py-4">
                         Manage your database, add, organize and track clients, vendors, and products with precision.
                     </p>
                     <div className="flex gap-2 items-center">
                         <button
-                            className={`px-4 py-2 bg-blue-500 border-2 text-white font-semibold text-sm rounded-lg hover:border-blue-600 hover:bg-blue-600 transition-colors ${activeTab === 'clients' ? 'bg-gray-700 border-gray-700' : 'border-blue-500 hover:border-blue-600'}`}
+                            className={`px-4 py-2 bg-purple-500 border-2 text-white font-semibold text-sm rounded-lg hover:border-purple-600 hover:bg-purple-600 transition-colors ${activeTab === 'clients' ? 'bg-gray-700 border-purple-500' : 'border-purple-500 hover:border-purple-600'}`}
                             onClick={() => handleButtonClick('clients')}
                         >
                             Clients
                         </button>
                         <button
-                            className={`px-4 py-2 bg-blue-500 border-2 text-white font-semibold text-sm rounded-lg hover:border-blue-600 hover:bg-blue-600 transition-colors ${activeTab === 'vendors' ? 'bg-gray-700 border-gray-700' : 'border-blue-500 hover:border-blue-600'}`}
+                            className={`px-4 py-2 bg-purple-500 border-2 text-white font-semibold text-sm rounded-lg hover:border-purple-600 hover:bg-purple-600 transition-colors ${activeTab === 'vendors' ? 'bg-gray-700 border-purple-500' : 'border-purple-500 hover:border-purple-600'}`}
                             onClick={() => handleButtonClick('vendors')}
                         >
                             Vendors
                         </button>
                         <button
-                            className={`px-4 py-2 bg-blue-500 border-2 text-white font-semibold text-sm rounded-lg hover:border-blue-600 hover:bg-blue-600 transition-colors ${activeTab === 'products' ? 'bg-gray-700 border-gray-700' : 'border-blue-500 hover:border-blue-600'}`}
+                            className={`px-4 py-2 bg-purple-500 border-2 text-white font-semibold text-sm rounded-lg hover:border-purple-600 hover:bg-purple-600 transition-colors ${activeTab === 'products' ? 'bg-gray-700 border-purple-500' : 'border-purple-500 hover:border-purple-600'}`}
                             onClick={() => handleButtonClick('products')}
                         >
                             Products
@@ -273,7 +272,7 @@ const Database = () => {
             <div className="flex mt-4">
                 <button
                     onClick={openModal}
-                    className="px-4 py-2 bg-blue-500 text-white font-semibold text-sm rounded-full hover:bg-blue-600 transition-colors"
+                    className="px-4 py-2 bg-purple-500 text-white font-semibold text-sm rounded-full hover:bg-purple-600 transition-colors"
                 >
                     + Add
                 </button>
@@ -309,7 +308,7 @@ const Database = () => {
                             <div className="mt-4">
                                 <button
                                     type="submit"
-                                    className="px-4 py-2 bg-blue-500 text-white font-semibold text-sm rounded-md hover:bg-blue-600 transition-colors w-full"
+                                    className="px-4 py-2 bg-purple-500 text-white font-semibold text-sm rounded-md hover:bg-purple-600 transition-colors w-full"
                                 >
                                     Submit
                                 </button>

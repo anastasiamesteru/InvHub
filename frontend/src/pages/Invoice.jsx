@@ -87,7 +87,7 @@ const Invoice = () => {
                     console.log('Invoice saved');
                     closeModal();
                   }}
-                  className="ml-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
+                  className="ml-2 px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition"
                 >
                   Save
                 </button>
@@ -126,7 +126,7 @@ const Invoice = () => {
                             <div className="mt-4">
                                 <button
                                     type="submit"
-                                    className="px-4 py-2 bg-blue-500 text-white font-semibold text-sm rounded-md hover:bg-blue-600 transition-colors w-full"
+                                    className="px-4 py-2 bg-purple-500 text-white font-semibold text-sm rounded-md hover:bg-purple-600 transition-colors w-full"
                                 >
                                     Submit
                                 </button>
@@ -139,12 +139,11 @@ const Invoice = () => {
     return (
         <div className="p-4 h-w-full h-screen">
             <div className="flex flex-col">
-                <h2 className="text-2xl font-bold text-black">Invoice</h2>
-                <div className="flex items-center justify-between border-b-2 border-blue-500">
-                    <p className="text-gray-700 text-sm flex-1 py-4">Manage invoices, streamline payment processing, and filter through detailed financial records.</p>
+                <div className="flex items-center justify-between border-b-2 border-purple-500">
+                    <p className="text-gray-700 text-m flex-1 py-4">Manage invoices, streamline payment processing, and filter through detailed financial records.</p>
                     <div className="flex gap-2 items-center">
                         <button
-                            className="px-4 py-2 bg-blue-500 border-2 border-blue-500 text-white font-semibold text-sm rounded-lg hover:bg-gray-700 hover:border-gray-700 transition-colors"
+                            className="px-4 py-2 bg-purple-500 border-2 border-purple-500 text-white font-semibold text-sm rounded-lg hover:bg-gray-700 hover:border-gray-700 transition-colors"
                             onClick={openModal}
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 inline-block mr-2">
@@ -153,7 +152,7 @@ const Invoice = () => {
                             Add
                         </button>
                         <button
-                            className="px-4 py-2 bg-white border-2 border-gray-700 text-gray-700 text-sm rounded-lg hover:bg-blue-500 hover:text-white hover:border-blue-500 transition-colors"
+                            className="px-4 py-2 bg-white border-2 border-gray-700 text-gray-700 text-sm rounded-lg hover:bg-purple-500 hover:text-white hover:border-purple-500 transition-colors"
                             onClick={exportInvoices}
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 inline-block mr-2">
@@ -171,7 +170,7 @@ const Invoice = () => {
                         type="text"
                         id="search-box"
                         placeholder="🔎︎ Search by invoice number, name, amount..."
-                        className="flex-1 p-2 border border-gray-300 rounded-md text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        className="flex-1 p-2 border border-gray-300 rounded-md text-xs focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
                     />
                 </div>
 
@@ -204,7 +203,7 @@ const Invoice = () => {
                                     <td className="px-3 py-2 text-center">{invoice.amount}</td>
                                     <td className="px-3 py-2 text-center">
                                         <button
-                                            className={`px-4 py-2 font-semibold text-sm rounded-md ${invoice.status === "Paid" ? "bg-gray-300 cursor-not-allowed" : "bg-blue-500 text-white hover:bg-blue-700"}`}
+                                            className={`px-4 py-2 font-semibold text-sm rounded-md ${invoice.status === "Paid" ? "bg-gray-300 cursor-not-allowed" : "bg-purple-500 text-white hover:bg-purple-700"}`}
                                             disabled={invoice.status === "Paid"}
                                             onClick={() => handleStatusChange(invoice.id, 'Paid')}
                                         >
@@ -258,7 +257,7 @@ const Invoice = () => {
                             <div className="mt-4">
                                 <button
                                     type="submit"
-                                    className="px-4 py-2 bg-blue-500 text-white font-semibold text-sm rounded-md hover:bg-blue-600 transition-colors w-full"
+                                    className="px-4 py-2 bg-purple-500 text-white font-semibold text-sm rounded-md hover:bg-purple-600 transition-colors w-full"
                                 >
                                     Submit
                                 </button>
