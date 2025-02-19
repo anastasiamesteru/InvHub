@@ -1,6 +1,28 @@
 import React, { useState } from 'react';
 
 const Database = () => {
+    const [cifCnp, setCifCnp] = useState('');
+
+    const [clientType, setClientType] = useState('company'); 
+
+    const handleClientTypeChange = (event) => {
+        setClientType(event.target.value);
+    };
+
+    const handleClientCifCnpChange = (event) => {
+        setCifCnp(event.target.value);
+    };
+
+    const [vendorType, setVendorType] = useState('company'); 
+
+    const handleVendorTypeChange = (event) => {
+        setVendorType(event.target.value);
+    };
+
+    const handleVendorCifCnpChange = (event) => {
+        setCifCnp(event.target.value);
+    };
+
     const [activeTab, setActiveTab] = useState('clients');
     const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -17,7 +39,7 @@ const Database = () => {
         { id: 3, name: 'Tech Solutions', contact: 'tech@solutions.com' },
     ];
 
-    const products = [
+    const items = [
         { id: 1, name: 'Product 1', price: '$10' },
         { id: 2, name: 'Product 2', price: '$20' },
         { id: 3, name: 'Product 3', price: '$30' },
@@ -77,7 +99,7 @@ const Database = () => {
                         </tbody>
                     </table>
                 );
-            case 'products':
+            case 'items':
                 return (
                     <table className="w-full border-collapse text-sm">
                         <thead>
@@ -90,11 +112,11 @@ const Database = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {products.map(product => (
-                                <tr key={product.id}>
-                                    <td className="px-3 py-2 text-center">{product.id}</td>
-                                    <td className="px-3 py-2 text-center">{product.name}</td>
-                                    <td className="px-3 py-2 text-center">{product.price}</td>
+                            {items.map(item => (
+                                <tr key={item.id}>
+                                    <td className="px-3 py-2 text-center">{item.id}</td>
+                                    <td className="px-3 py-2 text-center">{item.name}</td>
+                                    <td className="px-3 py-2 text-center">{item.price}</td>
                                 </tr>
                             ))}
                         </tbody>
@@ -146,12 +168,28 @@ const Database = () => {
                             className="mt-1 p-2 w-full border border-gray-300 rounded-md"
                             placeholder="Enter client email"
                         />
-                        <label htmlFor="cif/cnp" className="block text-sm font-medium text-gray-700 mt-1">CIF/CNP</label>
+                        <label htmlFor="type" className="block text-sm font-medium text-gray-700 mt-1">Type</label>
+                        <select
+                            id="type"
+                            value={clientType}
+                            onChange={handleClientTypeChange}
+                            className="mt-1 p-2 w-full border border-gray-300 rounded-md"
+                        >
+                            <option value="company">Company</option>
+                            <option value="individual">Individual</option>
+                        </select>
+
+
+                        <label htmlFor="cif/cnp" className="block text-sm font-medium text-gray-700 mt-1">
+                            {clientType === 'company' ? 'CIF' : 'CNP'}
+                        </label>
                         <input
                             type="text"
-                            id="cnp"
+                            id="cif/cnp"
+                            value={cifCnp}
+                            onChange={handleClientCifCnpChange}
                             className="mt-1 p-2 w-full border border-gray-300 rounded-md"
-                            placeholder="Enter client CIF/CNP"
+                            placeholder={clientType === 'company' ? 'Enter company CIF' : 'Enter individual CNP'}
                         />
                     </>
                 );
@@ -186,46 +224,71 @@ const Database = () => {
                             className="mt-1 p-2 w-full border border-gray-300 rounded-md"
                             placeholder="Enter vendor email"
                         />
-                        <label htmlFor="contact" className="block text-sm font-medium text-gray-700 mt-1">CIF/CNP</label>
+                       <label htmlFor="type" className="block text-sm font-medium text-gray-700 mt-1">Type</label>
+                        <select
+                            id="type"
+                            value={vendorType}
+                            onChange={handleVendorTypeChange}
+                            className="mt-1 p-2 w-full border border-gray-300 rounded-md"
+                        >
+                            <option value="company">Company</option>
+                            <option value="individual">Individual</option>
+                        </select>
+
+
+                        <label htmlFor="cif/cnp" className="block text-sm font-medium text-gray-700 mt-1">
+                            {vendorType === 'company' ? 'CIF' : 'CNP'}
+                        </label>
                         <input
                             type="text"
-                            id="cnp"
+                            id="cif/cnp"
+                            value={cifCnp}
+                            onChange={handleVendorCifCnpChange}
                             className="mt-1 p-2 w-full border border-gray-300 rounded-md"
-                            placeholder="Enter vendor CIF/CNP"
+                            placeholder={vendorType === 'company' ? 'Enter company CIF' : 'Enter individual CNP'}
                         />
 
                     </>
                 );
-            case 'products':
+            case 'items':
                 return (
                     <>
-                        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mt-1">Product Name</label>
+                        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mt-1">Name</label>
                         <input
                             type="text"
                             id="name"
                             className="mt-1 p-2 w-full border border-gray-300 rounded-md"
-                            placeholder="Enter product name"
+                            placeholder="Enter item name"
                         />
                         <label htmlFor="description" className="block text-sm font-medium text-gray-700 mt-1">Description</label>
                         <input
                             type="text"
                             id="description"
                             className="mt-1 p-2 w-full border border-gray-300 rounded-md"
-                            placeholder="Enter product description"
+                            placeholder="Enter item description"
                         />
+                        <label htmlFor="type" className="block text-sm font-medium text-gray-700 mt-1">Type</label>
+                        <select
+                            id="type"
+                            className="mt-1 p-2 w-full border border-gray-300 rounded-md"
+                        >
+                            <option value="product">Product</option>
+                            <option value="service">Service</option>
+                        </select>
+
                         <label htmlFor="price" className="block text-sm font-medium text-gray-700 mt-1">Price</label>
                         <input
                             type="text"
                             id="price"
                             className="mt-1 p-2 w-full border border-gray-300 rounded-md"
-                            placeholder="Enter product price"
+                            placeholder="Enter item price"
                         />
                         <label htmlFor="um" className="block text-sm font-medium text-gray-700 mt-1">U.M.</label>
                         <input
                             type="text"
                             id="um"
                             className="mt-1 p-2 w-full border border-gray-300 rounded-md"
-                            placeholder="Enter product u.m."
+                            placeholder="Enter item u.m."
                         />
                     </>
                 );
@@ -239,7 +302,7 @@ const Database = () => {
             <div className="flex flex-col">
                 <div className="flex items-center justify-between border-b-2 border-purple-500">
                     <p className="text-gray-700 text-m flex-1 py-4">
-                        Manage your database, add, organize and track clients, vendors, and products with precision.
+                        Manage your database, add, organize and track clients, vendors, and items with precision.
                     </p>
                     <div className="flex gap-2 items-center">
                         <button
@@ -255,10 +318,10 @@ const Database = () => {
                             Vendors
                         </button>
                         <button
-                            className={`px-4 py-2 bg-purple-500 border-2 text-white font-semibold text-sm rounded-lg hover:border-purple-600 hover:bg-purple-600 transition-colors ${activeTab === 'products' ? 'bg-gray-700 border-purple-500' : 'border-purple-500 hover:border-purple-600'}`}
-                            onClick={() => handleButtonClick('products')}
+                            className={`px-4 py-2 bg-purple-500 border-2 text-white font-semibold text-sm rounded-lg hover:border-purple-600 hover:bg-purple-600 transition-colors ${activeTab === 'items' ? 'bg-gray-700 border-purple-500' : 'border-purple-500 hover:border-purple-600'}`}
+                            onClick={() => handleButtonClick('items')}
                         >
-                            Products
+                            Items
                         </button>
                     </div>
                 </div>
@@ -290,8 +353,8 @@ const Database = () => {
                                             return 'Add a new client';
                                         case 'vendors':
                                             return 'Add a new vendor';
-                                        case 'products':
-                                            return 'Add a new product';
+                                        case 'items':
+                                            return 'Add a new item';
 
                                     }
                                 })()}

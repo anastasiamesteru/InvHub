@@ -9,4 +9,22 @@ const invoiceSchema = new mongoose.Schema({
     total: { type: Number, required: true } 
 });
 
+invoiceSchema.pre('save', async function(next) {
+    if (this.invoice_lines && this.invoice_lines.length > 0) {
+        try {
+            const invoiceLines = await mongoose.model('InvoiceLine').find({
+                '_id': { $in: this.invoice_lines }
+            });
+
+            this.total = invoiceLines.reduce((sum, line) => sum + line.total_price, 0);
+            next();
+        } catch (error) {
+            next(error);
+        }
+    } else {
+        this.total = 0;
+        next();
+    }
+});
+
 module.exports = mongoose.model('Invoice', invoiceSchema);

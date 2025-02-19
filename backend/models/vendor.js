@@ -7,8 +7,8 @@ const vendorSchema = new mongoose.Schema({
     phone: { type: String },
     address: { type: String },
     type: { type: String, enum: ['company', 'individual'], required: true },
-    cif: { type: Number, required: function () { return this.type === 'company'; } },
-    cnp: { type: Number, required: function () { return this.type === 'individual'; } },
+    cif: { type: String, required: function () { return this.type === 'company'; } },
+    cnp: { type: String, required: function () { return this.type === 'individual'; } },
   });
   
   module.exports = mongoose.model('Vendor', vendorSchema);
