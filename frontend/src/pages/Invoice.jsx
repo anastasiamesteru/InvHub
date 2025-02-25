@@ -4,6 +4,7 @@ import InvoiceModal from '../components/InvoiceModal';
 const Invoice = () => {
     const [activeTab, setActiveTab] = useState('invoice');
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
 
     const [invoices, setInvoices] = useState([
         { id: 1, client: 'Client A', vendor: 'Vendor X', billingDate: '2025-01-01', status: 'Paid', amount: 500 },
@@ -19,12 +20,23 @@ const Invoice = () => {
         );
     };
 
+    const deleteInvoice = (invoiceId) => {
+        setInvoices((prevInvoices) => prevInvoices.filter(invoice => invoice.id !== invoiceId));
+    };
+
     const exportInvoices = () => {
         console.log('Export invoices');
     };
-    const openModal = () => { setIsModalOpen(true); };
 
-    const closeModal = () => { setIsModalOpen(false) };
+    const openModal = () => { setIsModalOpen(true); };
+    const closeModal = () => { setIsModalOpen(false); };
+
+    const filteredInvoices = invoices.filter((invoice) =>
+        invoice.client.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        invoice.vendor.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        invoice.status.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        invoice.amount.toString().includes(searchQuery)
+    );
 
     return (
         <div className="p-4 h-w-full h-screen">
@@ -41,15 +53,6 @@ const Invoice = () => {
                             </svg>
                             Add
                         </button>
-                        <button
-                            className="px-4 py-2 bg-white border-2 border-gray-700 text-gray-700 text-sm rounded-lg hover:bg-purple-500 hover:text-white hover:border-purple-500 transition-colors"
-                            onClick={exportInvoices}
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 inline-block mr-2">
-                                <path fillRule="evenodd" d="M12 2.25a.75.75 0 0 1 .75.75v11.69l3.22-3.22a.75.75 0 1 1 1.06 1.06l-4.5 4.5a.75.75 0 0 1-1.06 0l-4.5-4.5a.75.75 0 1 1 1.06-1.06l3.22 3.22V3a.75.75 0 0 1 .75-.75Zm-9 13.5a.75.75 0 0 1 .75.75v2.25a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5V16.5a.75.75 0 0 1 1.5 0v2.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V16.5a.75.75 0 0 1 .75-.75Z" clipRule="evenodd" />
-                            </svg>
-                            Download PDF
-                        </button>
                     </div>
                 </div>
             </div>
@@ -59,8 +62,10 @@ const Invoice = () => {
                     <input
                         type="text"
                         id="search-box"
-                        placeholder="🔎︎ Search by invoice number, name, amount..."
+                        placeholder="🔎︎ Search by client, vendor, amount, or status..."
                         className="flex-1 p-2 border border-gray-300 rounded-md text-xs focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
                     />
                 </div>
 
@@ -73,13 +78,12 @@ const Invoice = () => {
                             <th className="px-3 py-2 text-center bg-gray-200">Billing Date</th>
                             <th className="px-3 py-2 text-center bg-gray-200">Status</th>
                             <th className="px-3 py-2 text-center bg-gray-200">Amount</th>
-                            <th className="px-3 py-2 text-center bg-gray-200"></th>
-                            <th className="px-3 py-2 text-center bg-gray-200"></th>
+                            <th className="px-3 py-2 text-center bg-gray-200">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {invoices.length > 0 ? (
-                            invoices.map((invoice) => (
+                        {filteredInvoices.length > 0 ? (
+                            filteredInvoices.map((invoice) => (
                                 <tr key={invoice.id} className="hover:bg-gray-100">
                                     <td className="px-3 py-2 text-center">{invoice.id}</td>
                                     <td className="px-3 py-2 text-center">{invoice.client}</td>
@@ -91,17 +95,18 @@ const Invoice = () => {
                                         </span>
                                     </td>
                                     <td className="px-3 py-2 text-center">{invoice.amount}</td>
-                                    <td className="px-3 py-2 text-center">
-                                        <button
-                                            className={`px-4 py-2 font-semibold text-sm rounded-md ${invoice.status === "Paid" ? "bg-gray-300 cursor-not-allowed" : "bg-purple-500 text-white hover:bg-purple-700"}`}
-                                            disabled={invoice.status === "Paid"}
-                                            onClick={() => handleStatusChange(invoice.id, 'Paid')}
-                                        >
-                                            Pay
+                                    <td className="px-3 py-2 text-center flex justify-center gap-2">
+                                        <button className="px-2 py-1 text-center" >
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                                                <path d="M16.98 3.02a2.87 2.87 0 1 1 4.06 4.06l-1.41 1.41-4.06-4.06 1.41-1.41zM3 17.25V21h3.75l11.29-11.29-3.75-3.75L3 17.25z" />
+                                            </svg>
                                         </button>
-                                    </td>
-                                    <td className="px-3 py-2 text-center">
-                                        <button className="px-4 py-2">
+                                        <button className="px-2 py-1 text-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 inline-block mr-2">
+                                                <path fillRule="evenodd" d="M12 2.25a.75.75 0 0 1 .75.75v11.69l3.22-3.22a.75.75 0 1 1 1.06 1.06l-4.5 4.5a.75.75 0 0 1-1.06 0l-4.5-4.5a.75.75 0 1 1 1.06-1.06l3.22 3.22V3a.75.75 0 0 1 .75-.75Zm-9 13.5a.75.75 0 0 1 .75.75v2.25a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5V16.5a.75.75 0 0 1 1.5 0v2.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V16.5a.75.75 0 0 1 .75-.75Z" clipRule="evenodd" />
+                                            </svg>
+                                        </button>
+                                        <button className="px-2 py-1 text-center" onClick={() => deleteInvoice(invoice.id)}>
                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" className="w-5 h-5">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
                                             </svg>
@@ -111,15 +116,12 @@ const Invoice = () => {
                             ))
                         ) : (
                             <tr>
-                                <td colSpan="8" className="text-center py-4">No invoices found</td>
+                                <td colSpan="7" className="text-center py-4">No invoices found.</td>
                             </tr>
                         )}
                     </tbody>
                 </table>
             </div>
-
-            <InvoiceModal isOpen={isModalOpen} onClose={closeModal} />
-
         </div>
     );
 };
