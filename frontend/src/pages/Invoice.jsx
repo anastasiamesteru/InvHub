@@ -53,12 +53,15 @@ const Invoice = () => {
                             </svg>
                             Add
                         </button>
+                        <InvoiceModal
+                isOpen={isModalOpen} 
+                onClose={closeModal} 
+            />
                     </div>
                 </div>
             </div>
 
-            <div className="mt-8">
-                <div className="flex items-center bg-gray-100 p-2 rounded-md mb-5">
+            <div className="flex items-center bg-gray-100 p-2 rounded-md mt-2 mb-2">
                     <input
                         type="text"
                         id="search-box"
@@ -68,7 +71,7 @@ const Invoice = () => {
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
                 </div>
-
+            <div>
                 <table className="w-full border-collapse text-sm overflow-auto">
                     <thead>
                         <tr>

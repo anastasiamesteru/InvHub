@@ -30,7 +30,7 @@ const InvoiceModal = ({ isOpen, onClose }) => {
         <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50">
             <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
                 <div className="flex justify-between items-center">
-                    <h3 className="text-xl font-semibold">Create New Invoice</h3>
+                    <h3 className="text-xl font-semibold">Create a new invoice</h3>
                     <button
                         className="text-gray-500 hover:text-gray-700"
                         onClick={onClose}
@@ -237,14 +237,15 @@ const InvoiceModal = ({ isOpen, onClose }) => {
                         <button className="mt-4 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-md">+ Add new line</button>
                     </div>
 
-                    <div className="mt-4">
+                    <div className="flex justify-center mt-4">
                         <button
                             type="submit"
-                            className="px-4 py-2 bg-purple-500 text-white font-semibold text-sm rounded-md hover:bg-purple-600 transition-colors w-full"
+                            className="px-1 py-2 bg-purple-500 text-white font-semibold text-md rounded-md hover:bg-purple-600 transition-colors w-60"
                         >
                             Submit
                         </button>
                     </div>
+
                 </form>
 
             </div>
