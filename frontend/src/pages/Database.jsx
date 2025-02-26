@@ -6,6 +6,10 @@ const Database = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
 
+    const openModal = () => {
+        setIsModalOpen(true);
+    };
+
     const clients = [
         { id: 1, name: 'John Doe', phone: '555-1234', address: '123 Main St', email: 'john@example.com', cifCnp: '123456789' },
         { id: 2, name: 'Jane Smith', phone: '555-5678', address: '456 Oak St', email: 'jane@example.com', cifCnp: '987654321' },
@@ -34,6 +38,7 @@ const Database = () => {
             return clients.filter((client) =>
                 client.name.toLowerCase().includes(query) ||
                 client.email.toLowerCase().includes(query) ||
+                client.address.toLowerCase().includes(query) ||
                 client.phone.toLowerCase().includes(query) ||
                 client.cifCnp.toLowerCase().includes(query)
             );
@@ -41,6 +46,7 @@ const Database = () => {
             return vendors.filter((vendor) =>
                 vendor.name.toLowerCase().includes(query) ||
                 vendor.email.toLowerCase().includes(query) ||
+                vendor.address.toLowerCase().includes(query) ||
                 vendor.phone.toLowerCase().includes(query) ||
                 vendor.cifCnp.toLowerCase().includes(query)
             );
@@ -181,16 +187,26 @@ const Database = () => {
                     />
                 </div>
                 {/* Render Table Content */}
+
                 {renderTableContent()}
 
-                {/* Modal */}
-                {isModalOpen && (
-                    <DatabaseModal
-                        activeTab={activeTab}
-                        closeModal={() => setIsModalOpen(false)}
-                    />
-                )}
+                 <div className="flex mt-4">
+                <button
+                    onClick={openModal}
+                    className="px-4 py-2 bg-purple-500 text-white font-semibold text-sm rounded-full hover:bg-purple-600 transition-colors"
+                >
+                    + Add
+                </button>
             </div>
+
+            {/* Modal */}
+            {isModalOpen && (
+                <DatabaseModal
+                    activeTab={activeTab}
+                    setIsModalOpen={setIsModalOpen} // Pass the setIsModalOpen function
+                />
+            )}
+        </div>
         </div>
     );
 };

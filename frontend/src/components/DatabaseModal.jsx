@@ -150,8 +150,7 @@ const DatabaseModal = ({ activeTab, clientType, vendorType, cifCnp, setCifCnp, h
                         />
                     </>
                 );
-            default:
-                return <p className="text-center">Select a category to display data.</p>;
+         
         }
     };
 
