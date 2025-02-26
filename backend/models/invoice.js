@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const invoiceSchema = new mongoose.Schema({
     client: { type: mongoose.Schema.Types.ObjectId, ref: 'Client', required: true }, 
@@ -27,4 +27,4 @@ invoiceSchema.pre('save', async function(next) {
     }
 });
 
-module.exports = mongoose.model('Invoice', invoiceSchema);
+export default mongoose.model('Invoice', invoiceSchema);  // ES module export

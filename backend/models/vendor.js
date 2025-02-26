@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from 'mongoose';
 
 const vendorSchema = new mongoose.Schema({
    vendor_id: { type: Number, unique: true }, 
@@ -11,4 +11,4 @@ const vendorSchema = new mongoose.Schema({
     cnp: { type: String, required: function () { return this.type === 'individual'; } },
   });
   
-  module.exports = mongoose.model('Vendor', vendorSchema);
+export default mongoose.model('Vendor', vendorSchema);  

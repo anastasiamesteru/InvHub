@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const clientSchema = new mongoose.Schema({
     client_id: { type: Number, unique: true }, 
@@ -10,5 +10,6 @@ const clientSchema = new mongoose.Schema({
     cif: { type: String, required: function () { return this.type === 'company'; } },
     cnp: { type: String, required: function () { return this.type === 'individual'; } },
   });
+
+  export default mongoose.model('Client', clientSchema);  
   
-  module.exports = mongoose.model('Client', clientSchema);

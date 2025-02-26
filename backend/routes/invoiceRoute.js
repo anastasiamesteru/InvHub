@@ -1,10 +1,11 @@
-const express = require('express');
-const router = express.Router();
-const Invoice = require('../models/invoice'); 
-const InvoiceLine = require('../models/invoiceLine');
+import express from 'express';
+import Invoice from '../models/invoice.js';
+import InvoiceLine from '../models/invoiceLine.js';
+
+const invoiceRoute = express.Router();
 
 // Get all invoices and populate invoice lines with related item details
-router.get('/', async (req, res) => {
+invoiceRoute.get('/', async (req, res) => {
     try {
         const invoices = await Invoice.find()
             .populate({
@@ -27,7 +28,7 @@ router.get('/', async (req, res) => {
 });
 
 // Create a new invoice
-router.post('/', async (req, res) => {
+invoiceRoute.post('/', async (req, res) => {
     const { client, vendor, issue_date, due_date, invoice_lines } = req.body;
 
     try {
@@ -59,7 +60,7 @@ router.post('/', async (req, res) => {
 });
 
 //Get a single invoice by its ID, including the invoice lines and item details
-router.get('/:id', async (req, res) => {
+invoiceRoute.get('/:id', async (req, res) => {
     try {
         const invoice = await Invoice.findById(req.params.id)
             .populate({
@@ -82,7 +83,7 @@ router.get('/:id', async (req, res) => {
 });
 
 //Update an invoice by ID
-router.put('/:id', async (req, res) => {
+invoiceRoute.put('/:id', async (req, res) => {
     const { client, vendor, issue_date, due_date, invoice_lines } = req.body;
 
     try {
@@ -119,7 +120,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete an invoice by ID
-router.delete('/:id', async (req, res) => {
+invoiceRoute.delete('/:id', async (req, res) => {
     try {
         const deletedInvoice = await Invoice.findByIdAndDelete(req.params.id);
 
@@ -134,4 +135,4 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
-module.exports = router;
+export default invoiceRoute;

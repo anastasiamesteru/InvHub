@@ -1,9 +1,10 @@
-const express = require('express');
-const router = express.Router();
-const Vendor = require('../models/vendor');
+import express from 'express';
+import Vendor from '../models/vendor.js';
+
+const vendorRoute = express.Router();
 
 // Get all vendors
-router.get('/', async (req, res) => {
+vendorRoute.get('/', async (req, res) => {
     try {
         const vendors = await Vendor.find();
         res.json(vendors);
@@ -13,7 +14,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get a single vendor by ID
-router.get('/:id', async (req, res) => {
+vendorRoute.get('/:id', async (req, res) => {
     try {
         const vendor = await Vendor.findById(req.params.id);
         if (!vendor) return res.status(404).json({ message: 'Vendor not found' });
@@ -24,7 +25,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create a new vendor
-router.post('/', async (req, res) => {
+vendorRoute.post('/', async (req, res) => {
     const { name, type, cif, cnp } = req.body;
     if (type === 'company' && !cif) return res.status(400).json({ message: 'CIF is required for companies' });
     if (type === 'individual' && !cnp) return res.status(400).json({ message: 'CNP is required for individuals' });
@@ -39,7 +40,7 @@ router.post('/', async (req, res) => {
 });
 
 // Update a vendor
-router.put('/:id', async (req, res) => {
+vendorRoute.put('/:id', async (req, res) => {
     try {
         const updatedVendor = await Vendor.findByIdAndUpdate(req.params.id, req.body, { new: true });
         if (!updatedVendor) return res.status(404).json({ message: 'Vendor not found' });
@@ -50,7 +51,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete a vendor
-router.delete('/:id', async (req, res) => {
+vendorRoute.delete('/:id', async (req, res) => {
     try {
         const deletedVendor = await Vendor.findByIdAndDelete(req.params.id);
         if (!deletedVendor) return res.status(404).json({ message: 'Vendor not found' });
@@ -60,4 +61,4 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
-module.exports = router;
+export default vendorRoute;

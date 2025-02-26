@@ -1,11 +1,11 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const InvoiceLine = require('../models/invoiceLine');  
-const Item = require('../models/item');  
-const router = express.Router();
+import express from 'express';
+import InvoiceLine from '../models/invoiceLine.js';  
+import Item from '../models/item.js';
+
+const invoiceLineRoute = express.Router();
 
 // Create a new invoice line
-router.post('/', async (req, res) => {
+invoiceLineRoute.post('/', async (req, res) => {
     const { invoice_id, item_id, item_name, item_price, item_um, quantity } = req.body;
 
     try {
@@ -29,7 +29,7 @@ router.post('/', async (req, res) => {
 });
 
 // Get all invoice lines for an invoice, including item type
-router.get('/:invoice_id', async (req, res) => {
+invoiceLineRoute.get('/:invoice_id', async (req, res) => {
     try {
         const invoiceLines = await InvoiceLine.find({ invoice_id: req.params.invoice_id })
             .populate('item_id', 'type');  // Populate the item type from the Item model
@@ -52,7 +52,7 @@ router.get('/:invoice_id', async (req, res) => {
 });
 
 // Update an invoice line
-router.put('/:id', async (req, res) => {
+invoiceLineRoute.put('/:id', async (req, res) => {
     const { item_name, item_price, item_um, quantity } = req.body;
 
     try {
@@ -74,7 +74,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete an invoice line
-router.delete('/:id', async (req, res) => {
+invoiceLineRoute.delete('/:id', async (req, res) => {
     try {
         const deletedInvoiceLine = await InvoiceLine.findByIdAndDelete(req.params.id);
 
@@ -89,4 +89,4 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
-module.exports = router;
+export default invoiceLineRoute;

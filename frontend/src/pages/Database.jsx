@@ -74,7 +74,10 @@ const Database = () => {
                                 <th className="px-3 py-2 text-center bg-gray-200">Phone No</th>
                                 <th className="px-3 py-2 text-center bg-gray-200">Address</th>
                                 <th className="px-3 py-2 text-center bg-gray-200">Email</th>
+                                <th className="px-3 py-2 text-center bg-gray-200">Type</th>
                                 <th className="px-3 py-2 text-center bg-gray-200">CIF/CNP</th>
+                                <th className="px-3 py-2 text-center bg-gray-200">Actions</th>
+
                             </tr>
                         </thead>
                         <tbody>
@@ -85,7 +88,20 @@ const Database = () => {
                                     <td className="px-3 py-2 text-center">{client.phone}</td>
                                     <td className="px-3 py-2 text-center">{client.address}</td>
                                     <td className="px-3 py-2 text-center">{client.email}</td>
+                                    <td className="px-3 py-2 text-center">{client.type}</td>
                                     <td className="px-3 py-2 text-center">{client.cifCnp}</td>
+                                    <td className="px-3 py-2 text-center flex justify-center gap-2">
+                                        <button className="px-2 py-1 text-center" >
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                                                <path d="M16.98 3.02a2.87 2.87 0 1 1 4.06 4.06l-1.41 1.41-4.06-4.06 1.41-1.41zM3 17.25V21h3.75l11.29-11.29-3.75-3.75L3 17.25z" />
+                                            </svg>
+                                        </button>
+                                        <button className="px-2 py-1 text-center" onClick={() => deleteInvoice(invoice.id)}>
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" className="w-5 h-5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                                            </svg>
+                                        </button>
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
@@ -101,7 +117,12 @@ const Database = () => {
                                 <th className="px-3 py-2 text-center bg-gray-200">Phone No</th>
                                 <th className="px-3 py-2 text-center bg-gray-200">Address</th>
                                 <th className="px-3 py-2 text-center bg-gray-200">Email</th>
+                                <th className="px-3 py-2 text-center bg-gray-200">Type</th>
                                 <th className="px-3 py-2 text-center bg-gray-200">CIF/CNP</th>
+                                <th className="px-3 py-2 text-center bg-gray-200">Actions
+                                    
+                                </th>
+
                             </tr>
                         </thead>
                         <tbody>
@@ -112,8 +133,22 @@ const Database = () => {
                                     <td className="px-3 py-2 text-center">{vendor.phone}</td>
                                     <td className="px-3 py-2 text-center">{vendor.address}</td>
                                     <td className="px-3 py-2 text-center">{vendor.email}</td>
+                                    <td className="px-3 py-2 text-center">{vendor.type}</td>
                                     <td className="px-3 py-2 text-center">{vendor.cifCnp}</td>
+                                    <td className="px-3 py-2 text-center flex justify-center gap-2">
+                                        <button className="px-2 py-1 text-center" >
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                                                <path d="M16.98 3.02a2.87 2.87 0 1 1 4.06 4.06l-1.41 1.41-4.06-4.06 1.41-1.41zM3 17.25V21h3.75l11.29-11.29-3.75-3.75L3 17.25z" />
+                                            </svg>
+                                        </button>
+                                        <button className="px-2 py-1 text-center" onClick={() => deleteInvoice(invoice.id)}>
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" className="w-5 h-5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                                            </svg>
+                                        </button>
+                                    </td>
                                 </tr>
+
                             ))}
                         </tbody>
                     </table>
@@ -127,7 +162,10 @@ const Database = () => {
                                 <th className="px-3 py-2 text-center bg-gray-200">Name</th>
                                 <th className="px-3 py-2 text-center bg-gray-200">Description</th>
                                 <th className="px-3 py-2 text-center bg-gray-200">Price</th>
+                                <th className="px-3 py-2 text-center bg-gray-200">Type</th>
                                 <th className="px-3 py-2 text-center bg-gray-200">U.M.</th>
+                                <th className="px-3 py-2 text-center bg-gray-200">Actions</th>
+
                             </tr>
                         </thead>
                         <tbody>
@@ -137,8 +175,22 @@ const Database = () => {
                                     <td className="px-3 py-2 text-center">{item.name}</td>
                                     <td className="px-3 py-2 text-center">{item.description}</td>
                                     <td className="px-3 py-2 text-center">{item.price}</td>
+                                    <td className="px-3 py-2 text-center">{item.type}</td>
                                     <td className="px-3 py-2 text-center">{item.unit}</td>
+                                      <td className="px-3 py-2 text-center flex justify-center gap-2">
+                                        <button className="px-2 py-1 text-center" >
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                                                <path d="M16.98 3.02a2.87 2.87 0 1 1 4.06 4.06l-1.41 1.41-4.06-4.06 1.41-1.41zM3 17.25V21h3.75l11.29-11.29-3.75-3.75L3 17.25z" />
+                                            </svg>
+                                        </button>
+                                        <button className="px-2 py-1 text-center" onClick={() => deleteInvoice(invoice.id)}>
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" className="w-5 h-5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                                            </svg>
+                                        </button>
+                                    </td>
                                 </tr>
+                                
                             ))}
                         </tbody>
                     </table>
@@ -180,7 +232,7 @@ const Database = () => {
                     <input
                         type="text"
                         id="search-box"
-                        placeholder="🔎︎ Search by client, vendor, amount, or status..."
+                        placeholder="🔎︎ Search across clients, vendors and items..."
                         className="flex-1 p-2 border border-gray-300 rounded-md text-xs focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}

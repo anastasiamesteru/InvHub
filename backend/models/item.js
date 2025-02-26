@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from 'mongoose';
 
 const itemSchema = new mongoose.Schema({
     id: { type: Number, unique: true }, 
@@ -10,11 +10,7 @@ const itemSchema = new mongoose.Schema({
       enum: ['product', 'service'], 
       required: true,
     },
-    um: {
-      type: String,
-      enum: ['kg', 'pcs', 'liters', 'hour', 'day', 'service'], 
-      default: 'pcs',
-    },
+    um: { type: String, required: true },
   });
   
-  module.exports = mongoose.model('Item', itemSchema);
+export default mongoose.model('Item', itemSchema);  

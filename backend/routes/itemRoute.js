@@ -1,10 +1,10 @@
-const express = require("express");
-const Item = require("../models/item"); 
+import express from 'express';
+import Item from '../models/item.js';
 
-const router = express.Router();
+const itemRoute = express.Router();
 
 // Create a new item
-router.post("/", async (req, res) => {
+itemRoute.post("/", async (req, res) => {
     try {
         const item = new Item(req.body);
         await item.save();
@@ -15,7 +15,7 @@ router.post("/", async (req, res) => {
 });
 
 //Get all items
-router.get("/", async (req, res) => {
+itemRoute.get("/", async (req, res) => {
     try {
         const items = await Item.find();
         res.status(200).json(items);
@@ -25,7 +25,7 @@ router.get("/", async (req, res) => {
 });
 
 // Get a single item by ID
-router.get("/:id", async (req, res) => {
+itemRoute.get("/:id", async (req, res) => {
     try {
         const item = await Item.findById(req.params.id);
         if (!item) return res.status(404).json({ error: "Item not found" });
@@ -36,7 +36,7 @@ router.get("/:id", async (req, res) => {
 });
 
 // Update an item
-router.put("/:id", async (req, res) => {
+itemRoute.put("/:id", async (req, res) => {
     try {
         const item = await Item.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
         if (!item) return res.status(404).json({ error: "Item not found" });
@@ -47,7 +47,7 @@ router.put("/:id", async (req, res) => {
 });
 
 // Delete an item
-router.delete("/:id", async (req, res) => {
+itemRoute.delete("/:id", async (req, res) => {
     try {
         const item = await Item.findByIdAndDelete(req.params.id);
         if (!item) return res.status(404).json({ error: "Item not found" });
@@ -57,4 +57,4 @@ router.delete("/:id", async (req, res) => {
     }
 });
 
-module.exports = router;
+export default itemRoute;
