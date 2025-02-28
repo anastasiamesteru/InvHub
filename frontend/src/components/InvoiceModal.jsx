@@ -46,7 +46,7 @@ const InvoiceModal = ({ isOpen, onClose }) => {
         if (!clientName) {
             newErrors.clientName = "Client name is required.";
         }
-
+       
         // Client Address Validation
         if (!clientAddress) {
             newErrors.clientAddress = "Client address is required.";
@@ -123,7 +123,7 @@ const InvoiceModal = ({ isOpen, onClose }) => {
 
     const [products, setProducts] = useState([
         { itemName: '', quantity: '', price: '' }
-      ]);
+    ]);
 
     if (!isOpen) return null;
     return (
@@ -340,7 +340,7 @@ const InvoiceModal = ({ isOpen, onClose }) => {
                                     <th className="border border-gray-300 px-4 py-2 text-center">Unit Price</th>
                                     <th className="border border-gray-300 px-4 py-2 text-center">Total</th>
                                     <th className="border border-gray-300 px-4 py-2 text-center">
-                                        
+
                                     </th>
                                 </tr>
                             </thead>
@@ -348,20 +348,20 @@ const InvoiceModal = ({ isOpen, onClose }) => {
                             {/* Table Body */}
                             <tbody>
                                 <tr>
-                                    <td className="border border-gray-300 px-4 py-2"> 
+                                    <td className="border border-gray-300 px-4 py-2">
                                         <input type="text" placeholder="Product/Service" className="w-full p-1 border rounded-md" value={itemName}
-                                        onChange={handleItemNameChange} />
-                                        
+                                            onChange={handleItemNameChange} />
+
                                     </td>
                                     <td className="border border-gray-300 px-4 py-2 text-center">
-                                        <input type="number" placeholder="Qty" className="w-16 p-1 border rounded-md text-center"  value={quantity}
-                                        onChange={handleQuantityChange} />
-                                       
+                                        <input type="number" placeholder="Qty" className="w-16 p-1 border rounded-md text-center" value={quantity}
+                                            onChange={handleQuantityChange} />
+
                                     </td>
                                     <td className="border border-gray-300 px-4 py-2 text-center">
-                                        <input type="number" placeholder="Price" className="w-20 p-1 border rounded-md text-center"  value={price}
-                                        onChange={handlePriceChange} />
-                                       
+                                        <input type="number" placeholder="Price" className="w-20 p-1 border rounded-md text-center" value={price}
+                                            onChange={handlePriceChange} />
+
                                     </td>
                                     <td className="border border-gray-300 px-4 py-2 text-center">
                                         <span>$0.00</span>

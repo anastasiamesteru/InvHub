@@ -9,6 +9,13 @@ const Database = () => {
     const openModal = () => {
         setIsModalOpen(true);
     };
+    const [currentPage, setCurrentPage] = useState(1);
+    const elementsPerPage = 8;
+
+    const indexOfLastElement = currentPage * elementsPerPage;
+    const indexOfFirstElement = indexOfLastElement - elementsPerPage;
+
+    const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
     const clients = [
         { id: 1, name: 'John Doe', phone: '555-1234', address: '123 Main St', email: 'john@example.com', cifCnp: '123456789' },
@@ -59,8 +66,7 @@ const Database = () => {
             );
         }
         return [];
-    };
-
+    }
     const renderTableContent = () => {
         const filteredItems = filteredData();
         switch (activeTab) {
@@ -258,6 +264,40 @@ const Database = () => {
                     setIsModalOpen={setIsModalOpen} // Pass the setIsModalOpen function
                 />
             )}
+        </div>
+        <div>
+            {/* Pagination Controls */}
+            <div className="flex justify-center mt-4">
+                <button
+                    className="px-4 py-2 mx-2 text-sm font-semibold text-white bg-purple-500 rounded-lg hover:bg-purple-700"
+                    onClick={() => setCurrentPage(1)}
+                    disabled={currentPage === 1}
+                >
+                    First
+                </button>
+                <button
+                    className="px-4 py-2 mx-2 text-sm font-semibold text-white bg-purple-500 rounded-lg hover:bg-purple-700"
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                >
+                    Prev
+                </button>
+                <span className="px-4 py-2 mx-2 text-sm text-gray-600">{currentPage}</span>
+                <button
+                    className="px-4 py-2 mx-2 text-sm font-semibold text-white bg-purple-500 rounded-lg hover:bg-purple-700"
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(filteredData().length / elementsPerPage)))}
+                    disabled={currentPage === Math.ceil(filteredData().length / elementsPerPage)}
+                >
+                    Next
+                </button>
+                <button
+                    className="px-4 py-2 mx-2 text-sm font-semibold text-white bg-purple-500 rounded-lg hover:bg-purple-700"
+                    onClick={() => setCurrentPage(Math.ceil(filteredData().length / elementsPerPage))}
+                    disabled={currentPage === Math.ceil(filteredData().length / elementsPerPage)}
+                >
+                    Last
+                </button>
+            </div>
         </div>
         </div>
     );
