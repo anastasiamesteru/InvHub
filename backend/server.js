@@ -8,6 +8,7 @@ import invoiceLineRoutes from './routes/invoiceLineRoute.js';
 import itemRoutes from './routes/itemRoute.js';
 import clientRoutes from './routes/clientRoute.js';
 import vendorRoutes from './routes/vendorRoute.js';
+import authRoute from './routes/authRoute.js';
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -26,6 +27,8 @@ app.use('/routes/invoicelines', invoiceLineRoutes);
 app.use('/routes/items', itemRoutes);
 app.use('/routes/clients', clientRoutes);
 app.use('/routes/vendors', vendorRoutes);
+app.use('/routes/auth', authRoute);
+
 
 mongoose.connect(process.env.MONGO_URL)
   .then(() => {
