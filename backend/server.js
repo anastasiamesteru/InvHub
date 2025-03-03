@@ -27,8 +27,7 @@ app.use('/routes/invoicelines', invoiceLineRoutes);
 app.use('/routes/items', itemRoutes);
 app.use('/routes/clients', clientRoutes);
 app.use('/routes/vendors', vendorRoutes);
-app.use('/routes/auth', authRoute);
-
+app.use('/auth', authRoute);
 
 mongoose.connect(process.env.MONGO_URL)
   .then(() => {
