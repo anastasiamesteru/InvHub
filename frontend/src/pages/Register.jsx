@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { assets } from '../assets/assets';
 
 const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const validateForm = () => {
     let newErrors = {};
@@ -18,7 +20,7 @@ const Register = () => {
       newErrors.email = 'E-mail is required!';
       hasError = true;
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      newErrors.email = 'Invalid e-mail format! Ensure it contains "@" and a valid domain.';
+      newErrors.email = 'Invalid e-mail format!';
       hasError = true;
     }
 
@@ -39,21 +41,26 @@ const Register = () => {
     }
 
     setErrors(newErrors);
-
-    if (hasError) {
-      setFormError('Email or password is incorrect'); 
-    } else {
-      setFormError(''); 
-    }
-
     return !hasError;
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    if (validateForm()) {
-      console.log('Registration successful!');
+    if (!validateForm()) return;
+
+    setLoading(true);
+    try {
+      const response = await axios.post('http://localhost:4000/auth/register', {
+        email,
+        password,
+      });
+
+      navigate('/login');
+    } catch (error) {
+      console.error('Registration error:', error.response?.data?.message || 'Something went wrong');
+      setFormError(error.response?.data?.message || 'Registration failed, please try again.');
     }
+    setLoading(false);
   };
 
   return (
@@ -108,8 +115,9 @@ const Register = () => {
           <button
             type="submit"
             className="w-full bg-purple-500 text-white font-semibold py-2 rounded-md hover:bg-purple-600 transition-colors"
+            disabled={loading}
           >
-            Register
+            {loading ? 'Registering...' : 'Register'}
           </button>
           {formError && <p className="text-red-500 text-sm mt-3 text-center">{formError}</p>}
           <p className="text-sm text-gray-700 mt-3">

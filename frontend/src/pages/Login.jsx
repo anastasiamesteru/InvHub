@@ -1,12 +1,15 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { assets } from '../assets/assets';
 
-const Login = () => {
+const Login = ({ onLoginSuccess }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
-  const [formError, setFormError] = useState(''); 
+  const [formError, setFormError] = useState('');
+  const [loading, setLoading] = useState(false);  
+  const navigate = useNavigate();
 
   const validateForm = () => {
     let newErrors = {};
@@ -16,7 +19,7 @@ const Login = () => {
       newErrors.email = 'E-mail is required!';
       hasError = true;
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      newErrors.email = 'Invalid e-mail format! Ensure it contains "@" and a valid domain.';
+      newErrors.email = 'Invalid e-mail format!';
       hasError = true;
     }
 
@@ -29,38 +32,50 @@ const Login = () => {
     }
 
     setErrors(newErrors);
-
-    if (hasError) {
-      setFormError('Email or password is incorrect'); 
-    } else {
-      setFormError(''); 
-    }
-
+    setFormError(hasError ? 'Email or password is incorrect' : '');
     return !hasError;
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    if (validateForm()) {
-      console.log('Login successful!');
+    if (!validateForm()) return;
+
+    setLoading(true);
+    try {
+      const response = await axios.post('http://localhost:4000/auth/login', {
+        email,
+        password,
+      });
+
+      navigate('/dashboard');
+      onLoginSuccess(response.data); 
+    } catch (error) {
+      console.error('Login error:', error.response?.data?.message || 'Something went wrong');
+      setFormError(error.response?.data?.message || 'Login failed, please try again.');
     }
+    setLoading(false);
   };
+
+  useEffect(() => {
+    // Automatically focus on the first field with an error
+    if (errors.email) {
+      document.getElementById('email').focus();
+    } else if (errors.password) {
+      document.getElementById('password').focus();
+    }
+  }, [errors]);
 
   return (
     <div
       className="flex justify-center items-center min-h-screen bg-cover bg-center"
-      style={{ backgroundImage: `url(${assets.Bg})` }} 
+      style={{ backgroundImage: `url(${assets.Bg})` }}
     >
       <div className="bg-white p-8 rounded-lg shadow-lg max-w-sm w-full">
         <div className="flex justify-center mb-4">
           <img className="w-65" src={assets.Logo} alt="Logo" />
         </div>
-
         <h1 className="text-2xl font-semibold text-center mb-3">Login</h1>
-        <p className="text-sm text-gray-700 mb-6">
-          So glad to see you again! Log in to continue invoicing.
-        </p>
-
+        <p className="text-sm text-gray-700 mb-6">Welcome back! Log in to continue.</p>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label htmlFor="email" className="block text-sm font-medium text-gray-700">
@@ -69,16 +84,14 @@ const Login = () => {
             <input
               type="email"
               id="email"
+              name="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className={`mt-1 p-2 w-full border rounded-md ${
-                errors.email ? 'border-red-500' : 'border-gray-300'
-              }`}
+              className="mt-1 p-2 w-full border rounded-md"
               placeholder="Enter your email"
             />
             {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
           </div>
-
           <div className="mb-6">
             <label htmlFor="password" className="block text-sm font-medium text-gray-700">
               Password
@@ -86,25 +99,22 @@ const Login = () => {
             <input
               type="password"
               id="password"
+              name="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className={`mt-1 p-2 w-full border rounded-md ${
-                errors.password ? 'border-red-500' : 'border-gray-300'
-              }`}
+              className="mt-1 p-2 w-full border rounded-md"
               placeholder="Enter your password"
             />
             {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
           </div>
-
-          {formError && <p className="text-red-500 text-sm text-center mb-4">{formError}</p>} {/* Overall error message */}
-
+          {formError && <p className="text-red-500 text-sm text-center mb-4">{formError}</p>}
           <button
             type="submit"
-            className="w-full bg-purple-500 text-white font-semibold py-2 rounded-md hover:bg-purple-600 transition-colors"
+            className={`w-full bg-purple-500 text-white font-semibold py-2 rounded-md hover:bg-purple-600 transition-colors ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+            disabled={loading}  // Disable button while loading
           >
-            Login
+            {loading ? 'Logging in...' : 'Login'}
           </button>
-
           <p className="text-sm text-gray-700 mt-3">
             Don't have an account?
             <Link to="/register" className="text-purple-500 underline hover:text-purple-600 ml-1">

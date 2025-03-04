@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
 import Invoice from './pages/Invoice';
 import Database from './pages/Database';
@@ -14,9 +14,12 @@ const App = () => {
       {window.location.pathname !== '/login' && window.location.pathname !== '/register' && <Navbar />}
       <main className="flex-grow min-h-screen w-full">
         <Routes>
+          {/* Redirect root to login page */}
+          <Route path="/" element={<Navigate to="/login" />} />
+
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/" element={<Dashboard />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/invoice" element={<Invoice />} />
           <Route path="/database" element={<Database />} />
           <Route path="/report" element={<Report />} />
