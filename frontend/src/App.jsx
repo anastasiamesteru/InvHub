@@ -1,5 +1,5 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
 import Invoice from './pages/Invoice';
 import Database from './pages/Database';
@@ -9,20 +9,43 @@ import Register from './pages/Register';
 import Navbar from './components/Navbar';
 
 const App = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const navigate = useNavigate();
+
+  //yeah idk 
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    setIsAuthenticated(!!token);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setIsAuthenticated(false);
+    navigate('/login');
+  };
+
   return (
     <div className="flex flex-col min-h-screen w-full">
-      {window.location.pathname !== '/login' && window.location.pathname !== '/register' && <Navbar />}
+      {/* Show Navbar only when authenticated */}
+      {isAuthenticated && <Navbar onLogout={handleLogout} />}
+
       <main className="flex-grow min-h-screen w-full">
         <Routes>
-          {/* Redirect root to login page */}
-          <Route path="/" element={<Navigate to="/login" />} />
-
-          <Route path="/login" element={<Login />} />
+          <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Navigate to="/login" />} />
+          <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/invoice" element={<Invoice />} />
-          <Route path="/database" element={<Database />} />
-          <Route path="/report" element={<Report />} />
+          
+          {/* Protected Routes */}
+          {isAuthenticated ? (
+            <>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/invoice" element={<Invoice />} />
+              <Route path="/database" element={<Database />} />
+              <Route path="/report" element={<Report />} />
+            </>
+          ) : (
+            <Route path="*" element={<Navigate to="/login" />} />
+          )}
         </Routes>
       </main>
     </div>

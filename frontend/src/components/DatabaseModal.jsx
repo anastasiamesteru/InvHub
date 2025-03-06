@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 
 const DatabaseModal = ({
     activeTab,
     clientType,
     vendorType,
-    itemType,
-    cifCnp,
-    setCifCnp,
+    setIsModalOpen,
     handleClientTypeChange,
-    handleVendorTypeChange,
-    setIsModalOpen
+    handleVendorTypeChange
 }) => {
     const [errors, setErrors] = useState({});
 
@@ -17,26 +15,29 @@ const DatabaseModal = ({
         setIsModalOpen(false);
     };
 
-    // Form State
+    // Form State for Clients
     const [clientName, setClientName] = useState('');
     const [clientAddress, setClientAddress] = useState('');
     const [clientEmail, setClientEmail] = useState('');
     const [clientPhoneNo, setClientPhoneNo] = useState('');
     const [clientCifCnp, setClientCifCnp] = useState('');
 
+    // Form State for Vendors
     const [vendorName, setVendorName] = useState('');
     const [vendorAddress, setVendorAddress] = useState('');
     const [vendorEmail, setVendorEmail] = useState('');
     const [vendorPhoneNo, setVendorPhoneNo] = useState('');
     const [vendorCifCnp, setVendorCifCnp] = useState('');
 
+    // Form State for Items
     const [itemName, setItemName] = useState('');
     const [UM, setUM] = useState('');
     const [price, setPrice] = useState('');
     const [quantity, setQuantity] = useState('');
     const [description, setDescription] = useState('');
     const [productUM, setProductUM] = useState('');
-    const [serviceUM, setServicetUM] = useState('');
+    const [serviceUM, setServiceUM] = useState('');
+    const [itemType, setItemType] = useState('product'); 
 
     // Generic handler for input changes
     const handleChange = (setter) => (event) => setter(event.target.value);
@@ -77,15 +78,10 @@ const DatabaseModal = ({
         if (activeTab === "items") {
             if (!itemName.trim()) newErrors.itemName = "Item name is required.";
             if (!UM.trim()) newErrors.UM = "Unit of measurement (UM) is required.";
-
-            // Validate price for a valid number greater than 0
             if (!price.trim() || isNaN(price) || parseFloat(price) <= 0)
                 newErrors.price = "Valid price (greater than 0) is required.";
-
-            // Validate quantity for a valid number greater than 0
             if (!quantity.trim() || isNaN(quantity) || parseInt(quantity) <= 0)
                 newErrors.quantity = "Valid quantity (greater than 0) is required.";
-
             if (!description.trim()) newErrors.description = "Description is required.";
         }
 
@@ -93,11 +89,51 @@ const DatabaseModal = ({
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        if (validateForm()) {
-            console.log('Form submitted');
-            closeModal(); // Close modal immediately after validation
+        if (!validateForm()) return;
+
+        let endpoint = '';
+        let payload = {};
+
+        if (activeTab === "clients") {
+            endpoint = 'http://localhost:4000/client/create';
+            payload = {
+                name: clientName,
+                address: clientAddress,
+                email: clientEmail,
+                phone: clientPhoneNo,
+                cifCnp: clientCifCnp,
+                type: clientType, 
+            };
+        } else if (activeTab === "vendors") {
+            endpoint = 'http://localhost:4000/vendor/create';
+            payload = {
+                name: vendorName,
+                address: vendorAddress,
+                email: vendorEmail,
+                phone: vendorPhoneNo,
+                cifCnp: vendorCifCnp,
+                type: vendorType, 
+            };
+        } else if (activeTab === "items") {
+            endpoint = 'http://localhost:4000/item/create';
+            payload = {
+                name: itemName,
+                description,
+                price,
+                itemType, 
+                UM: itemType === 'product' ? productUM : serviceUM,
+            };
+        }
+
+        try {
+            const response = await axios.post(endpoint, payload);
+            alert(`${activeTab} entry added successfully!`);
+            closeModal();
+        } catch (error) {
+            console.error('Error posting data:', error);
+            alert('Failed to add entry.');
         }
     };
 
@@ -105,11 +141,10 @@ const DatabaseModal = ({
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
             <div className="bg-white p-6 rounded-lg shadow-md w-1/3">
                 <div className="flex justify-between items-center">
-                    <h3 className="text-lg font-bold">{activeTab ? activeTab.charAt(0).toUpperCase() + activeTab.slice(1) : "Unknown"}</h3>
-                    <button
-                        className="text-gray-500 hover:text-gray-700"
-                        onClick={closeModal}
-                    >
+                    <h3 className="text-lg font-bold">
+                        {activeTab ? activeTab.charAt(0).toUpperCase() + activeTab.slice(1) : "Unknown"}
+                    </h3>
+                    <button className="text-gray-500 hover:text-gray-700" onClick={closeModal}>
                         ✕
                     </button>
                 </div>
@@ -178,7 +213,6 @@ const DatabaseModal = ({
                             />
                             {errors.clientCifCnp && <p className="text-red-500 text-xs">{errors.clientCifCnp}</p>}
                         </>
-                        
                     )}
 
                     {activeTab === "vendors" && (

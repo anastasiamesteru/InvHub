@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { assets } from '../assets/assets';
 
-const Login = ({ onLoginSuccess }) => {
+const Login = ({ onLoginSuccess, setIsAuthenticated  }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
@@ -11,6 +11,8 @@ const Login = ({ onLoginSuccess }) => {
   const [loading, setLoading] = useState(false);  
   const navigate = useNavigate();
 
+
+  
   const validateForm = () => {
     let newErrors = {};
     let hasError = false;
@@ -47,25 +49,20 @@ const Login = ({ onLoginSuccess }) => {
         password,
       });
 
+      localStorage.setItem('token', response.data.token);
+      setIsAuthenticated(true);
+      onLoginSuccess(response.data);
       navigate('/dashboard');
-      onLoginSuccess(response.data); 
     } catch (error) {
-      console.error('Login error:', error.response?.data?.message || 'Something went wrong');
+      console.error('Login error:', error.response?.data?.message || error.message);
       setFormError(error.response?.data?.message || 'Login failed, please try again.');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
-  };
+};
 
-  useEffect(() => {
-    // Automatically focus on the first field with an error
-    if (errors.email) {
-      document.getElementById('email').focus();
-    } else if (errors.password) {
-      document.getElementById('password').focus();
-    }
-  }, [errors]);
 
-  return (
+   return (
     <div
       className="flex justify-center items-center min-h-screen bg-cover bg-center"
       style={{ backgroundImage: `url(${assets.Bg})` }}

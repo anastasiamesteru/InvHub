@@ -6,16 +6,16 @@ const Invoice = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [invoices, setInvoices] = useState([
-        { id: 1, client: 'Client A', vendor: 'Vendor X', billingDate: '2025-01-01', status: 'Paid', amount: 500 },
-        { id: 2, client: 'Client B', vendor: 'Vendor Y', billingDate: '2025-01-02', status: 'Paid', amount: 200 },
-        { id: 3, client: 'Client C', vendor: 'Vendor Z', billingDate: '2025-01-03', status: 'Unpaid', amount: 800 },
-        { id: 4, client: 'Client A', vendor: 'Vendor X', billingDate: '2025-01-04', status: 'Unpaid', amount: 1200 },
-        { id: 5, client: 'Client E', vendor: 'Vendor Y', billingDate: '2025-01-05', status: 'Paid', amount: 1500 },
-        { id: 6, client: 'Client D', vendor: 'Vendor Z', billingDate: '2025-01-06', status: 'Paid', amount: 600 },
-        { id: 7, client: 'Client F', vendor: 'Vendor X', billingDate: '2025-01-07', status: 'Unpaid', amount: 1000 },
-        { id: 8, client: 'Client B', vendor: 'Vendor Y', billingDate: '2025-01-08', status: 'Paid', amount: 700 },
-        { id: 9, client: 'Client C', vendor: 'Vendor Z', billingDate: '2025-01-09', status: 'Paid', amount: 900 },
-        { id: 10, client: 'Client E', vendor: 'Vendor X', billingDate: '2025-01-10', status: 'Unpaid', amount: 300 }
+        { id: 1, client: 'Client A', vendor: 'Vendor X', dueDate: '2025-01-01', status: 'On Time', amount: 500 },
+        { id: 2, client: 'Client B', vendor: 'Vendor Y', dueDate: '2025-01-02', status: 'On Time', amount: 200 },
+        { id: 3, client: 'Client C', vendor: 'Vendor Z', dueDate: '2025-01-03', status: 'Overdue', amount: 800 },
+        { id: 4, client: 'Client A', vendor: 'Vendor X', dueDate: '2025-01-04', status: 'Overdue', amount: 1200 },
+        { id: 5, client: 'Client E', vendor: 'Vendor Y', dueDate: '2025-01-05', status: 'On Time', amount: 1500 },
+        { id: 6, client: 'Client D', vendor: 'Vendor Z', dueDate: '2025-01-06', status: 'On Time', amount: 600 },
+        { id: 7, client: 'Client F', vendor: 'Vendor X', dueDate: '2025-01-07', status: 'Overdue', amount: 1000 },
+        { id: 8, client: 'Client B', vendor: 'Vendor Y', dueDate: '2025-01-08', status: 'On Time', amount: 700 },
+        { id: 9, client: 'Client C', vendor: 'Vendor Z', dueDate: '2025-01-09', status: 'On Time', amount: 900 },
+        { id: 10, client: 'Client E', vendor: 'Vendor X', dueDate: '2025-01-10', status: 'Overdue', amount: 300 }
     ]);
 
     const [currentPage, setCurrentPage] = useState(1);
@@ -95,7 +95,7 @@ const Invoice = () => {
                             <th className="px-3 py-2 text-center bg-gray-200">Invoice number</th>
                             <th className="px-3 py-2 text-center bg-gray-200">Client</th>
                             <th className="px-3 py-2 text-center bg-gray-200">Vendor</th>
-                            <th className="px-3 py-2 text-center bg-gray-200">Billing Date</th>
+                            <th className="px-3 py-2 text-center bg-gray-200">Due Date</th>
                             <th className="px-3 py-2 text-center bg-gray-200">Status</th>
                             <th className="px-3 py-2 text-center bg-gray-200">Amount</th>
                             <th className="px-3 py-2 text-center bg-gray-200">Actions</th>
@@ -108,9 +108,9 @@ const Invoice = () => {
                                     <td className="px-3 py-2 text-center">{invoice.id}</td>
                                     <td className="px-3 py-2 text-center">{invoice.client}</td>
                                     <td className="px-3 py-2 text-center">{invoice.vendor}</td>
-                                    <td className="px-3 py-2 text-center">{invoice.billingDate}</td>
+                                    <td className="px-3 py-2 text-center">{invoice.dueDate}</td>
                                     <td className="px-3 py-2 text-center">
-                                        <span className={`inline-block px-2 py-1 font-semibold rounded ${invoice.status === 'Paid' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                        <span className={`inline-block px-2 py-1 font-semibold rounded ${invoice.status === 'On Time' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                                             {invoice.status}
                                         </span>
                                     </td>
