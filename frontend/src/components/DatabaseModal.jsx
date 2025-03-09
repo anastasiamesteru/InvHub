@@ -1,88 +1,61 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const DatabaseModal = ({
     activeTab,
-    clientType,
-    vendorType,
     setIsModalOpen,
-    handleClientTypeChange,
-    handleVendorTypeChange
 }) => {
     const [errors, setErrors] = useState({});
+    const [formData, setFormData] = useState({
+        name: '',
+        address: '',
+        phone: '',
+        email: '',
+        cifCnp: '',
+        UM: '',
+        price: '',
+        quantity: '',
+        description: '',
+    });
 
-    const closeModal = () => {
-        setIsModalOpen(false);
+    const [clientType, setClientType] = useState('company');
+    const [vendorType, setVendorType] = useState('company');
+    const [itemType, setItemType] = useState('company');
+
+    const handleClientTypeChange = (event) => setClientType(event.target.value);
+    const handleVendorTypeChange = (event) => setVendorType(event.target.value);
+    const handleItemTypeChange = (event) => setItemType(event.target.value);
+
+    const closeModal = () => setIsModalOpen(false);
+
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
     };
-
-    // Form State for Clients
-    const [clientName, setClientName] = useState('');
-    const [clientAddress, setClientAddress] = useState('');
-    const [clientEmail, setClientEmail] = useState('');
-    const [clientPhoneNo, setClientPhoneNo] = useState('');
-    const [clientCifCnp, setClientCifCnp] = useState('');
-
-    // Form State for Vendors
-    const [vendorName, setVendorName] = useState('');
-    const [vendorAddress, setVendorAddress] = useState('');
-    const [vendorEmail, setVendorEmail] = useState('');
-    const [vendorPhoneNo, setVendorPhoneNo] = useState('');
-    const [vendorCifCnp, setVendorCifCnp] = useState('');
-
-    // Form State for Items
-    const [itemName, setItemName] = useState('');
-    const [UM, setUM] = useState('');
-    const [price, setPrice] = useState('');
-    const [quantity, setQuantity] = useState('');
-    const [description, setDescription] = useState('');
-    const [productUM, setProductUM] = useState('');
-    const [serviceUM, setServiceUM] = useState('');
-    const [itemType, setItemType] = useState('product'); 
-
-    // Generic handler for input changes
-    const handleChange = (setter) => (event) => setter(event.target.value);
 
     const validateForm = () => {
         const newErrors = {};
 
-        if (activeTab === "clients") {
-            if (!clientName.trim()) newErrors.clientName = "Client name is required.";
-            if (!clientAddress.trim()) newErrors.clientAddress = "Client address is required.";
-            if (!clientPhoneNo.trim() || !/^\d{10}$/.test(clientPhoneNo))
-                newErrors.clientPhoneNo = "Valid phone number (10 digits) is required.";
-            if (!clientEmail.trim() || !/\S+@\S+\.\S+/.test(clientEmail))
-                newErrors.clientEmail = "Valid email is required.";
-            if (!clientCifCnp.trim())
-                newErrors.clientCifCnp = clientType === "company" ? "CIF is required." : "CNP is required.";
-            else if (clientType === "company" && !/^\d{8,9}$/.test(clientCifCnp))
-                newErrors.clientCifCnp = "Valid CIF required (8-9 digits).";
-            else if (clientType === "individual" && !/^\d{13}$/.test(clientCifCnp))
-                newErrors.clientCifCnp = "Valid CNP required (13 digits).";
-        }
-
-        if (activeTab === "vendors") {
-            if (!vendorName.trim()) newErrors.vendorName = "Vendor name is required.";
-            if (!vendorAddress.trim()) newErrors.vendorAddress = "Vendor address is required.";
-            if (!vendorPhoneNo.trim() || !/^\d{10}$/.test(vendorPhoneNo))
-                newErrors.vendorPhoneNo = "Valid phone number (10 digits) is required.";
-            if (!vendorEmail.trim() || !/\S+@\S+\.\S+/.test(vendorEmail))
-                newErrors.vendorEmail = "Valid email is required.";
-            if (!vendorCifCnp.trim())
-                newErrors.vendorCifCnp = vendorType === "company" ? "CIF is required." : "CNP is required.";
-            else if (vendorType === "company" && !/^\d{8,9}$/.test(vendorCifCnp))
-                newErrors.vendorCifCnp = "Valid CIF required (8-9 digits).";
-            else if (vendorType === "individual" && !/^\d{13}$/.test(vendorCifCnp))
-                newErrors.vendorCifCnp = "Valid CNP required (13 digits).";
+        if (activeTab === "clients" || activeTab === "vendors") {
+            if (!formData.name.trim()) newErrors.name = "Name is required.";
+            if (!formData.address.trim()) newErrors.address = "Address is required.";
+            if (!formData.phone.trim() || !/^\d{10}$/.test(formData.phone))
+                newErrors.phone = "Valid phone number (10 digits) is required.";
+            if (!formData.email.trim() || !/\S+@\S+\.\S+/.test(formData.email))
+                newErrors.email = "Valid email is required.";
+            if (!formData.cifCnp.trim())
+                newErrors.cifCnp = (activeTab === "clients" ? clientType : vendorType) === "company" ? "CIF is required." : "CNP is required.";
+            else if ((activeTab === "clients" ? clientType : vendorType) === "company" && !/^\d{8,9}$/.test(formData.cifCnp))
+                newErrors.cifCnp = "Valid CIF required (8-9 digits).";
+            else if ((activeTab === "clients" ? clientType : vendorType) === "individual" && !/^\d{13}$/.test(formData.cifCnp))
+                newErrors.cifCnp = "Valid CNP required (13 digits).";
         }
 
         if (activeTab === "items") {
-            if (!itemName.trim()) newErrors.itemName = "Item name is required.";
-            if (!UM.trim()) newErrors.UM = "Unit of measurement (UM) is required.";
-            if (!price.trim() || isNaN(price) || parseFloat(price) <= 0)
+            if (!formData.name.trim()) newErrors.name = "Item name is required.";
+            if (!formData.UM.trim()) newErrors.UM = "Unit of measurement is required.";
+            if (!formData.price.trim() || isNaN(formData.price) || parseFloat(formData.price) <= 0)
                 newErrors.price = "Valid price (greater than 0) is required.";
-            if (!quantity.trim() || isNaN(quantity) || parseInt(quantity) <= 0)
-                newErrors.quantity = "Valid quantity (greater than 0) is required.";
-            if (!description.trim()) newErrors.description = "Description is required.";
+            if (!formData.description.trim()) newErrors.description = "Description is required.";
         }
 
         setErrors(newErrors);
@@ -91,52 +64,44 @@ const DatabaseModal = ({
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!validateForm()) return;
-
-        let endpoint = '';
-        let payload = {};
-
-        if (activeTab === "clients") {
-            endpoint = 'http://localhost:4000/client/create';
-            payload = {
-                name: clientName,
-                address: clientAddress,
-                email: clientEmail,
-                phone: clientPhoneNo,
-                cifCnp: clientCifCnp,
-                type: clientType, 
-            };
-        } else if (activeTab === "vendors") {
-            endpoint = 'http://localhost:4000/vendor/create';
-            payload = {
-                name: vendorName,
-                address: vendorAddress,
-                email: vendorEmail,
-                phone: vendorPhoneNo,
-                cifCnp: vendorCifCnp,
-                type: vendorType, 
-            };
-        } else if (activeTab === "items") {
-            endpoint = 'http://localhost:4000/item/create';
-            payload = {
-                name: itemName,
-                description,
-                price,
-                itemType, 
-                UM: itemType === 'product' ? productUM : serviceUM,
-            };
+    
+        // Ensure the form is valid
+        if (!validateForm()) {
+            alert('Form validation failed!');
+            return;
         }
-
+    
+        // Dynamically set the endpoint based on the activeTab
+        const endpoint = `http://localhost:4000/${activeTab}/create`;
+    
+        // Make sure clientType or vendorType is set correctly
+        const payload = { 
+            ...formData, 
+            type: activeTab === "clients" ? clientType : vendorType 
+        };
+    
+        console.log('Payload:', payload);  // Debugging: Check payload structure
+    
         try {
+            // Send data to the server via axios POST request
             const response = await axios.post(endpoint, payload);
+            console.log('Response:', response);  // Debugging: Check server response
             alert(`${activeTab} entry added successfully!`);
             closeModal();
         } catch (error) {
+            // Handle error properly and log more details
             console.error('Error posting data:', error);
-            alert('Failed to add entry.');
+            if (error.response) {
+                // Server responded with an error
+                console.error('Error response:', error.response);
+                alert(`Failed to add entry. Error: ${error.response.data.message || 'Unknown error'}`);
+            } else {
+                // Network or other errors
+                alert('Failed to add entry. Please check your network connection.');
+            }
         }
     };
-
+    
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
             <div className="bg-white p-6 rounded-lg shadow-md w-1/3">
@@ -154,42 +119,46 @@ const DatabaseModal = ({
                             <label className="block text-sm font-medium text-gray-700 mt-2">Name</label>
                             <input
                                 type="text"
+                                name="name"
                                 className="mt-1 p-2 w-full border border-gray-300 rounded-md"
-                                value={clientName}
-                                onChange={handleChange(setClientName)}
+                                value={formData.name}
+                                onChange={handleChange}
                                 placeholder="Enter client name"
                             />
-                            {errors.clientName && <p className="text-red-500 text-xs">{errors.clientName}</p>}
+                            {errors.name && <p className="text-red-500 text-xs">{errors.name}</p>}
 
                             <label className="block text-sm font-medium text-gray-700 mt-2">Phone Number</label>
                             <input
                                 type="text"
+                                name="phone"
                                 className="mt-1 p-2 w-full border border-gray-300 rounded-md"
-                                value={clientPhoneNo}
-                                onChange={handleChange(setClientPhoneNo)}
+                                value={formData.phone}
+                                onChange={handleChange}
                                 placeholder="Enter client phone number"
                             />
-                            {errors.clientPhoneNo && <p className="text-red-500 text-xs">{errors.clientPhoneNo}</p>}
+                            {errors.phone && <p className="text-red-500 text-xs">{errors.phone}</p>}
 
                             <label className="block text-sm font-medium text-gray-700 mt-2">Address</label>
                             <input
                                 type="text"
+                                name="address"
                                 className="mt-1 p-2 w-full border border-gray-300 rounded-md"
-                                value={clientAddress}
-                                onChange={handleChange(setClientAddress)}
+                                value={formData.address}
+                                onChange={handleChange}
                                 placeholder="Enter client address"
                             />
-                            {errors.clientAddress && <p className="text-red-500 text-xs">{errors.clientAddress}</p>}
+                            {errors.address && <p className="text-red-500 text-xs">{errors.address}</p>}
 
                             <label className="block text-sm font-medium text-gray-700 mt-2">Email</label>
                             <input
                                 type="text"
+                                name="email"
                                 className="mt-1 p-2 w-full border border-gray-300 rounded-md"
-                                value={clientEmail}
-                                onChange={handleChange(setClientEmail)}
+                                value={formData.email}
+                                onChange={handleChange}
                                 placeholder="Enter client email"
                             />
-                            {errors.clientEmail && <p className="text-red-500 text-xs">{errors.clientEmail}</p>}
+                            {errors.email && <p className="text-red-500 text-xs">{errors.email}</p>}
 
                             <label className="block text-sm font-medium text-gray-700 mt-2">Type</label>
                             <select
@@ -206,12 +175,13 @@ const DatabaseModal = ({
                             </label>
                             <input
                                 type="text"
+                                name="cifCnp"
                                 className="mt-1 p-2 w-full border border-gray-300 rounded-md"
-                                value={clientCifCnp}
-                                onChange={handleChange(setClientCifCnp)}
+                                value={formData.cifCnp}
+                                onChange={handleChange}
                                 placeholder={clientType === 'company' ? 'Enter CIF' : 'Enter CNP'}
                             />
-                            {errors.clientCifCnp && <p className="text-red-500 text-xs">{errors.clientCifCnp}</p>}
+                            {errors.cifCnp && <p className="text-red-500 text-xs">{errors.cifCnp}</p>}
                         </>
                     )}
 
@@ -220,42 +190,46 @@ const DatabaseModal = ({
                             <label className="block text-sm font-medium text-gray-700 mt-2">Name</label>
                             <input
                                 type="text"
+                                name="name"
                                 className="mt-1 p-2 w-full border border-gray-300 rounded-md"
-                                value={vendorName}
-                                onChange={handleChange(setVendorName)}
+                                value={formData.name}
+                                onChange={handleChange}
                                 placeholder="Enter vendor name"
                             />
-                            {errors.vendorName && <p className="text-red-500 text-xs">{errors.vendorName}</p>}
+                            {errors.name && <p className="text-red-500 text-xs">{errors.name}</p>}
 
                             <label className="block text-sm font-medium text-gray-700 mt-2">Phone Number</label>
                             <input
                                 type="text"
+                                name="phone"
                                 className="mt-1 p-2 w-full border border-gray-300 rounded-md"
-                                value={vendorPhoneNo}
-                                onChange={handleChange(setVendorPhoneNo)}
+                                value={formData.phone}
+                                onChange={handleChange}
                                 placeholder="Enter vendor phone number"
                             />
-                            {errors.vendorPhoneNo && <p className="text-red-500 text-xs">{errors.vendorPhoneNo}</p>}
+                            {errors.phone && <p className="text-red-500 text-xs">{errors.phone}</p>}
 
                             <label className="block text-sm font-medium text-gray-700 mt-2">Address</label>
                             <input
                                 type="text"
+                                name="address"
                                 className="mt-1 p-2 w-full border border-gray-300 rounded-md"
-                                value={vendorAddress}
-                                onChange={handleChange(setVendorAddress)}
+                                value={formData.address}
+                                onChange={handleChange}
                                 placeholder="Enter vendor address"
                             />
-                            {errors.vendorAddress && <p className="text-red-500 text-xs">{errors.vendorAddress}</p>}
+                            {errors.address && <p className="text-red-500 text-xs">{errors.address}</p>}
 
                             <label className="block text-sm font-medium text-gray-700 mt-2">Email</label>
                             <input
                                 type="text"
+                                name="email"
                                 className="mt-1 p-2 w-full border border-gray-300 rounded-md"
-                                value={vendorEmail}
-                                onChange={handleChange(setVendorEmail)}
+                                value={formData.email}
+                                onChange={handleChange}
                                 placeholder="Enter vendor email"
                             />
-                            {errors.vendorEmail && <p className="text-red-500 text-xs">{errors.vendorEmail}</p>}
+                            {errors.email && <p className="text-red-500 text-xs">{errors.email}</p>}
 
                             <label className="block text-sm font-medium text-gray-700 mt-2">Type</label>
                             <select
@@ -272,12 +246,13 @@ const DatabaseModal = ({
                             </label>
                             <input
                                 type="text"
+                                name="cifCnp"
                                 className="mt-1 p-2 w-full border border-gray-300 rounded-md"
-                                value={vendorCifCnp}
-                                onChange={handleChange(setVendorCifCnp)}
+                                value={formData.cifCnp}
+                                onChange={handleChange}
                                 placeholder={vendorType === 'company' ? 'Enter CIF' : 'Enter CNP'}
                             />
-                            {errors.vendorCifCnp && <p className="text-red-500 text-xs">{errors.vendorCifCnp}</p>}
+                            {errors.cifCnp && <p className="text-red-500 text-xs">{errors.cifCnp}</p>}
                         </>
                     )}
 
@@ -286,89 +261,69 @@ const DatabaseModal = ({
                             <label className="block text-sm font-medium text-gray-700 mt-2">Name</label>
                             <input
                                 type="text"
+                                name="name"
                                 className="mt-1 p-2 w-full border border-gray-300 rounded-md"
-                                value={itemName}
-                                onChange={handleChange(setItemName)}
+                                value={formData.name}
+                                onChange={handleChange}
                                 placeholder="Enter item name"
                             />
-                            {errors.itemName && <p className="text-red-500 text-xs">{errors.itemName}</p>}
+                            {errors.name && <p className="text-red-500 text-xs">{errors.name}</p>}
+
+                            <label className="block text-sm font-medium text-gray-700 mt-2">Description</label>
+                            <textarea
+                                name="description"
+                                className="mt-1 p-2 w-full border border-gray-300 rounded-md"
+                                value={formData.description}
+                                onChange={handleChange}
+                                placeholder="Enter item description"
+                            />
+                            {errors.description && <p className="text-red-500 text-xs">{errors.description}</p>}
+
+                            <label className="block text-sm font-medium text-gray-700 mt-2">Price</label>
+                            <input
+                                type="number"
+                                name="price"
+                                className="mt-1 p-2 w-full border border-gray-300 rounded-md"
+                                value={formData.price}
+                                onChange={handleChange}
+                                placeholder="Enter item price"
+                            />
+                            {errors.price && <p className="text-red-500 text-xs">{errors.price}</p>}
 
                             <label className="block text-sm font-medium text-gray-700 mt-2">Type</label>
                             <select
                                 value={itemType}
-                                onChange={(e) => {
-                                    setItemType(e.target.value);
-                                    setUM(''); // Reset the UM field when changing item type
-                                }}
+                                onChange={handleItemTypeChange}
                                 className="mt-1 p-2 w-full border border-gray-300 rounded-md"
                             >
                                 <option value="product">Product</option>
                                 <option value="service">Service</option>
                             </select>
 
-                            <label className="block text-sm font-medium text-gray-700 mt-2">
-                                {itemType === 'product' ? 'Product Unit of Measurement (UM)' : 'Service Unit of Measurement (UM)'}
-                            </label>
-                            <select
-                                value={UM}
-                                onChange={handleChange(setUM)}
+
+                            <label className="block text-sm font-medium text-gray-700 mt-2">Unit of Measurement</label>
+                            <input
+                                type="text"
+                                name="UM"
                                 className="mt-1 p-2 w-full border border-gray-300 rounded-md"
-                            >
-                                {itemType === 'product' ? (
-                                    <>
-                                        <option value="kg">Kg</option>
-                                        <option value="pcs">Pieces</option>
-                                        <option value="liters">Liters</option>
-                                    </>
-                                ) : (
-                                    <>
-                                        <option value="hours">Hours</option>
-                                        <option value="days">Days</option>
-                                        <option value="service">Service</option>
-                                    </>
-                                )}
-                            </select>
+                                value={formData.UM}
+                                onChange={handleChange}
+                                placeholder="Enter unit of measurement"
+                            />
                             {errors.UM && <p className="text-red-500 text-xs">{errors.UM}</p>}
 
-                            <label className="block text-sm font-medium text-gray-700 mt-2">Price</label>
-                            <input
-                                type="text"
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-md"
-                                value={price}
-                                onChange={handleChange(setPrice)}
-                                placeholder="Enter price"
-                            />
-                            {errors.price && <p className="text-red-500 text-xs">{errors.price}</p>}
+                      
 
-                            <label className="block text-sm font-medium text-gray-700 mt-2">Quantity</label>
-                            <input
-                                type="text"
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-md"
-                                value={quantity}
-                                onChange={handleChange(setQuantity)}
-                                placeholder="Enter quantity"
-                            />
-                            {errors.quantity && <p className="text-red-500 text-xs">{errors.quantity}</p>}
-
-                            <label className="block text-sm font-medium text-gray-700 mt-2">Description</label>
-                            <textarea
-                                className="mt-1 p-2 w-full border border-gray-300 rounded-md"
-                                value={description}
-                                onChange={handleChange(setDescription)}
-                                placeholder="Enter item description"
-                            />
-                            {errors.description && <p className="text-red-500 text-xs">{errors.description}</p>}
+                           
                         </>
                     )}
 
-                    <div className="mt-4 flex justify-center">
-                        <button
-                            type="submit"
-                            className="px-1 py-2 bg-purple-500 text-white font-semibold text-md rounded-md hover:bg-purple-600 transition-colors w-60"
-                        >
-                            Submit
-                        </button>
-                    </div>
+                    <button
+                        type="submit" onClick={handleSubmit}
+                        className="w-full py-2 px-4 mt-4 bg-purple-600 text-white font-bold rounded-md hover:bg-purple-700"
+                    >
+                        Submit
+                    </button>
                 </form>
             </div>
         </div>
