@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DatabaseModal from '../components/DatabaseModal';
 import axios from 'axios'
 
@@ -7,6 +7,9 @@ const Database = () => {
     const [activeTab, setActiveTab] = useState('clients');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [clients, setClients] = useState([]);
+    const [vendors, setVendors] = useState([]);
+    const [items, setItems] = useState([]);
 
     const openModal = () => {
         setIsModalOpen(true);
@@ -18,68 +21,83 @@ const Database = () => {
     const indexOfFirstElement = indexOfLastElement - elementsPerPage;
 
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
-
-    const clients = [
-        { id: 1, name: 'John Doe', phone: '555-1234', address: '123 Main St', email: 'john@example.com', cifCnp: '123456789' },
-        { id: 2, name: 'Jane Smith', phone: '555-5678', address: '456 Oak St', email: 'jane@example.com', cifCnp: '987654321' },
-        { id: 3, name: 'Michael Johnson', phone: '555-9876', address: '789 Pine St', email: 'michael@example.com', cifCnp: '654321987' },
-    ];
-
-    const vendors = [
-        { id: 1, name: 'ABC Corp', phone: '555-1122', address: '123 Market St', email: 'contact@abccorp.com', cifCnp: '111223344' },
-        { id: 2, name: 'XYZ Ltd', phone: '555-3344', address: '456 Broadway St', email: 'contact@xyz.com', cifCnp: '223344556' },
-        { id: 3, name: 'Tech Solutions', phone: '555-5566', address: '789 Technology Ave', email: 'tech@solutions.com', cifCnp: '334455667' },
-    ];
-
-    const items = [
-        { id: 1, name: 'Product 1', description: 'High-quality product', price: '$10', unit: 'pcs' },
-        { id: 2, name: 'Product 2', description: 'Affordable product', price: '$20', unit: 'kg' },
-        { id: 3, name: 'Product 3', description: 'Premium product', price: '$30', unit: 'liters' },
-    ];
-
+   
     const handleButtonClick = (category) => {
         setActiveTab(category);
     };
 
-    const handleDelete = async (id) => {
-        let deleteEndpoint = "";
-      
-        if (activeTab === "clients") {
-          deleteEndpoint = `/client/delete/${id}`;
-        } else if (activeTab === "vendors") {
-          deleteEndpoint = `/vendor/delete/${id}`;
-        } else if (activeTab === "products") {
-          deleteEndpoint = `/item/delete/${id}`;
-        }
-      
-        try {
-          await axios.delete(`http://localhost:4000${deleteEndpoint}`);
-          alert(`${activeTab} entry deleted successfully!`);
-        } catch (error) {
-          console.error("Error deleting:", error);
-        }
-      };
+    useEffect(() => {
+        fetchClients();
+        fetchVendors();
+        fetchItems();
+    }, []);
 
-      const handleGet = async (id) => {
-        let handleEndpoint = "";
-    
-        if (activeTab === "clients") {
-            handleEndpoint = `/clients/get/${id}`;
-        } else if (activeTab === "vendors") {
-            handleEndpoint = `/vendors/get/${id}`;
-        } else if (activeTab === "items") {
-            handleEndpoint = `/item/get/${id}`;
-        }
-    
+    const fetchClients = async () => {
         try {
-            const response = await axios.get(`http://localhost:4000${handleEndpoint}`);
-            alert(`Fetched details for ${activeTab}: ${JSON.stringify(response.data)}`);
+            const response = await fetch('http://localhost:4000/clients/getall');
+            if (!response.ok) {
+                throw new Error('Failed to fetch clients');
+            }
+            const data = await response.json();
+            setClients(data);
         } catch (error) {
-            console.error("Error fetching:", error);
+            console.error("Error fetching clients:", error);
         }
     };
 
+    const fetchVendors = async () => {
+        try {
+            const response = await fetch('http://localhost:4000/vendors');
+            if (!response.ok) {
+                throw new Error('Failed to fetch vendors');
+            }
+            const data = await response.json();
+            setVendors(data);
+        } catch (error) {
+            console.error("Error fetching vendors:", error);
+        }
+    };
 
+    const fetchItems = async () => {
+        try {
+            const response = await fetch('http://localhost:4000/items');
+            if (!response.ok) {
+                throw new Error('Failed to fetch items');
+            }
+            const data = await response.json();
+            setItems(data);
+        } catch (error) {
+            console.error("Error fetching items:", error);
+        }
+    };
+
+    const handleDelete = async (id) => {
+        let deleteEndpoint = "";
+
+        if (activeTab === "clients") {
+            deleteEndpoint = `/client/delete/${id}`;
+        } else if (activeTab === "vendors") {
+            deleteEndpoint = `/vendor/delete/${id}`;
+        } else if (activeTab === "items") {
+            deleteEndpoint = `/item/delete/${id}`;
+        }
+
+        try {
+            await axios.delete(`http://localhost:4000${deleteEndpoint}`);
+            alert(`${activeTab} entry deleted successfully!`);
+
+            // Re-fetch data for the active tab only
+            if (activeTab === "clients") {
+                fetchClients();
+            } else if (activeTab === "vendors") {
+                fetchVendors();
+            } else if (activeTab === "items") {
+                fetchItems();
+            }
+        } catch (error) {
+            console.error("Error deleting:", error);
+        }
+    };
 
     const filteredData = () => {
         const query = searchQuery.toLowerCase();
@@ -108,7 +126,7 @@ const Database = () => {
             );
         }
         return [];
-    }
+    };
 
 
     const renderTableContent = () => {

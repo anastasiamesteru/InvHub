@@ -4,18 +4,26 @@ import Client from '../models/client.js';
 const clientRoute = express.Router();
 
 //Create a new client
-clientRoute.post("/", async (req, res) => {
+clientRoute.post("/create", async (req, res) => {
     try {
         const client = new Client(req.body);
+
+        // Log the client data for debugging purposes
+        console.log('Client Data:', req.body);
+
+        // Save the client to the database
         await client.save();
         res.status(201).json(client);
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        console.error('Error:', error); // Log the error for debugging
+
+        // Return more detailed error message
+        return res.status(400).json({ message: error.message || 'Something went wrong while creating the client.' });
     }
 });
 
 //Get all clients
-clientRoute.get("/", async (req, res) => {
+clientRoute.get("/getall", async (req, res) => {
     try {
         const clients = await Client.find();
         res.status(200).json(clients);

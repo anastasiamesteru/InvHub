@@ -3,8 +3,26 @@ import Vendor from '../models/vendor.js';
 
 const vendorRoute = express.Router();
 
+vendorRoute.post("/create", async (req, res) => {
+    try {
+        const vendor = new Vendor(req.body);
+
+        // Log the vendor data for debugging purposes
+        console.log('Vendor Data:', req.body);
+
+        // Save the vendor to the database
+        await vendor.save();
+        res.status(201).json(vendor);
+    } catch (error) {
+        console.error('Error:', error); // Log the error for debugging
+
+        // Return more detailed error message
+        return res.status(400).json({ message: error.message || 'Something went wrong while creating the vendor.' });
+    }
+});
+
 // Get all vendors
-vendorRoute.get('/', async (req, res) => {
+vendorRoute.get('/create', async (req, res) => {
     try {
         const vendors = await Vendor.find();
         res.json(vendors);
@@ -12,6 +30,8 @@ vendorRoute.get('/', async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 });
+
+
 
 // Get a single vendor by ID
 vendorRoute.get('/:id', async (req, res) => {
@@ -24,20 +44,10 @@ vendorRoute.get('/:id', async (req, res) => {
     }
 });
 
-// Create a new vendor
-vendorRoute.post('/', async (req, res) => {
-    const { name, type, cif, cnp } = req.body;
-    if (type === 'company' && !cif) return res.status(400).json({ message: 'CIF is required for companies' });
-    if (type === 'individual' && !cnp) return res.status(400).json({ message: 'CNP is required for individuals' });
 
-    try {
-        const newVendor = new Vendor({ name, type, cif, cnp });
-        await newVendor.save();
-        res.status(201).json(newVendor);
-    } catch (err) {
-        res.status(400).json({ message: err.message });
-    }
-});
+
+
+
 
 // Update a vendor
 vendorRoute.put('/:id', async (req, res) => {

@@ -1,7 +1,6 @@
 import mongoose from 'mongoose';
 
 const itemSchema = new mongoose.Schema({
-    id: { type: Number, unique: true }, 
     name: { type: String, required: true },
     description: { type: String,},
     price: { type: Number, min:0, required:true },
@@ -10,7 +9,7 @@ const itemSchema = new mongoose.Schema({
       enum: ['product', 'service'], 
       required: true,
     },
-    um: { type: String, required: true },
+    um: { type: String},
   });
   
 export default mongoose.model('Item', itemSchema);  

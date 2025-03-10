@@ -4,7 +4,7 @@ import Item from '../models/item.js';
 const itemRoute = express.Router();
 
 // Create a new item
-itemRoute.post("/", async (req, res) => {
+itemRoute.post("/create", async (req, res) => {
     try {
         const item = new Item(req.body);
         await item.save();
