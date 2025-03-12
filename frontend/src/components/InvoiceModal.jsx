@@ -7,6 +7,9 @@ const InvoiceModal = ({ isOpen, onClose }) => {
     const [clientType, setClientType] = useState('company');
     const [vendorType, setVendorType] = useState('company');
 
+    const [issueDate, setIssueDate] = useState('');
+    const [dueDate, setDueDate] = useState('');
+
     const [clientName, setClientName] = useState('');
     const [clientAddress, setClientAddress] = useState('');
     const [clientEmail, setClientEmail] = useState('');
@@ -20,6 +23,9 @@ const InvoiceModal = ({ isOpen, onClose }) => {
     const [price, setPrice] = useState('');
 
     const [errors, setErrors] = useState({});
+
+    const handleIssueDateChange = (event) => setIssueDate(event.target.value);
+    const handleDueDateChange = (event) => setDueDate(event.target.value);
 
     const handleClientCifCnpChange = (event) => setClientCifCnp(event.target.value);
     const handleVendorCifCnpChange = (event) => setVendorCifCnp(event.target.value);
@@ -42,11 +48,21 @@ const InvoiceModal = ({ isOpen, onClose }) => {
     const validateForm = () => {
         const newErrors = {};
 
+        //Due and issue date thing
+        if (dueDate < issueDate) {
+            newErrors.dueDate = "Due date cannot be before issue date."
+        }
+
+        //Due and issue date thing 2
+        if (dueDate < issueDate) {
+            newErrors.dueDate = "Due date cannot be before issue date."
+        }
+
         // Client Name Validation
         if (!clientName) {
             newErrors.clientName = "Client name is required.";
         }
-       
+
         // Client Address Validation
         if (!clientAddress) {
             newErrors.clientAddress = "Client address is required.";
@@ -100,7 +116,7 @@ const InvoiceModal = ({ isOpen, onClose }) => {
         }
 
         // Quantity Validation
-        if (!quantity || quantity == 0) {
+        if (!quantity || quantity == 0 || quantity < 0) {
             newErrors.quantity = "Quantity must be a positive number.";
         }
 
@@ -145,8 +161,9 @@ const InvoiceModal = ({ isOpen, onClose }) => {
                             <label htmlFor="invoiceNumber" className="block text-sm font-medium text-gray-700">Invoice number</label>
                             <input
                                 id="invoiceNumber"
-                                type="text"
+                                type="number"
                                 className="w-50 mt-1 p-2 border border-gray-300 rounded-md"
+                                min={0}
                             />
                         </div>
 
@@ -161,24 +178,35 @@ const InvoiceModal = ({ isOpen, onClose }) => {
                     </div>
 
 
-                    <div className="flex justify-between border-b-2 border-gray-400 pt-4 pb-4">
-                        <div className="w-1/2 pr-2 flex flex-col items-center">
-                            <label htmlFor="issueDate" className="block text-sm font-medium text-gray-700">Issue date</label>
-                            <input
-                                id="issueDate"
-                                type="date"
-                                className="w-50 mt-1 p-2 border border-gray-300 rounded-md"
-                            />
+                    <div className="flex flex-col border-b-2 border-gray-400 pt-4 pb-4">
+                        <div className="flex justify-between">
+                            <div className="w-1/2 pr-2 flex flex-col items-center">
+                                <label htmlFor="issueDate" className="block text-sm font-medium text-gray-700">Issue date</label>
+                                <input
+                                    id="issueDate"
+                                    type="date"
+                                    value={issueDate}
+                                    onChange={handleIssueDateChange}
+                                    className="w-50 mt-1 p-2 border border-gray-300 rounded-md"
+                                />
+                            </div>
+
+                            <div className="w-1/2 pl-2 flex flex-col items-center">
+                                <label htmlFor="dueDate" className="block text-sm font-medium text-gray-700">Due date</label>
+                                <input
+                                    id="dueDate"
+                                    type="date"
+                                    value={dueDate}
+                                    onChange={handleDueDateChange}
+                                    className="w-50 mt-1 p-2 border border-gray-300 rounded-md"
+                                />
+                            </div>
                         </div>
 
-                        <div className="w-1/2 pl-2 flex flex-col items-center">
-                            <label htmlFor="dueDate" className="block text-sm font-medium text-gray-700">Due date</label>
-                            <input
-                                id="dueDate"
-                                type="date"
-                                className="w-50 mt-1 p-2 border border-gray-300 rounded-md"
-                            />
-                        </div>
+                        {/* Error message below both inputs */}
+                        {errors.dueDate && (
+                            <p className="text-red-500 text-xs text-center mt-2">{errors.dueDate}</p>
+                        )}
                     </div>
 
 
@@ -354,12 +382,12 @@ const InvoiceModal = ({ isOpen, onClose }) => {
 
                                     </td>
                                     <td className="border border-gray-300 px-4 py-2 text-center">
-                                        <input type="number" placeholder="Qty" className="w-16 p-1 border rounded-md text-center" value={quantity}
+                                        <input type="number" min={1} placeholder="Qty" className="w-16 p-1 border rounded-md text-center" value={quantity}
                                             onChange={handleQuantityChange} />
 
                                     </td>
                                     <td className="border border-gray-300 px-4 py-2 text-center">
-                                        <input type="number" placeholder="Price" className="w-20 p-1 border rounded-md text-center" value={price}
+                                        <input type="number" min={0.000} placeholder="Price" className="w-20 p-1 border rounded-md text-center" value={price}
                                             onChange={handlePriceChange} />
 
                                     </td>

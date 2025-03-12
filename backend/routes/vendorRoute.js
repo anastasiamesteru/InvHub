@@ -22,7 +22,7 @@ vendorRoute.post("/create", async (req, res) => {
 });
 
 // Get all vendors
-vendorRoute.get('/create', async (req, res) => {
+vendorRoute.get('/getall', async (req, res) => {
     try {
         const vendors = await Vendor.find();
         res.json(vendors);

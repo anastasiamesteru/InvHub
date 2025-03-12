@@ -6,15 +6,15 @@ const Invoice = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [invoices, setInvoices] = useState([
-        { id: 1, client: 'Client A', vendor: 'Vendor X', dueDate: '2025-01-01', status: 'On Time', amount: 500 },
-        { id: 2, client: 'Client B', vendor: 'Vendor Y', dueDate: '2025-01-02', status: 'On Time', amount: 200 },
-        { id: 3, client: 'Client C', vendor: 'Vendor Z', dueDate: '2025-01-03', status: 'Overdue', amount: 800 },
-        { id: 4, client: 'Client A', vendor: 'Vendor X', dueDate: '2025-01-04', status: 'Overdue', amount: 1200 },
-        { id: 5, client: 'Client E', vendor: 'Vendor Y', dueDate: '2025-01-05', status: 'On Time', amount: 1500 },
-        { id: 6, client: 'Client D', vendor: 'Vendor Z', dueDate: '2025-01-06', status: 'On Time', amount: 600 },
-        { id: 7, client: 'Client F', vendor: 'Vendor X', dueDate: '2025-01-07', status: 'Overdue', amount: 1000 },
-        { id: 8, client: 'Client B', vendor: 'Vendor Y', dueDate: '2025-01-08', status: 'On Time', amount: 700 },
-        { id: 9, client: 'Client C', vendor: 'Vendor Z', dueDate: '2025-01-09', status: 'On Time', amount: 900 },
+        { id: 1, client: 'Client A', vendor: 'Vendor X', dueDate: '2024-01-01', status: 'On Time', amount: 500 },
+        { id: 2, client: 'Client B', vendor: 'Vendor Y', dueDate: '2024-02-02', status: 'On Time', amount: 200 },
+        { id: 3, client: 'Client C', vendor: 'Vendor Z', dueDate: '2024-03-03', status: 'Overdue', amount: 800 },
+        { id: 4, client: 'Client A', vendor: 'Vendor X', dueDate: '2024-04-04', status: 'Overdue', amount: 1200 },
+        { id: 5, client: 'Client E', vendor: 'Vendor Y', dueDate: '2024-05-05', status: 'On Time', amount: 1500 },
+        { id: 6, client: 'Client D', vendor: 'Vendor Z', dueDate: '2024-06-06', status: 'On Time', amount: 600 },
+        { id: 7, client: 'Client F', vendor: 'Vendor X', dueDate: '2024-07-07', status: 'Overdue', amount: 1000 },
+        { id: 8, client: 'Client B', vendor: 'Vendor Y', dueDate: '2024-08-08', status: 'On Time', amount: 700 },
+        { id: 9, client: 'Client C', vendor: 'Vendor Z', dueDate: '2024-09-09', status: 'On Time', amount: 900 },
         { id: 10, client: 'Client E', vendor: 'Vendor X', dueDate: '2025-01-10', status: 'Overdue', amount: 300 }
     ]);
 
@@ -44,7 +44,10 @@ const Invoice = () => {
         invoice.client.toLowerCase().includes(searchQuery.toLowerCase()) ||
         invoice.vendor.toLowerCase().includes(searchQuery.toLowerCase()) ||
         invoice.status.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        invoice.amount.toString().includes(searchQuery)
+        invoice.amount.toString().includes(searchQuery) ||
+      //  invoice.issueDate.includes(searchQuery) || // Ensure issueDate is in "YYYY-MM-DD" format
+        invoice.dueDate.includes(searchQuery) // Ensure dueDate is in "YYYY-MM-DD" format
+
     );
 
     // Pagination Logic

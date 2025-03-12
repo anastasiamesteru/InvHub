@@ -14,27 +14,31 @@ const Database = () => {
     const openModal = () => {
         setIsModalOpen(true);
     };
-    const [currentPage, setCurrentPage] = useState(1);
-    const elementsPerPage = 8;
+   // const [currentPage, setCurrentPage] = useState(1);
+   // const elementsPerPage = 8;
 
-    const indexOfLastElement = currentPage * elementsPerPage;
-    const indexOfFirstElement = indexOfLastElement - elementsPerPage;
+   // const indexOfLastElement = currentPage * elementsPerPage;
+ //   const indexOfFirstElement = indexOfLastElement - elementsPerPage;
 
-    const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  //  const paginate = (pageNumber) => setCurrentPage(pageNumber);
    
     const handleButtonClick = (category) => {
         setActiveTab(category);
     };
 
     useEffect(() => {
-        fetchClients();
-        fetchVendors();
-        fetchItems();
-    }, []);
+        if (activeTab === 'clients') {
+            fetchClients();
+        } else if (activeTab === 'vendors') {
+            fetchVendors();
+        } else if (activeTab === 'items') {
+            fetchItems();
+        }
+    }, [activeTab]);
 
     const fetchClients = async () => {
         try {
-            const response = await fetch('http://localhost:4000/clients/getall');
+            const response = await fetch('http://localhost:4000/routes/clients/getall');
             if (!response.ok) {
                 throw new Error('Failed to fetch clients');
             }
@@ -47,7 +51,7 @@ const Database = () => {
 
     const fetchVendors = async () => {
         try {
-            const response = await fetch('http://localhost:4000/vendors');
+            const response = await fetch('http://localhost:4000/routes/vendors/getall');
             if (!response.ok) {
                 throw new Error('Failed to fetch vendors');
             }
@@ -60,7 +64,7 @@ const Database = () => {
 
     const fetchItems = async () => {
         try {
-            const response = await fetch('http://localhost:4000/items');
+            const response = await fetch('http://localhost:4000/routes/items/getall');
             if (!response.ok) {
                 throw new Error('Failed to fetch items');
             }
@@ -100,33 +104,40 @@ const Database = () => {
     };
 
     const filteredData = () => {
-        const query = searchQuery.toLowerCase();
-        if (activeTab === 'clients') {
-            return clients.filter((client) =>
-                client.name.toLowerCase().includes(query) ||
-                client.email.toLowerCase().includes(query) ||
-                client.address.toLowerCase().includes(query) ||
-                client.phone.toLowerCase().includes(query) ||
-                client.cifCnp.toLowerCase().includes(query)
+        const query = searchQuery ? searchQuery.toLowerCase() : "";
+    
+        if (activeTab === "clients" && Array.isArray(clients)) {
+            return clients.filter(client =>
+                client.name?.toLowerCase().includes(query) ||
+                client.email?.toLowerCase().includes(query) ||
+                client.address?.toLowerCase().includes(query) ||
+                client.phone?.toString().includes(query) ||   // Ensure phone exists
+                client.cifCnp?.toString().includes(query)    // Ensure cifCnp exists
             );
-        } else if (activeTab === 'vendors') {
-            return vendors.filter((vendor) =>
-                vendor.name.toLowerCase().includes(query) ||
-                vendor.email.toLowerCase().includes(query) ||
-                vendor.address.toLowerCase().includes(query) ||
-                vendor.phone.toLowerCase().includes(query) ||
-                vendor.cifCnp.toLowerCase().includes(query)
+        } 
+        
+        if (activeTab === "vendors" && Array.isArray(vendors)) {
+            return vendors.filter(vendor =>
+                vendor.name?.toLowerCase().includes(query) ||
+                vendor.email?.toLowerCase().includes(query) ||
+                vendor.address?.toLowerCase().includes(query) ||
+                vendor.phone?.toString().includes(query) ||   // Ensure phone exists
+                vendor.cifCnp?.toString().includes(query)    // Ensure cifCnp exists
             );
-        } else if (activeTab === 'items') {
-            return items.filter((item) =>
-                item.name.toLowerCase().includes(query) ||
-                item.description.toLowerCase().includes(query) ||
-                item.price.toLowerCase().includes(query) ||
-                item.unit.toLowerCase().includes(query)
+        } 
+        
+        if (activeTab === "items" && Array.isArray(items)) {
+            return items.filter(item =>
+                item.name?.toLowerCase().includes(query) ||
+                item.description?.toLowerCase().includes(query) ||
+                item.price?.toString().includes(query) ||  // Ensure price exists
+                item.unit?.toString().includes(query)    // Ensure unit exists
             );
         }
+        
         return [];
     };
+    
 
 
     const renderTableContent = () => {
@@ -137,7 +148,6 @@ const Database = () => {
                     <table className="w-full border-collapse text-sm">
                         <thead>
                             <tr>
-                                <th className="px-3 py-2 text-center bg-gray-200">ID</th>
                                 <th className="px-3 py-2 text-center bg-gray-200">Name</th>
                                 <th className="px-3 py-2 text-center bg-gray-200">Phone No</th>
                                 <th className="px-3 py-2 text-center bg-gray-200">Address</th>
@@ -150,8 +160,7 @@ const Database = () => {
                         </thead>
                         <tbody>
                             {filteredItems.map((client) => (
-                                <tr key={client.id}>
-                                    <td className="px-3 py-2 text-center">{client.id}</td>
+                                <tr key={client._id}>
                                     <td className="px-3 py-2 text-center">{client.name}</td>
                                     <td className="px-3 py-2 text-center">{client.phone}</td>
                                     <td className="px-3 py-2 text-center">{client.address}</td>
@@ -165,8 +174,8 @@ const Database = () => {
                                             </svg>
                                         </button>
                                         <button className="px-2 py-1 text-center" onClick={() => handleDelete()}>
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" className="w-5 h-5">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" className="w-5 h-5">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
                                             </svg>
                                         </button>
                                     </td>
@@ -180,7 +189,6 @@ const Database = () => {
                     <table className="w-full border-collapse text-sm">
                         <thead>
                             <tr>
-                                <th className="px-3 py-2 text-center bg-gray-200">ID</th>
                                 <th className="px-3 py-2 text-center bg-gray-200">Name</th>
                                 <th className="px-3 py-2 text-center bg-gray-200">Phone No</th>
                                 <th className="px-3 py-2 text-center bg-gray-200">Address</th>
@@ -195,8 +203,7 @@ const Database = () => {
                         </thead>
                         <tbody>
                             {filteredItems.map((vendor) => (
-                                <tr key={vendor.id}>
-                                    <td className="px-3 py-2 text-center">{vendor.id}</td>
+                                <tr key={vendor._id}>
                                     <td className="px-3 py-2 text-center">{vendor.name}</td>
                                     <td className="px-3 py-2 text-center">{vendor.phone}</td>
                                     <td className="px-3 py-2 text-center">{vendor.address}</td>
@@ -210,8 +217,8 @@ const Database = () => {
                                             </svg>
                                         </button>
                                         <button className="px-2 py-1 text-center" onClick={() => deleteInvoice(invoice.id)}>
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" className="w-5 h-5">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" className="w-5 h-5">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
                                             </svg>
                                         </button>
                                     </td>
@@ -226,7 +233,6 @@ const Database = () => {
                     <table className="w-full border-collapse text-sm">
                         <thead>
                             <tr>
-                                <th className="px-3 py-2 text-center bg-gray-200">ID</th>
                                 <th className="px-3 py-2 text-center bg-gray-200">Name</th>
                                 <th className="px-3 py-2 text-center bg-gray-200">Description</th>
                                 <th className="px-3 py-2 text-center bg-gray-200">Price</th>
@@ -238,8 +244,7 @@ const Database = () => {
                         </thead>
                         <tbody>
                             {filteredItems.map((item) => (
-                                <tr key={item.id}>
-                                    <td className="px-3 py-2 text-center">{item.id}</td>
+                                <tr key={item._id}>
                                     <td className="px-3 py-2 text-center">{item.name}</td>
                                     <td className="px-3 py-2 text-center">{item.description}</td>
                                     <td className="px-3 py-2 text-center">{item.price}</td>
@@ -252,8 +257,8 @@ const Database = () => {
                                             </svg>
                                         </button>
                                         <button className="px-2 py-1 text-center" onClick={() => handleDelete(id)}>
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" className="w-5 h-5">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" className="w-5 h-5">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
                                             </svg>
                                         </button>
                                     </td>
@@ -323,45 +328,18 @@ const Database = () => {
             {isModalOpen && (
                 <DatabaseModal
                     activeTab={activeTab}
-                    setIsModalOpen={setIsModalOpen} // Pass the setIsModalOpen function
-                />
+                    setIsModalOpen={setIsModalOpen} 
+                    fetchClients={fetchClients}
+                    fetchVendors={fetchVendors}
+                    fetchItems={fetchItems}
+                     />
             )}
         </div>
 
 
         <div>
             {/* Pagination Controls */}
-            <div className="flex justify-center mt-4">
-                <button
-                    className="px-4 py-2 mx-2 text-sm font-semibold text-white bg-purple-500 rounded-lg hover:bg-purple-700"
-                    onClick={() => setCurrentPage(1)}
-                    disabled={currentPage === 1}
-                >
-                    First
-                </button>
-                <button
-                    className="px-4 py-2 mx-2 text-sm font-semibold text-white bg-purple-500 rounded-lg hover:bg-purple-700"
-                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                    disabled={currentPage === 1}
-                >
-                    Prev
-                </button>
-                <span className="px-4 py-2 mx-2 text-sm text-gray-600">{currentPage}</span>
-                <button
-                    className="px-4 py-2 mx-2 text-sm font-semibold text-white bg-purple-500 rounded-lg hover:bg-purple-700"
-                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(filteredData().length / elementsPerPage)))}
-                    disabled={currentPage === Math.ceil(filteredData().length / elementsPerPage)}
-                >
-                    Next
-                </button>
-                <button
-                    className="px-4 py-2 mx-2 text-sm font-semibold text-white bg-purple-500 rounded-lg hover:bg-purple-700"
-                    onClick={() => setCurrentPage(Math.ceil(filteredData().length / elementsPerPage))}
-                    disabled={currentPage === Math.ceil(filteredData().length / elementsPerPage)}
-                >
-                    Last
-                </button>
-            </div>
+            
         </div>
         </div>
     );

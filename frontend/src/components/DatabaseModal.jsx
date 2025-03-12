@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
-const DatabaseModal = ({ activeTab, setIsModalOpen }) => {
+const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, fetchItems }) => {
     const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(false);
 
@@ -104,21 +104,21 @@ const DatabaseModal = ({ activeTab, setIsModalOpen }) => {
 
     const handleSubmitClient = async (event) => {
         event.preventDefault();
-        
+
         // Validate form before proceeding
         if (!validateClientForm()) return;
-    
+
         setLoading(true);
-    
+
         const payload = {
             name: clientData.name,
             email: clientData.email,
             type: clientType,
             phone: clientData.phone,
             address: clientData.address,
-            cifcnp: clientData.cifCnp, 
+            cifcnp: clientData.cifCnp,
         };
-    
+
         try {
             // Send data to the server
             const response = await axios.post('http://localhost:4000/routes/clients/create', payload, {
@@ -126,9 +126,8 @@ const DatabaseModal = ({ activeTab, setIsModalOpen }) => {
                     'Content-Type': 'application/json',
                 },
             });
-    
-            // Success message
-            alert('Client added successfully!');
+
+            await fetchClients();
             closeModal();
         } catch (error) {
             // Detailed error handling
@@ -143,25 +142,25 @@ const DatabaseModal = ({ activeTab, setIsModalOpen }) => {
             setLoading(false);
         }
     };
-    
+
 
     const handleSubmitVendor = async (event) => {
         event.preventDefault();
-        
+
         // Validate form before proceeding
         if (!validateVendorForm()) return;
-    
+
         setLoading(true);
-    
+
         const payload = {
             name: vendorData.name,
             email: vendorData.email,
             type: vendorType,
             phone: vendorData.phone,
             address: vendorData.address,
-            cifcnp: vendorData.cifCnp, 
+            cifcnp: vendorData.cifCnp,
         };
-    
+
         try {
             // Send data to the server
             const response = await axios.post('http://localhost:4000/routes/vendors/create', payload, {
@@ -169,9 +168,10 @@ const DatabaseModal = ({ activeTab, setIsModalOpen }) => {
                     'Content-Type': 'application/json',
                 },
             });
-    
+
+            await fetchVendors();
+
             // Success message
-            alert('Vendor added successfully!');
             closeModal();
         } catch (error) {
             // Detailed error handling
@@ -186,14 +186,14 @@ const DatabaseModal = ({ activeTab, setIsModalOpen }) => {
             setLoading(false);
         }
     };
-    
+
 
     const handleSubmitItem = async (event) => {
         event.preventDefault();
         if (!validateItemForm()) return;
-    
+
         setLoading(true);
-    
+
         const payload = {
             name: itemData.name,
             UM: itemData.UM,
@@ -201,7 +201,7 @@ const DatabaseModal = ({ activeTab, setIsModalOpen }) => {
             description: itemData.description,
             type: itemType,
         };
-    
+
         try {
             const response = await axios.post('http://localhost:4000/routes/items/create', payload, {
                 headers: {
@@ -209,7 +209,8 @@ const DatabaseModal = ({ activeTab, setIsModalOpen }) => {
                 },
             });
             console.log('Item response:', response);
-            alert('Item added successfully!');
+            await fetchItems();
+
             closeModal();
         } catch (error) {
             console.error('Error posting item data:', error);
@@ -223,7 +224,7 @@ const DatabaseModal = ({ activeTab, setIsModalOpen }) => {
             setLoading(false);
         }
     };
-    
+
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
             <div className="bg-white p-6 rounded-lg shadow-md w-1/3">
@@ -437,9 +438,11 @@ const DatabaseModal = ({ activeTab, setIsModalOpen }) => {
 
                     )}
 
-                    <button type="submit" disabled={loading} className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-gray-400">
-                        {loading ? 'Submitting...' : 'Submit'}
-                    </button>
+                    <div className="flex justify-center mt-2">
+                        <button type="submit" disabled={loading} className="mt-4 px-4 py-2 font-semibold bg-purple-500 text-white rounded-md hover:bg-purple-600 disabled:bg-gray-400">
+                            {loading ? 'Submitting...' : 'Submit'}
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>

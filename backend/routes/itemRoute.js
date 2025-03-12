@@ -15,7 +15,7 @@ itemRoute.post("/create", async (req, res) => {
 });
 
 //Get all items
-itemRoute.get("/", async (req, res) => {
+itemRoute.get("/getall", async (req, res) => {
     try {
         const items = await Item.find();
         res.status(200).json(items);
