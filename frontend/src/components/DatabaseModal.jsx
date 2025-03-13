@@ -431,7 +431,7 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
                                 onChange={(e) => handleChange(e, 'item')}
                                 placeholder="Enter unit of measurement"
                             />
-                            {errors.UM && <p className="text-red-500 text-xs">{errors.UM}</p>}
+                            {errors.um && <p className="text-red-500 text-xs">{errors.um}</p>}
 
                         </>
 
