@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import InvoiceModal from '../components/InvoiceModal';
 
 const Invoice = () => {
-    const [activeTab, setActiveTab] = useState('invoice');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [invoices, setInvoices] = useState([
@@ -21,14 +20,6 @@ const Invoice = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const invoicesPerPage = 8;
 
-    const handleStatusChange = (invoiceId, newStatus) => {
-        setInvoices((prevInvoices) =>
-            prevInvoices.map((invoice) =>
-                invoice.id === invoiceId ? { ...invoice, status: newStatus } : invoice
-            )
-        );
-    };
-
     const deleteInvoice = (invoiceId) => {
         setInvoices((prevInvoices) => prevInvoices.filter(invoice => invoice.id !== invoiceId));
     };
@@ -45,8 +36,8 @@ const Invoice = () => {
         invoice.vendor.toLowerCase().includes(searchQuery.toLowerCase()) ||
         invoice.status.toLowerCase().includes(searchQuery.toLowerCase()) ||
         invoice.amount.toString().includes(searchQuery) ||
-      //  invoice.issueDate.includes(searchQuery) || // Ensure issueDate is in "YYYY-MM-DD" format
-        invoice.dueDate.includes(searchQuery) // Ensure dueDate is in "YYYY-MM-DD" format
+      //  invoice.issueDate.includes(searchQuery) || 
+        invoice.dueDate.includes(searchQuery) 
 
     );
 

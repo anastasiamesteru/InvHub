@@ -60,14 +60,22 @@ vendorRoute.put('/:id', async (req, res) => {
     }
 });
 
-// Delete a vendor
-vendorRoute.delete('/:id', async (req, res) => {
+
+vendorRoute.delete("/:id", async (req, res) => {
     try {
-        const deletedVendor = await Vendor.findByIdAndDelete(req.params.id);
-        if (!deletedVendor) return res.status(404).json({ message: 'Vendor not found' });
-        res.json({ message: 'Vendor deleted' });
-    } catch (err) {
-        res.status(500).json({ message: err.message });
+        const id = req.params.id.trim(); 
+
+        if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+            return res.status(400).json({ error: "Invalid ObjectId format" });
+        }
+
+        const vendor = await Vendor.findByIdAndDelete(id);
+        if (!vendor) return res.status(404).json({ error: "Vendor not found" });
+
+        res.status(200).json({ message: "Vendor deleted successfully" });
+    } catch (error) {
+        console.error("Error:", error.message);
+        res.status(500).json({ error: error.message });
     }
 });
 

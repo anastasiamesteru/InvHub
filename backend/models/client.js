@@ -16,10 +16,10 @@ const clientSchema = new mongoose.Schema({
     validate: {
       validator: function (value) {
         if (this.type === 'company') {
-          return /^\d+$/.test(value); // CIF for companies
+          return /^\d+$/.test(value); 
         }
         if (this.type === 'individual') {
-          return /^\d{13}$/.test(value); // CNP for individuals
+          return /^\d{13}$/.test(value); 
         }
         return true;
       },
@@ -33,5 +33,4 @@ const clientSchema = new mongoose.Schema({
   }
 });
 
-// No `client_id` field, MongoDB will generate `_id` automatically.
 export default mongoose.model('Client', clientSchema);
