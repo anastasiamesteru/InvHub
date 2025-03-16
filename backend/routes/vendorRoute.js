@@ -44,21 +44,31 @@ vendorRoute.get('/:id', async (req, res) => {
     }
 });
 
-
-
-
-
-
 // Update a vendor
-vendorRoute.put('/:id', async (req, res) => {
+vendorRoute.put("/:id", async (req, res) => {
     try {
-        const updatedVendor = await Vendor.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        if (!updatedVendor) return res.status(404).json({ message: 'Vendor not found' });
-        res.json(updatedVendor);
-    } catch (err) {
-        res.status(500).json({ message: err.message });
+        const id = req.params.id.trim();  
+
+        if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+            return res.status(400).json({ error: "Invalid ObjectId format" });
+        }
+
+        const vendor = await Vendor.findByIdAndUpdate(id, req.body, {
+            new: true, 
+            runValidators: true, 
+        });
+
+        if (!vendor) {
+            return res.status(404).json({ error: "Vendor not found" });
+        }
+
+        res.status(200).json(vendor);
+    } catch (error) {
+        console.error("Error:", error.message);
+        res.status(500).json({ error: error.message });
     }
 });
+
 
 
 vendorRoute.delete("/:id", async (req, res) => {

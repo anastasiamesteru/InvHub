@@ -43,14 +43,28 @@ clientRoute.get("/:id", async (req, res) => {
     }
 });
 
-//Update a client
+// Update a client
 clientRoute.put("/:id", async (req, res) => {
     try {
-        const client = await Client.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
-        if (!client) return res.status(404).json({ error: "Client not found" });
+        const id = req.params.id.trim();  
+
+        if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+            return res.status(400).json({ error: "Invalid ObjectId format" });
+        }
+
+        const client = await Client.findByIdAndUpdate(id, req.body, {
+            new: true, 
+            runValidators: true, 
+        });
+
+        if (!client) {
+            return res.status(404).json({ error: "Client not found" });
+        }
+
         res.status(200).json(client);
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        console.error("Error:", error.message);
+        res.status(500).json({ error: error.message });
     }
 });
 
