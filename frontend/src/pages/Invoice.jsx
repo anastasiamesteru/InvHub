@@ -17,8 +17,7 @@ const Invoice = () => {
         { id: 10, client: 'Client E', vendor: 'Vendor X', dueDate: '2025-01-10', status: 'Overdue', amount: 300 }
     ]);
 
-    const [currentPage, setCurrentPage] = useState(1);
-    const invoicesPerPage = 8;
+    
 
     const deleteInvoice = (invoiceId) => {
         setInvoices((prevInvoices) => prevInvoices.filter(invoice => invoice.id !== invoiceId));
@@ -42,6 +41,10 @@ const Invoice = () => {
     );
 
     // Pagination Logic
+
+    const [currentPage, setCurrentPage] = useState(1);
+    const invoicesPerPage = 8;
+    
     const indexOfLastInvoice = currentPage * invoicesPerPage;
     const indexOfFirstInvoice = indexOfLastInvoice - invoicesPerPage;
     const currentInvoices = filteredInvoices.slice(indexOfFirstInvoice, indexOfLastInvoice);
