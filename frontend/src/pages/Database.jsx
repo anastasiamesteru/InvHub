@@ -58,16 +58,16 @@ const Database = () => {
     };
 
     const handleDelete = async (id) => {
-         
+
         let deleteEndpoint = "";
-    
+
         if (activeTab === "clients") deleteEndpoint = `/routes/clients/${id}`;
         else if (activeTab === "vendors") deleteEndpoint = `/routes/vendors/${id}`;
         else if (activeTab === "items") deleteEndpoint = `/routes/items/${id}`;
-    
+
         try {
             await axios.delete(`http://localhost:4000${deleteEndpoint}`);
-    
+
             // Refresh the data
             if (activeTab === "clients") fetchClients();
             else if (activeTab === "vendors") fetchVendors();
@@ -76,8 +76,8 @@ const Database = () => {
             console.error("Error deleting:", error);
         }
     };
-    
-    
+
+
     const filteredData = () => {
         const query = searchQuery.toLowerCase();
         let data = [];
@@ -118,6 +118,14 @@ const Database = () => {
             setSortOrder('asc');
         }
     };
+
+    const [currentPage, setCurrentPage] = useState(1);
+    const thingsPerPage = 1;
+
+    // Pagination Logic
+    const indexOfLastThing = currentPage * thingsPerPage;
+    const indexOfFirstThing = indexOfLastThing - thingsPerPage;
+    const currentThings = filteredData().slice(indexOfFirstThing, indexOfLastThing);
 
     const renderTableContent = () => {
         const filteredItems = filteredData();
@@ -318,8 +326,8 @@ const Database = () => {
                                 >
                                     U.M.
                                     {sortColumn === 'um' ? (sortOrder === 'asc' ? ' ▲' : ' ▼') : ''}
-                                </th>                               
-                                 <th className="px-3 py-2 text-center bg-gray-200">Actions</th>
+                                </th>
+                                <th className="px-3 py-2 text-center bg-gray-200">Actions</th>
 
                             </tr>
                         </thead>
@@ -424,6 +432,38 @@ const Database = () => {
 
             <div>
                 {/* Pagination Controls */}
+                <div className="flex justify-center mt-4">
+                    <button
+                        className="px-4 py-2 mx-2 text-sm font-semibold text-white bg-purple-500 rounded-lg hover:bg-purple-700"
+                        onClick={() => setCurrentPage(1)}
+                        disabled={currentPage === 1}
+                    >
+                        First
+                    </button>
+                    <button
+                        className="px-4 py-2 mx-2 text-sm font-semibold text-white bg-purple-500 rounded-lg hover:bg-purple-700"
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1}
+                    >
+                        Prev
+                    </button>
+                    <span className="px-4 py-2 mx-2 text-sm text-gray-600">{currentPage}</span>
+                    <button
+                        className="px-4 py-2 mx-2 text-sm font-semibold text-white bg-purple-500 rounded-lg hover:bg-purple-700"
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(filteredData().length / thingsPerPage)))}
+                        disabled={currentPage === Math.ceil(filteredData().length / thingsPerPage)}
+                    >
+                        Next
+                    </button>
+                    <button
+                        className="px-4 py-2 mx-2 text-sm font-semibold text-white bg-purple-500 rounded-lg hover:bg-purple-700"
+                        onClick={() => setCurrentPage(Math.ceil(filteredData().length / thingsPerPage))}
+                        disabled={currentPage === Math.ceil(filteredData().length / thingsPerPage)}
+                    >
+                        Last
+                    </button>
+                </div>
+
 
             </div>
         </div>
