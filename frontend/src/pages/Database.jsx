@@ -9,6 +9,9 @@ const Database = () => {
     const [clients, setClients] = useState([]);
     const [vendors, setVendors] = useState([]);
     const [items, setItems] = useState([]);
+    const [editingEntity, setEditingEntity] = useState(null); 
+
+
 
     // Sorting state
     const [sortColumn, setSortColumn] = useState(null);
@@ -18,6 +21,25 @@ const Database = () => {
 
     const handleButtonClick = (category) => setActiveTab(category);
 
+    const handleEdit = (entityId) => {
+        let entity;
+    
+        // Check the activeTab to determine which list to search in
+        if (activeTab === 'clients') {
+            entity = clients.find(client => client._id === entityId);  // Assuming 'id' is the unique identifier
+        } else if (activeTab === 'vendors') {
+            entity = vendors.find(vendor => vendor._id === entityId);  // Assuming 'id' is the unique identifier
+        } else if (activeTab === 'items') {
+            entity = items.find(item => item._id === entityId);  // Assuming 'id' is the unique identifier
+        }
+    
+        // Set the selected entity and open the modal if found
+        if (entity) {
+            setEditingEntity(entity);  // Set the selected entity for editing
+            setIsModalOpen(true);      // Open the modal
+        }
+    };
+    
     useEffect(() => {
         if (activeTab === 'clients') fetchClients();
         else if (activeTab === 'vendors') fetchVendors();
@@ -119,31 +141,27 @@ const Database = () => {
         }
     };
 
-    const [currentPage, setCurrentPage] = useState(1);  // Default to 1, not 0
+    const [currentPage, setCurrentPage] = useState(1);  
 
-    const thingsPerPage = 2;
-    console.log('Current Page:', currentPage);
+    const thingsPerPage = 8;
+    //console.log('Current Page:', currentPage);
     
-    // Calculate the indexes for pagination
     const indexOfLast = currentPage * thingsPerPage;
     const indexOfFirst = indexOfLast - thingsPerPage;
     
-    // Get the filtered data
     const filtereditems = filteredData();
     
-    // Calculate the total pages after filtering
     const totalPages = Math.ceil(filtereditems.length / thingsPerPage);
     
-    // Adjust current page if it exceeds total pages
     useEffect(() => {
         if (currentPage > totalPages) {
-            setCurrentPage(totalPages); // Ensure we stay within valid page range
+            setCurrentPage(totalPages); 
         }
     }, [filtereditems, currentPage, totalPages]);
     
-    const current = filtereditems.slice(indexOfFirst, indexOfLast); // Slice the data based on pagination
+    const current = filtereditems.slice(indexOfFirst, indexOfLast); 
     
-    
+ 
 
 
     const renderTableContent = () => {
@@ -215,7 +233,7 @@ const Database = () => {
                                         <td className="px-3 py-2 text-center">{client.cifcnp || "N/A"}</td>
 
                                         <td className="px-3 py-2 text-center flex justify-center gap-2">
-                                            <button className="px-2 py-1 text-center">
+                                            <button className="px-2 py-1 text-center" onClick={() => handleEdit(client._id)}>
                                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
                                                     <path d="M16.98 3.02a2.87 2.87 0 1 1 4.06 4.06l-1.41 1.41-4.06-4.06 1.41-1.41zM3 17.25V21h3.75l11.29-11.29-3.75-3.75L3 17.25z" />
                                                 </svg>
@@ -302,7 +320,7 @@ const Database = () => {
                                         <td className="px-3 py-2 text-center">{vendor.cifcnp || "N/A"}</td>
 
                                         <td className="px-3 py-2 text-center flex justify-center gap-2">
-                                            <button className="px-2 py-1 text-center" >
+                                            <button className="px-2 py-1 text-center" onClick={() => handleEdit(vendor._id)}>
                                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
                                                     <path d="M16.98 3.02a2.87 2.87 0 1 1 4.06 4.06l-1.41 1.41-4.06-4.06 1.41-1.41zM3 17.25V21h3.75l11.29-11.29-3.75-3.75L3 17.25z" />
                                                 </svg>
@@ -376,7 +394,7 @@ const Database = () => {
                                         </td>
                                         <td className="px-3 py-2 text-center">{item.um || "N/A"}</td>
                                         <td className="px-3 py-2 text-center flex justify-center gap-2">
-                                            <button className="px-2 py-1 text-center" onClick={() => handleGet(id)}>
+                                            <button className="px-2 py-1 text-center" onClick={() => handleEdit(item._id)}>
                                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
                                                     <path d="M16.98 3.02a2.87 2.87 0 1 1 4.06 4.06l-1.41 1.41-4.06-4.06 1.41-1.41zM3 17.25V21h3.75l11.29-11.29-3.75-3.75L3 17.25z" />
                                                 </svg>
@@ -461,6 +479,7 @@ const Database = () => {
                         fetchClients={fetchClients}
                         fetchVendors={fetchVendors}
                         fetchItems={fetchItems}
+                        editingEntity={editingEntity}
                     />
                 )}
             </div>

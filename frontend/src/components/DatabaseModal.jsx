@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, fetchItems }) => {
+const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, fetchItems, editingEntity }) => {
     const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(false);
-
     const [clientData, setClientData] = useState({
         name: '',
         phone: '',
@@ -102,10 +101,41 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
         return Object.keys(newErrors).length === 0;
     };
 
+    useEffect(() => {
+        if (editingEntity) {
+            if (activeTab === 'client') {
+                setClientData({
+                    name: editingEntity.name || '',
+                    phone: editingEntity.phone || '',
+                    address: editingEntity.address || '',
+                    email: editingEntity.email || '',
+                    cifCnp: editingEntity.cifCnp || '',
+                });
+                setClientType(editingEntity.type || 'company');
+            } else if (activeTab === 'vendor') {
+                setVendorData({
+                    name: editingEntity.name || '',
+                    phone: editingEntity.phone || '',
+                    address: editingEntity.address || '',
+                    email: editingEntity.email || '',
+                    cifCnp: editingEntity.cifCnp || '',
+                });
+                setVendorType(editingEntity.type || 'company');
+            } else if (activeTab === 'item') {
+                setItemData({
+                    name: editingEntity.name || '',
+                    UM: editingEntity.UM || '',
+                    price: editingEntity.price || '',
+                    description: editingEntity.description || '',
+                });
+                setItemType(editingEntity.type || 'product');
+            }
+        }
+    }, [editingEntity, activeTab]);  
+
+
     const handleSubmitClient = async (event) => {
         event.preventDefault();
-
-        // Validate form before proceeding
         if (!validateClientForm()) return;
 
         setLoading(true);
@@ -120,24 +150,22 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
         };
 
         try {
-            // Send data to the server
-            const response = await axios.post('http://localhost:4000/routes/clients/create', payload, {
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
+            let response;
+            if (editingEntity) {
+                response = await axios.put(`http://localhost:4000/routes/clients/${id}`, payload, {
+                    headers: { 'Content-Type': 'application/json' },
+                });
+            } else {
+                // Create new client
+                response = await axios.post('http://localhost:4000/routes/clients/create', payload, {
+                    headers: { 'Content-Type': 'application/json' },
+                });
+            }
 
             await fetchClients();
             closeModal();
         } catch (error) {
-            // Detailed error handling
-            if (error.response) {
-                // Server returned a response, display specific message
-                alert(`Error: ${error.response?.data?.message || 'An error occurred'}`);
-            } else {
-                // No response from the server (e.g., network issue)
-                alert(`Error: ${error.message}`);
-            }
+            alert(`Error: ${error.message}`);
         } finally {
             setLoading(false);
         }
@@ -224,6 +252,93 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
             setLoading(false);
         }
     };
+
+
+    const handleUpdateClient = async (event) => {
+        event.preventDefault();
+
+        if (!validateClientForm()) return;
+
+        setLoading(true);
+
+        const payload = {
+            name: clientData.name,
+            email: clientData.email,
+            type: clientType,
+            phone: clientData.phone,
+            address: clientData.address,
+            cifcnp: clientData.cifCnp,
+        };
+
+        try {
+            const response = await axios.put(`http://localhost:4000/routes/clients/${entityToEdit.id}`, payload, {
+                headers: { 'Content-Type': 'application/json' },
+            });
+            await fetchClients();
+            closeModal();
+        } catch (error) {
+            alert(`Error: ${error.response?.data?.message || 'An error occurred'}`);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleUpdateVendor = async (event) => {
+        event.preventDefault();
+
+        if (!validateVendorForm()) return;
+
+        setLoading(true);
+
+        const payload = {
+            name: vendorData.name,
+            email: vendorData.email,
+            type: vendorType,
+            phone: vendorData.phone,
+            address: vendorData.address,
+            cifcnp: vendorData.cifCnp,
+        };
+
+        try {
+            const response = await axios.put(`http://localhost:4000/routes/vendors/${entityToEdit.id}`, payload, {
+                headers: { 'Content-Type': 'application/json' },
+            });
+            await fetchVendors();
+            closeModal();
+        } catch (error) {
+            alert(`Error: ${error.response?.data?.message || 'An error occurred'}`);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleUpdateItem = async (event) => {
+        event.preventDefault();
+
+        if (!validateItemForm()) return;
+
+        setLoading(true);
+
+        const payload = {
+            name: itemData.name,
+            UM: itemData.UM,
+            price: itemData.price,
+            description: itemData.description,
+        };
+
+        try {
+            const response = await axios.put(`http://localhost:4000/routes/items/${entityToEdit.id}`, payload, {
+                headers: { 'Content-Type': 'application/json' },
+            });
+            await fetchItems();
+            closeModal();
+        } catch (error) {
+            alert(`Error: ${error.response?.data?.message || 'An error occurred'}`);
+        } finally {
+            setLoading(false);
+        }
+    };
+
 
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">

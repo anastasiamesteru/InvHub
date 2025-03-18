@@ -1,4 +1,5 @@
 import React, { useState } from "react"
+import item from "../../../backend/models/item";
 
 const InvoiceModal = ({ isOpen, onClose }) => {
     const [clientCifCnp, setClientCifCnp] = useState('');
@@ -140,6 +141,20 @@ const InvoiceModal = ({ isOpen, onClose }) => {
     const [products, setProducts] = useState([
         { itemName: '', quantity: '', price: '' }
     ]);
+
+    const [items, setItems] = useState([{ value: "" }]); // Initial state with one empty item line
+
+    const handleAddItem = () => {
+        // Check if the last item line is not empty
+        const lastItem = items[items.length - 1];
+        if (lastItem.value.trim() !== "") {
+          // Add a new item line if the last one is not empty
+          setItems([...items, { value: "" }]);
+        } else {
+          // Optionally, show an alert or message if the last line is empty
+          alert("Please fill in the previous item before adding a new one.");
+        }
+      };
 
     if (!isOpen) return null;
     return (
@@ -367,9 +382,7 @@ const InvoiceModal = ({ isOpen, onClose }) => {
                                     <th className="border border-gray-300 px-4 py-2 text-center">Quantity</th>
                                     <th className="border border-gray-300 px-4 py-2 text-center">Unit Price</th>
                                     <th className="border border-gray-300 px-4 py-2 text-center">Total</th>
-                                    <th className="border border-gray-300 px-4 py-2 text-center">
-
-                                    </th>
+                                    
                                 </tr>
                             </thead>
 
@@ -377,12 +390,12 @@ const InvoiceModal = ({ isOpen, onClose }) => {
                             <tbody>
                                 <tr>
                                     <td className="border border-gray-300 px-4 py-2">
-                                        <input type="text" placeholder="Product/Service" className="w-full p-1 border rounded-md" value={itemName}
+                                        <input type="text" placeholder="Product/Service" className="w-full p-1 border rounded-md" value={item.name}
                                             onChange={handleItemNameChange} />
 
                                     </td>
                                     <td className="border border-gray-300 px-4 py-2 text-center">
-                                        <input type="number" min={1} placeholder="Qty" className="w-16 p-1 border rounded-md text-center" value={quantity}
+                                        <input type="number" min={1} placeholder="Qty" className="w-16 p-1 border rounded-md text-center" value={item.qya}
                                             onChange={handleQuantityChange} />
 
                                     </td>
@@ -399,7 +412,7 @@ const InvoiceModal = ({ isOpen, onClose }) => {
                         </table>
 
                         {/* Add Item Button */}
-                        <button className="mt-4 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-md">+ Add new line</button>
+                        <button className="mt-4 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-md" onClick={handleAddItem}>+ Add new line</button>
                     </div>
 
                     <div className="flex justify-center mt-4">

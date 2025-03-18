@@ -38,24 +38,21 @@ itemRoute.get("/:id", async (req, res) => {
 // Update an item
 itemRoute.put("/:id", async (req, res) => {
     try {
-        const id = req.params.id.trim();  // Trim any whitespace from the ID
+        const id = req.params.id.trim();  
 
-        // Check if the ID is in a valid ObjectId format
         if (!id.match(/^[0-9a-fA-F]{24}$/)) {
             return res.status(400).json({ error: "Invalid ObjectId format" });
         }
 
-        // Find the item by ID and update it
         const item = await Item.findByIdAndUpdate(id, req.body, {
-            new: true, // Return the updated document
-            runValidators: true, // Run validation checks
+            new: true, 
+            runValidators: true, 
         });
 
         if (!item) {
             return res.status(404).json({ error: "Item not found" });
         }
 
-        // Return the updated item
         res.status(200).json(item);
     } catch (error) {
         console.error("Error:", error.message);
