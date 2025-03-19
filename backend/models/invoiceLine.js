@@ -11,11 +11,5 @@ const invoiceLineSchema = new mongoose.Schema({
     total_price: { type: Number, required: true, min: 0 } 
 });
 
-// Automatically calculate `total_price` before saving
-invoiceLineSchema.pre('save', function (next) {
-    this.total_price = this.quantity * this.item_price;
-    next();
-});
-
 export default mongoose.model('InvoiceLine', invoiceLineSchema);  
 

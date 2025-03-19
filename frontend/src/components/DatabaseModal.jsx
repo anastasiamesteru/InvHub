@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { validateClientForm, validateVendorForm, validateItemForm } from '../utils/EntityModalValidation.js';
 
 const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, fetchItems, editingEntity }) => {
     const [errors, setErrors] = useState({});
@@ -57,50 +58,6 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
 
     const closeModal = () => setIsModalOpen(false);
 
-    const validateClientForm = () => {
-        const newErrors = {};
-        if (!clientData.name.trim()) newErrors.name = 'Name is required.';
-        if (!clientData.address.trim()) newErrors.address = 'Address is required.';
-        if (!clientData.phone.trim() || !/^\d{10}$/.test(clientData.phone)) newErrors.phone = 'Valid phone number (10 digits) is required.';
-        if (!clientData.email.trim() || !/\S+@\S+\.\S+/.test(clientData.email)) newErrors.email = 'Valid email is required.';
-        if (!clientData.cifCnp.trim()) {
-            newErrors.cifCnp = clientType === 'company' ? 'CIF is required.' : 'CNP is required.';
-        } else if (clientType === 'company' && !/^\d{8,9}$/.test(clientData.cifCnp)) {
-            newErrors.cifCnp = 'Valid CIF required (8-9 digits).';
-        } else if (clientType === 'individual' && !/^\d{13}$/.test(clientData.cifCnp)) {
-            newErrors.cifCnp = 'Valid CNP required (13 digits).';
-        }
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
-
-    const validateVendorForm = () => {
-        const newErrors = {};
-        if (!vendorData.name.trim()) newErrors.name = 'Name is required.';
-        if (!vendorData.address.trim()) newErrors.address = 'Address is required.';
-        if (!vendorData.phone.trim() || !/^\d{10}$/.test(vendorData.phone)) newErrors.phone = 'Valid phone number (10 digits) is required.';
-        if (!vendorData.email.trim() || !/\S+@\S+\.\S+/.test(vendorData.email)) newErrors.email = 'Valid email is required.';
-        if (!vendorData.cifCnp.trim()) {
-            newErrors.cifCnp = vendorType === 'company' ? 'CIF is required.' : 'CNP is required.';
-        } else if (vendorType === 'company' && !/^\d{8,9}$/.test(vendorData.cifCnp)) {
-            newErrors.cifCnp = 'Valid CIF required (8-9 digits).';
-        } else if (vendorType === 'individual' && !/^\d{13}$/.test(vendorData.cifCnp)) {
-            newErrors.cifCnp = 'Valid CNP required (13 digits).';
-        }
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
-
-    const validateItemForm = () => {
-        const newErrors = {};
-        if (!itemData.name.trim()) newErrors.name = 'Item name is required.';
-        if (!itemData.UM.trim()) newErrors.UM = 'Unit of measurement is required.';
-        if (!itemData.price.trim() || isNaN(itemData.price) || parseFloat(itemData.price) <= 0) newErrors.price = 'Valid price (greater than 0) is required.';
-        if (!itemData.description.trim()) newErrors.description = 'Description is required.';
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
-
     useEffect(() => {
         if (editingEntity) {
             if (activeTab === 'client') {
@@ -131,12 +88,17 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
                 setItemType(editingEntity.type || 'product');
             }
         }
-    }, [editingEntity, activeTab]);  
+    }, [editingEntity, activeTab]);
 
 
     const handleSubmitClient = async (event) => {
         event.preventDefault();
-        if (!validateClientForm()) return;
+
+        const validationErrors = validateClientForm(clientData);
+        if (validationErrors) {
+            setErrors(validationErrors);
+            return;
+        }
 
         setLoading(true);
 
@@ -175,8 +137,11 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
     const handleSubmitVendor = async (event) => {
         event.preventDefault();
 
-        // Validate form before proceeding
-        if (!validateVendorForm()) return;
+    const validationErrors = validateVendorForm(vendorData);
+        if (validationErrors) {
+            setErrors(validationErrors);
+            return;
+        }
 
         setLoading(true);
 
@@ -199,15 +164,11 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
 
             await fetchVendors();
 
-            // Success message
             closeModal();
         } catch (error) {
-            // Detailed error handling
             if (error.response) {
-                // Server returned a response, display specific message
                 alert(`Error: ${error.response?.data?.message || 'An error occurred'}`);
             } else {
-                // No response from the server (e.g., network issue)
                 alert(`Error: ${error.message}`);
             }
         } finally {
@@ -218,7 +179,12 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
 
     const handleSubmitItem = async (event) => {
         event.preventDefault();
-        if (!validateItemForm()) return;
+
+        const validationErrors = validateItemForm(itemData);
+        if (validationErrors) {
+            setErrors(validationErrors);
+            return;
+        }
 
         setLoading(true);
 
@@ -546,7 +512,7 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
                                 onChange={(e) => handleChange(e, 'item')}
                                 placeholder="Enter unit of measurement"
                             />
-                            {errors.um && <p className="text-red-500 text-xs">{errors.um}</p>}
+                            {errors.UM && <p className="text-red-500 text-xs">{errors.UM}</p>}
 
                         </>
 

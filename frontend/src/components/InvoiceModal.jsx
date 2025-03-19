@@ -1,7 +1,9 @@
 import React, { useState } from "react"
 import item from "../../../backend/models/item";
+import { InvoiceModalValidation } from "../utils/InvoiceModalValidation.js";
 
 const InvoiceModal = ({ isOpen, onClose }) => {
+    
     const [clientCifCnp, setClientCifCnp] = useState('');
     const [vendorCifCnp, setVendorCifCnp] = useState('');
 
@@ -47,89 +49,28 @@ const InvoiceModal = ({ isOpen, onClose }) => {
     const handlePriceChange = (event) => setPrice(event.target.value);
 
     const validateForm = () => {
-        const newErrors = {};
-
-        //Due and issue date thing
-        if (dueDate < issueDate) {
-            newErrors.dueDate = "Due date cannot be before issue date."
-        }
-
-        //Due and issue date thing 2
-        if (dueDate < issueDate) {
-            newErrors.dueDate = "Due date cannot be before issue date."
-        }
-
-        // Client Name Validation
-        if (!clientName) {
-            newErrors.clientName = "Client name is required.";
-        }
-
-        // Client Address Validation
-        if (!clientAddress) {
-            newErrors.clientAddress = "Client address is required.";
-        }
-
-        // Client Email Validation
-        if (!clientEmail) {
-            newErrors.clientEmail = "Client email is required.";
-        } else if (!/\S+@\S+\.\S+/.test(clientEmail)) {
-            newErrors.clientEmail = "Please enter a valid email address.";
-        }
-
-        // Client CIF/CNP Validation
-        if (!clientCifCnp) {
-            newErrors.clientCifCnp = clientType === "company" ? "CIF is required." : "CNP is required.";
-        } else if (clientType === "company" && !/^\d{8,9}$/.test(clientCifCnp)) {
-            newErrors.clientCifCnp = "Please enter a valid CIF.";
-        } else if (clientType === "individual" && !/^\d{13}$/.test(clientCifCnp)) {
-            newErrors.clientCifCnp = "Please enter a valid CNP.";
-        }
-
-        // Vendor Name Validation
-        if (!vendorName) {
-            newErrors.vendorName = "Vendor name is required.";
-        }
-
-        // Vendor Address Validation
-        if (!vendorAddress) {
-            newErrors.vendorAddress = "Vendor address is required.";
-        }
-
-        // Vendor Email Validation
-        if (!vendorEmail) {
-            newErrors.vendorEmail = "Vendor email is required.";
-        } else if (!/\S+@\S+\.\S+/.test(vendorEmail)) {
-            newErrors.vendorEmail = "Please enter a valid email address.";
-        }
-
-        // Vendor CIF/CNP Validation
-        if (!vendorCifCnp) {
-            newErrors.vendorCifCnp = vendorType === "company" ? "CIF is required." : "CNP is required.";
-        } else if (vendorType === "company" && !/^\d{8,9}$/.test(vendorCifCnp)) {
-            newErrors.vendorCifCnp = "Please enter a valid CIF.";
-        } else if (vendorType === "individual" && !/^\d{13}$/.test(vendorCifCnp)) {
-            newErrors.vendorCifCnp = "Please enter a valid CNP.";
-        }
-
-        // Item Name Validation
-        if (!itemName.trim()) {
-            newErrors.itemName = "Item name is required.";
-        }
-
-        // Quantity Validation
-        if (!quantity || quantity == 0 || quantity < 0) {
-            newErrors.quantity = "Quantity must be a positive number.";
-        }
-
-        // Price Validation
-        if (!price || price == 0) {
-            newErrors.price = "Price must be a positive number.";
-        }
-
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
+        const errors = InvoiceModalValidation({
+            issueDate,
+            dueDate,
+            clientName,
+            clientAddress,
+            clientEmail,
+            clientCifCnp,
+            clientType,
+            vendorName,
+            vendorAddress,
+            vendorEmail,
+            vendorCifCnp,
+            vendorType,
+            itemName,
+            quantity,
+            price,
+        });
+        setErrors(errors);
+        return Object.keys(errors).length === 0;
     };
-
+    
+    
     const onSubmit = (event) => {
         event.preventDefault();
         if (validateForm()) {
@@ -138,23 +79,32 @@ const InvoiceModal = ({ isOpen, onClose }) => {
         }
     };
 
-    const [products, setProducts] = useState([
-        { itemName: '', quantity: '', price: '' }
-    ]);
+    const [items, setItems] = useState([{ name: "", qty: 1, price: 0 }]);
 
-    const [items, setItems] = useState([{ value: "" }]); // Initial state with one empty item line
+    const addItem = () => {
+        setItems([...items, { name: "", qty: 1, price: 0 }]);
+    };
 
-    const handleAddItem = () => {
-        // Check if the last item line is not empty
-        const lastItem = items[items.length - 1];
-        if (lastItem.value.trim() !== "") {
-          // Add a new item line if the last one is not empty
-          setItems([...items, { value: "" }]);
-        } else {
-          // Optionally, show an alert or message if the last line is empty
-          alert("Please fill in the previous item before adding a new one.");
-        }
-      };
+    const removeItem = (index) => {
+        setItems(items.filter((_, i) => i !== index));
+    };
+
+    const handleItemChange = (e, index, field) => {
+        const { value } = e.target;
+
+        setItems((prevItems) =>
+            prevItems.map((item, i) =>
+                i === index
+                    ? {
+                        ...item,
+                        [field]: field === "qty" || field === "price" ? parseFloat(value) || 0 : value
+                    }
+                    : item
+            )
+        );
+    };
+
+
 
     if (!isOpen) return null;
     return (
@@ -173,7 +123,7 @@ const InvoiceModal = ({ isOpen, onClose }) => {
                 <form className="mt-4">
                     <div className="flex justify-between border-b-2 border-gray-400 pb-4">
                         <div className="w-1/2 pr-2 flex flex-col items-center">
-                            <label htmlFor="invoiceNumber" className="block text-sm font-medium text-gray-700">Invoice number</label>
+                            <label htmlFor="invoiceNumber" className="block text-sm font-small text-gray-700">Invoice number</label>
                             <input
                                 id="invoiceNumber"
                                 type="number"
@@ -183,7 +133,7 @@ const InvoiceModal = ({ isOpen, onClose }) => {
                         </div>
 
                         <div className="w-1/2 pl-2 flex flex-col items-center">
-                            <label htmlFor="currency" className="block text-sm font-medium text-gray-700">Currency</label>
+                            <label htmlFor="currency" className="block text-sm font-small text-gray-700">Currency</label>
                             <input
                                 id="currency"
                                 type="text"
@@ -196,7 +146,7 @@ const InvoiceModal = ({ isOpen, onClose }) => {
                     <div className="flex flex-col border-b-2 border-gray-400 pt-4 pb-4">
                         <div className="flex justify-between">
                             <div className="w-1/2 pr-2 flex flex-col items-center">
-                                <label htmlFor="issueDate" className="block text-sm font-medium text-gray-700">Issue date</label>
+                                <label htmlFor="issueDate" className="block text-sm font-small text-gray-700">Issue date</label>
                                 <input
                                     id="issueDate"
                                     type="date"
@@ -207,7 +157,7 @@ const InvoiceModal = ({ isOpen, onClose }) => {
                             </div>
 
                             <div className="w-1/2 pl-2 flex flex-col items-center">
-                                <label htmlFor="dueDate" className="block text-sm font-medium text-gray-700">Due date</label>
+                                <label htmlFor="dueDate" className="block text-sm font-small text-gray-700">Due date</label>
                                 <input
                                     id="dueDate"
                                     type="date"
@@ -230,7 +180,7 @@ const InvoiceModal = ({ isOpen, onClose }) => {
                         <div className="w-1/2 pr-5 border-r-2 border-gray-300">
                             <h3 className="text-lg font-semibold text-center">Client Information</h3>
                             <div className="my-2">
-                                <label htmlFor="clientName" className="block text-sm font-medium text-gray-700">Name:</label>
+                                <label htmlFor="clientName" className="block text-sm font-small text-gray-700">Name:</label>
                                 <input
                                     id="clientName"
                                     type="text"
@@ -243,7 +193,7 @@ const InvoiceModal = ({ isOpen, onClose }) => {
 
                             </div>
                             <div className="my-2">
-                                <label htmlFor="clientAddress" className="block text-sm font-medium text-gray-700">Address:</label>
+                                <label htmlFor="clientAddress" className="block text-sm font-small text-gray-700">Address:</label>
                                 <input
                                     id="clientAddress"
                                     type="text"
@@ -256,7 +206,7 @@ const InvoiceModal = ({ isOpen, onClose }) => {
 
                             </div>
                             <div className="my-2">
-                                <label htmlFor="clientEmail" className="block text-sm font-medium text-gray-700">Email:</label>
+                                <label htmlFor="clientEmail" className="block text-sm font-small text-gray-700">Email:</label>
                                 <input
                                     id="clientEmail"
                                     type="email"
@@ -269,7 +219,7 @@ const InvoiceModal = ({ isOpen, onClose }) => {
 
                             </div>
                             <div className="my-2">
-                                <label htmlFor="type" className="block text-sm font-medium text-gray-700 mt-1">Type</label>
+                                <label htmlFor="type" className="block text-sm font-small text-gray-700 mt-1">Type</label>
                                 <select
                                     id="type"
                                     value={clientType}
@@ -281,7 +231,7 @@ const InvoiceModal = ({ isOpen, onClose }) => {
                                 </select>
                             </div>
                             <div className="my-2">
-                                <label htmlFor="client-cif-cnp" className="block text-sm font-medium text-gray-700 mt-1">
+                                <label htmlFor="client-cif-cnp" className="block text-sm font-small text-gray-700 mt-1">
                                     {clientType === 'company' ? 'CIF' : 'CNP'}
                                 </label>
                                 <input
@@ -302,7 +252,7 @@ const InvoiceModal = ({ isOpen, onClose }) => {
                         <div className="w-1/2 pr-5 border-gray-300 pl-4">
                             <h3 className="text-lg font-semibold text-center">Vendor Information</h3>
                             <div className="my-2">
-                                <label htmlFor="vendorName" className="block text-sm font-medium text-gray-700">Name:</label>
+                                <label htmlFor="vendorName" className="block text-sm font-small text-gray-700">Name:</label>
                                 <input
                                     id="vendorName"
                                     type="text"
@@ -314,8 +264,9 @@ const InvoiceModal = ({ isOpen, onClose }) => {
                                 {errors.vendorName && <p className="text-red-500 text-xs">{errors.vendorName}</p>}
 
                             </div>
+                            
                             <div className="my-2">
-                                <label htmlFor="vendorAddress" className="block text-sm font-medium text-gray-700">Address:</label>
+                                <label htmlFor="vendorAddress" className="block text-sm font-small text-gray-700">Address:</label>
                                 <input
                                     id="vendorAddress"
                                     type="text"
@@ -328,7 +279,7 @@ const InvoiceModal = ({ isOpen, onClose }) => {
 
                             </div>
                             <div className="my-2">
-                                <label htmlFor="vendorEmail" className="block text-sm font-medium text-gray-700">Email:</label>
+                                <label htmlFor="vendorEmail" className="block text-sm font-small text-gray-700">Email:</label>
                                 <input
                                     id="vendorEmail"
                                     type="email"
@@ -341,7 +292,7 @@ const InvoiceModal = ({ isOpen, onClose }) => {
 
                             </div>
                             <div className="my-2">
-                                <label htmlFor="type" className="block text-sm font-medium text-gray-700 mt-1">Type</label>
+                                <label htmlFor="type" className="block text-sm font-small text-gray-700 mt-1">Type</label>
                                 <select
                                     id="type"
                                     value={vendorType}
@@ -355,7 +306,7 @@ const InvoiceModal = ({ isOpen, onClose }) => {
 
 
                             <div className="my-2">
-                                <label htmlFor="vendor-cif-cnp" className="block text-sm font-medium text-gray-700 mt-1">
+                                <label htmlFor="vendor-cif-cnp" className="block text-sm font-small text-gray-700 mt-1">
                                     {vendorType === 'company' ? 'CIF' : 'CNP'}
                                 </label>
                                 <input
@@ -381,38 +332,64 @@ const InvoiceModal = ({ isOpen, onClose }) => {
                                     <th className="border border-gray-300 px-4 py-2 text-center">Item</th>
                                     <th className="border border-gray-300 px-4 py-2 text-center">Quantity</th>
                                     <th className="border border-gray-300 px-4 py-2 text-center">Unit Price</th>
-                                    <th className="border border-gray-300 px-4 py-2 text-center">Total</th>
-                                    
+                                    <th className="border border-gray-300 px-4 py-2 text-center">Line Total</th>
+                                    <th className="border border-gray-300 px-4 py-2 text-center"></th>
+
                                 </tr>
                             </thead>
 
                             {/* Table Body */}
                             <tbody>
-                                <tr>
-                                    <td className="border border-gray-300 px-4 py-2">
-                                        <input type="text" placeholder="Product/Service" className="w-full p-1 border rounded-md" value={item.name}
-                                            onChange={handleItemNameChange} />
+                                {items.map((item, index) => (
+                                    <tr key={index} className="border border-gray-300">
 
-                                    </td>
-                                    <td className="border border-gray-300 px-4 py-2 text-center">
-                                        <input type="number" min={1} placeholder="Qty" className="w-16 p-1 border rounded-md text-center" value={item.qya}
-                                            onChange={handleQuantityChange} />
+                                        <td className="border border-gray-300 px-4 py-2">
+                                            <input type="text"
+                                                placeholder="Product/Service"
+                                                className="w-full p-1 border rounded-md"
+                                                value={item.name}
+                                                onChange={(e) => handleItemChange(e, index, "name")}
+                                            />
 
-                                    </td>
-                                    <td className="border border-gray-300 px-4 py-2 text-center">
-                                        <input type="number" min={0.000} placeholder="Price" className="w-20 p-1 border rounded-md text-center" value={price}
-                                            onChange={handlePriceChange} />
+                                        </td>
+                                        <td className="border border-gray-300 px-4 py-2 text-center">
+                                            <input type="number"
+                                                min={1}
+                                                placeholder="Qty"
+                                                className="w-16 p-1 border rounded-md text-center"
+                                                value={item.qty}
+                                                onChange={(e) => handleItemChange(e, index, "qty")}
+                                            />
 
-                                    </td>
-                                    <td className="border border-gray-300 px-4 py-2 text-center">
-                                        <span>$0.00</span>
-                                    </td>
-                                </tr>
+                                        </td>
+                                        <td className="px-4 py-3 text-center">
+                                            <input
+                                                type="number"
+                                                min={0.000}
+                                                placeholder="Price"
+                                                className="w-20 p-2 border rounded-md text-center"
+                                                value={item.price}
+                                                onChange={(e) => handleItemChange(e, index, "price")}
+                                            />
+                                        </td>
+                                        <td className="border border-gray-300 px-2 py-2 text-center">
+                                            <span>${(item.qty * item.price).toFixed(2)}</span>
+                                        </td>
+                                        <td className="px-2 py-4 text-center flex justify-center items-center">
+                                        <button className="px-1 py-1 text-center" onClick={() => removeItem(index)}>
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" className="w-5 h-5">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                                            </svg>
+                                        </button>
+                                        </td>
+
+                                    </tr>
+                                ))}
                             </tbody>
                         </table>
 
                         {/* Add Item Button */}
-                        <button className="mt-4 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-md" onClick={handleAddItem}>+ Add new line</button>
+                        <button type="button" className="mt-4 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-md" onClick={addItem}>+ Add new line</button>
                     </div>
 
                     <div className="flex justify-center mt-4">
