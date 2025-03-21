@@ -1,86 +1,51 @@
 import express from 'express';
 import Invoice from '../models/invoice.js';
-import InvoiceLine from '../models/invoiceLine.js';
 
 const invoiceRoute = express.Router();
 
-// Get all invoices and populate invoice lines with related item details
-invoiceRoute.get('/', async (req, res) => {
+invoiceRoute.get("/getall", async (req, res) => {
     try {
-        const invoices = await Invoice.find()
-            .populate({
-                path: 'invoice_lines', // Populate the invoice_lines field
-                populate: {
-                    path: 'item_id', // Populate item_id in the InvoiceLine
-                    select: 'name price type' // Select the name, price, and type fields
-                }
-            });
-
-        if (invoices.length === 0) {
-            return res.status(404).json({ message: 'No invoices found' });
-        }
-
-        res.status(200).json(invoices);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Error fetching invoices', error: err.message });
+        const invoices = await Invoice.find();
+        res.json(invoices);
+    } catch (error) {
+        res.status(500).json({ message: "Server error", error: error.message });
     }
-});
+})
 
 // Create a new invoice
-invoiceRoute.post('/', async (req, res) => {
-    const { client, vendor, issue_date, due_date, invoice_lines } = req.body;
-
+invoiceRoute.post('/create', async (req, res) => {
     try {
-        // First, calculate the total price based on the invoice lines
-        let total = 0;
-        for (const line of invoice_lines) {
-            const invoiceLine = await InvoiceLine.findById(line);
-            total += invoiceLine.total_price; // Sum up the total_price from invoice lines
-        }
-
-        // Create the invoice
-        const newInvoice = new Invoice({
-            client,
-            vendor,
-            issue_date,
-            due_date,
-            invoice_lines,
-            total
-        });
-
-        // Save the invoice to the database
-        await newInvoice.save();
-
-        res.status(201).json({ message: 'Invoice created successfully', invoice: newInvoice });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Error creating invoice', error: err.message });
+      // Get invoice data from the request body
+      const {
+        invoiceNumber,
+        clientName, clientAddress, clientPhoneNo, clientEmail, clientType, clientCifcnp,
+        vendorName, vendorAddress, vendorPhoneNo, vendorEmail, vendorType, vendorCifcnp,
+        issue_date, due_date,
+        items,tax, total,
+      } = req.body;
+  
+      // Create a new invoice document
+      const newInvoice = new Invoice({
+        invoiceNumber,
+        clientName, clientAddress, clientPhoneNo, clientEmail, clientType, clientCifcnp,
+        vendorName, vendorAddress, vendorPhoneNo, vendorEmail, vendorType, vendorCifcnp,
+        issue_date, due_date,
+        items, tax, total,
+      });
+  
+      await newInvoice.save();
+  
+      res.status(201).json({
+        message: 'Invoice created successfully',
+        invoice: newInvoice,
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Failed to create invoice' });
     }
-});
+  });
 
-//Get a single invoice by its ID, including the invoice lines and item details
-invoiceRoute.get('/:id', async (req, res) => {
-    try {
-        const invoice = await Invoice.findById(req.params.id)
-            .populate({
-                path: 'invoice_lines', // Populate the invoice_lines field
-                populate: {
-                    path: 'item_id', // Populate item_id in the InvoiceLine
-                    select: 'name price type' // Select the name, price, and type fields
-                }
-            });
 
-        if (!invoice) {
-            return res.status(404).json({ message: 'Invoice not found' });
-        }
-
-        res.status(200).json(invoice);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Error fetching invoice', error: err.message });
-    }
-});
 
 //Update an invoice by ID
 invoiceRoute.put('/:id', async (req, res) => {

@@ -32,16 +32,6 @@ clientRoute.get("/getall", async (req, res) => {
     }
 });
 
-//Get a single client by ID
-clientRoute.get("/:id", async (req, res) => {
-    try {
-        const client = await Client.findById(req.params.id);
-        if (!client) return res.status(404).json({ error: "Client not found" });
-        res.status(200).json(client);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
 
 // Update a client
 clientRoute.put("/:id", async (req, res) => {

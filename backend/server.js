@@ -4,7 +4,6 @@ import 'dotenv/config';
 import mongoose from 'mongoose';
 
 import invoiceRoutes from './routes/invoiceRoute.js';
-import invoiceLineRoutes from './routes/invoiceLineRoute.js';
 import itemRoutes from './routes/itemRoute.js';
 import clientRoutes from './routes/clientRoute.js';
 import vendorRoutes from './routes/vendorRoute.js';
@@ -23,7 +22,6 @@ app.get('/', (req, res) => {
 
 // API Routes
 app.use('/routes/invoices', invoiceRoutes);
-app.use('/routes/invoicelines', invoiceLineRoutes);
 app.use('/routes/items', itemRoutes);
 app.use('/routes/clients', clientRoutes);
 app.use('/routes/vendors', vendorRoutes);

@@ -1,24 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import InvoiceModal from '../components/InvoiceModal';
 
 const Invoice = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
-    const [invoices, setInvoices] = useState([
-        { id: 1, client: 'Client A', vendor: 'Vendor X', dueDate: '2024-01-01', status: 'On Time', amount: 500 },
-        { id: 2, client: 'Client B', vendor: 'Vendor Y', dueDate: '2024-02-02', status: 'On Time', amount: 200 },
-        { id: 3, client: 'Client C', vendor: 'Vendor Z', dueDate: '2024-03-03', status: 'Overdue', amount: 800 },
-        { id: 4, client: 'Client A', vendor: 'Vendor X', dueDate: '2024-04-04', status: 'Overdue', amount: 1200 },
-        { id: 5, client: 'Client E', vendor: 'Vendor Y', dueDate: '2024-05-05', status: 'On Time', amount: 1500 },
-        { id: 6, client: 'Client D', vendor: 'Vendor Z', dueDate: '2024-06-06', status: 'On Time', amount: 600 },
-        { id: 7, client: 'Client F', vendor: 'Vendor X', dueDate: '2024-07-07', status: 'Overdue', amount: 1000 },
-        { id: 8, client: 'Client B', vendor: 'Vendor Y', dueDate: '2024-08-08', status: 'On Time', amount: 700 },
-        { id: 9, client: 'Client C', vendor: 'Vendor Z', dueDate: '2024-09-09', status: 'On Time', amount: 900 },
-        { id: 10, client: 'Client E', vendor: 'Vendor X', dueDate: '2025-01-10', status: 'Overdue', amount: 300 }
-    ]);
+    const [invoices, setInvoices] = useState([]);
 
-    
+    const fetchInvoices = async () => {
+        try {
+            const response = await fetch('http://localhost:4000/routes/invoices/getall');
+            if (!response.ok) throw new Error('Failed to fetch invoices');
+            const data = await response.json();
+            setInvoices(data);
+        } catch (error) {
+            console.error("Error fetching invoices:", error);
+        }
+    };
 
+    useEffect(() => {
+        fetchInvoices();
+    }, []); 
     const deleteInvoice = (invoiceId) => {
         setInvoices((prevInvoices) => prevInvoices.filter(invoice => invoice.id !== invoiceId));
     };
@@ -31,12 +32,12 @@ const Invoice = () => {
     const closeModal = () => { setIsModalOpen(false); };
 
     const filteredInvoices = invoices.filter((invoice) =>
-        invoice.client.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        invoice.vendor.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        invoice.status.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        invoice.amount.toString().includes(searchQuery) ||
-      //  invoice.issueDate.includes(searchQuery) || 
-        invoice.dueDate.includes(searchQuery) 
+        invoice.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        invoice.vendorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        // invoice.status.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        invoice.total.toString().includes(searchQuery) ||
+        invoice.issueDate.toString().includes(searchQuery) ||
+        invoice.dueDate.toString().includes(searchQuery)
 
     );
 
@@ -44,7 +45,7 @@ const Invoice = () => {
 
     const [currentPage, setCurrentPage] = useState(1);
     const invoicesPerPage = 8;
-    
+
     const indexOfLastInvoice = currentPage * invoicesPerPage;
     const indexOfFirstInvoice = indexOfLastInvoice - invoicesPerPage;
     const currentInvoices = filteredInvoices.slice(indexOfFirstInvoice, indexOfLastInvoice);
@@ -69,6 +70,7 @@ const Invoice = () => {
                         <InvoiceModal
                             isOpen={isModalOpen}
                             onClose={closeModal}
+                            fetchInvoices={fetchInvoices}
                         />
                     </div>
                 </div>
@@ -92,26 +94,34 @@ const Invoice = () => {
                             <th className="px-3 py-2 text-center bg-gray-200">Invoice number</th>
                             <th className="px-3 py-2 text-center bg-gray-200">Client</th>
                             <th className="px-3 py-2 text-center bg-gray-200">Vendor</th>
+                            <th className="px-3 py-2 text-center bg-gray-200">Issue Date</th>
                             <th className="px-3 py-2 text-center bg-gray-200">Due Date</th>
                             <th className="px-3 py-2 text-center bg-gray-200">Status</th>
-                            <th className="px-3 py-2 text-center bg-gray-200">Amount</th>
+                            <th className="px-3 py-2 text-center bg-gray-200">Total</th>
                             <th className="px-3 py-2 text-center bg-gray-200">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {currentInvoices.length > 0 ? (
                             currentInvoices.map((invoice) => (
-                                <tr key={invoice.id} className="hover:bg-gray-100">
-                                    <td className="px-3 py-2 text-center">{invoice.id}</td>
-                                    <td className="px-3 py-2 text-center">{invoice.client}</td>
-                                    <td className="px-3 py-2 text-center">{invoice.vendor}</td>
-                                    <td className="px-3 py-2 text-center">{invoice.dueDate}</td>
+                                <tr key={invoice.invoiceNumber} className="hover:bg-gray-100">
+                                    <td className="px-3 py-2 text-center">{invoice.invoiceNumber}</td>
+                                    <td className="px-3 py-2 text-center">{invoice.clientName}</td>
+                                    <td className="px-3 py-2 text-center">{invoice.vendorName}</td>
+                                    <td className="px-3 py-2 text-center">
+                                        {invoice.issueDate ? new Date(invoice.issueDate).toLocaleDateString('en-GB') : 'N/A'}
+                                    </td>
+                                    <td className="px-3 py-2 text-center">
+                                        {invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString('en-GB') : 'N/A'}
+                                    </td>
+
+
                                     <td className="px-3 py-2 text-center">
                                         <span className={`inline-block px-2 py-1 font-semibold rounded ${invoice.status === 'On Time' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                                            {invoice.status}
+
                                         </span>
                                     </td>
-                                    <td className="px-3 py-2 text-center">{invoice.amount}</td>
+                                    <td className="px-3 py-2 text-center">{invoice.total}</td>
                                     <td className="px-3 py-2 text-center flex justify-center gap-2">
                                         <button className="px-2 py-1 text-center">
                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">

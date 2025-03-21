@@ -24,17 +24,6 @@ itemRoute.get("/getall", async (req, res) => {
     }
 });
 
-// Get a single item by ID
-itemRoute.get("/:id", async (req, res) => {
-    try {
-        const item = await Item.findById(req.params.id);
-        if (!item) return res.status(404).json({ error: "Item not found" });
-        res.status(200).json(item);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
 // Update an item
 itemRoute.put("/:id", async (req, res) => {
     try {

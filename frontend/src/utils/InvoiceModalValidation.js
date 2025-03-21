@@ -3,7 +3,7 @@
 export const InvoiceModalValidation = (data) => {
     const errors = {};
 
-    const { issueDate, dueDate, clientName, clientAddress, clientEmail, clientCifCnp, clientType, vendorName, vendorAddress, vendorEmail, vendorCifCnp, vendorType, itemName, quantity, price } = data;
+    const { issueDate, dueDate, clientName, clientAddress, clientPhoneNo, clientEmail, clientCifCnp, clientType, vendorName, vendorAddress, vendorPhoneNo, vendorEmail, vendorCifCnp, vendorType, itemName, quantity, price } = data;
 
     // Due and issue date validation
     if (dueDate < issueDate) errors.dueDate = "Due date cannot be before issue date.";
@@ -11,6 +11,7 @@ export const InvoiceModalValidation = (data) => {
     // Client Validations
     if (!clientName.trim()) errors.clientName = "Client name is required.";
     if (!clientAddress.trim()) errors.clientAddress = "Client address is required.";
+    if (!clientPhoneNo.trim()) errors.clientPhoneNo = "Client phone number is required.";
     if (!clientEmail.trim() || !/\S+@\S+\.\S+/.test(clientEmail)) errors.clientEmail = "Valid email is required.";
     if (!clientCifCnp.trim()) {
         errors.clientCifCnp = clientType === "company" ? "CIF is required." : "CNP is required.";
@@ -23,6 +24,7 @@ export const InvoiceModalValidation = (data) => {
     // Vendor Validations
     if (!vendorName.trim()) errors.vendorName = "Vendor name is required.";
     if (!vendorAddress.trim()) errors.vendorAddress = "Vendor address is required.";
+    if (!vendorPhoneNo.trim()) errors.vendorPhoneNo = "Vendor phone number is required.";
     if (!vendorEmail.trim() || !/\S+@\S+\.\S+/.test(vendorEmail)) errors.vendorEmail = "Valid email is required.";
     if (!vendorCifCnp.trim()) {
         errors.vendorCifCnp = vendorType === "company" ? "CIF is required." : "CNP is required.";
