@@ -1,167 +1,54 @@
 import React, { useState } from "react"
 import item from "../../../backend/models/item";
 import { InvoiceModalValidation } from "../utils/InvoiceModalValidation.js";
+import axios from 'axios';
 
 const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
-
-    const [clientCifCnp, setClientCifCnp] = useState('');
-    const [vendorCifCnp, setVendorCifCnp] = useState('');
-
-    const [clientType, setClientType] = useState('company');
-    const [vendorType, setVendorType] = useState('company');
-
-    const [issueDate, setIssueDate] = useState('');
-    const [dueDate, setDueDate] = useState('');
-
-    const [clientName, setClientName] = useState('');
-    const [clientAddress, setClientAddress] = useState('');
-    const [clientEmail, setClientEmail] = useState('');
-    const [clientPhoneNo, setClientPhoneNo] = useState('');
-
-    const [vendorName, setVendorName] = useState('');
-    const [vendorAddress, setVendorAddress] = useState('');
-    const [vendorEmail, setVendorEmail] = useState('');
-    const [vendorPhoneNo, setVendorPhoneNo] = useState('');
-    const [itemName, setItemName] = useState('');
-    const [quantity, setQuantity] = useState('');
-    const [price, setPrice] = useState('');
-
+    const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
 
-    const handleIssueDateChange = (event) => setIssueDate(event.target.value);
-    const handleDueDateChange = (event) => setDueDate(event.target.value);
-
-    const handleClientCifCnpChange = (event) => setClientCifCnp(event.target.value);
-    const handleVendorCifCnpChange = (event) => setVendorCifCnp(event.target.value);
-
-    const handleClientTypeChange = (event) => setClientType(event.target.value);
-    const handleVendorTypeChange = (event) => setVendorType(event.target.value);
-
-    const handleClientNameChange = (event) => setClientName(event.target.value);
-    const handleClientAddressChange = (event) => setClientAddress(event.target.value);
-    const handleClientEmailChange = (event) => setClientEmail(event.target.value);
-
-    const handleVendorNameChange = (event) => setVendorName(event.target.value);
-    const handleVendorAddressChange = (event) => setVendorAddress(event.target.value);
-    const handleVendorEmailChange = (event) => setVendorEmail(event.target.value);
-
-    const handleItemNameChange = (event) => setItemName(event.target.value);
-    const handleQuantityChange = (event) => setQuantity(event.target.value);
-    const handlePriceChange = (event) => setPrice(event.target.value);
-    const handleTaxChange = (e) => {
-        setTax(parseFloat(e.target.value) || 0);
-    };
+    // Form validation function
     const validateForm = () => {
         const errors = InvoiceModalValidation({
-            issueDate,
-            dueDate,
-            clientName,
-            clientAddress,
-            clientPhoneNo,
-            clientEmail,
-            clientCifCnp,
-            clientType,
-            vendorName,
-            vendorAddress,
-            vendorPhoneNo,
-            vendorEmail,
-            vendorCifCnp,
-            vendorType,
-            itemName,
-            quantity,
-            price,
+            clientName: invoiceData.clientName,
+            clientAddress: invoiceData.clientAddress,
+            clientPhoneNo: invoiceData.clientPhoneNo,
+            clientType: invoiceData.clientType,
+            clientCifCnp: invoiceData.clientCifCnp,
+
+            vendorName: invoiceData.vendorName,
+            vendorAddress: invoiceData.vendorAddress,
+            vendorPhoneNo: invoiceData.vendorPhoneNo,
+            vendorType: invoiceData.vendorType,
+            vendorCifCnp: invoiceData.vendorCifCnp,
+
+            issueDate: invoiceData.issueDate,
+            dueDate: invoiceData.dueDate,
+            tax: invoiceData.tax,
+            total: invoiceData.total,
+
+            items: invoiceData.items,
         });
+
         setErrors(errors);
         return Object.keys(errors).length === 0;
     };
 
-
     const [invoiceData, setInvoiceData] = useState({
         invoiceNumber: '',
-        clientName: '',
-        clientAddress: '',
-        clientPhoneNo: '',
-        clientEmail: '',
-        clientType: '',
-        clientCifcnp: '',
-        vendorName: '',
-        vendorAddress: '',
-        vendorPhoneNo: '',
-        vendorEmail: '',
-        vendorType: '',
-        vendorCifcnp: '',
-        issue_date: '',
-        due_date: '',
-        items: [],
-        tax: 0,
-        total: 0,
+
+        clientName: '', clientAddress: '', clientPhoneNo: '', clientEmail: '', clientType: 'company', clientCifCnp: '',
+
+        vendorName: '', vendorAddress: '', vendorPhoneNo: '', vendorEmail: '', vendorType: 'company', vendorCifCnp: '',
+
+        issueDate: '', dueDate: '', tax: 0, total: 0,
+
+        items: [{ name: '', qty: 1, price: 0 }],
     });
-
-   
-
-    const handleSubmit = async (event) => {
-        event.preventDefault();
-
-        const validationErrors = validateForm(invoiceData);
-        if (validationErrors) {
-            setErrors(validationErrors);
-            return;
-        }
-
-
-        const generateInvoiceNumber = () => {
-            return `INV-${Math.floor(Math.random() * 9000) + 1000}`;  
-        };
-    
-        const invoiceNumber = generateInvoiceNumber();
-        setLoading(true);
-
-        const payload = {
-            invoiceNumber: invoiceData.invoiceNumber,
-            client: {
-                name: invoiceData.clientName,
-                email: invoiceData.clientEmail,
-                type: invoiceData.clientType,
-                phone: invoiceData.clientPhoneNo,
-                address: invoiceData.clientAddress,
-                cifcnp: invoiceData.clientCifcnp,
-            },
-            vendor: {
-                name: invoiceData.vendorName,
-                email: invoiceData.vendorEmail,
-                type: invoiceData.vendorType,
-                phone: invoiceData.vendorPhoneNo,
-                address: invoiceData.vendorAddress,
-                cifcnp: invoiceData.vendorCifcnp,
-            },
-            issue_date: invoiceData.issue_date,
-            due_date: invoiceData.due_date,
-            items: invoiceData.items,
-            tax: invoiceData.tax,
-            total: invoiceData.total,
-        };
-
-        try {
-            // Create a new invoice
-            const response = await axios.post('http://localhost:4000/routes/invoices/create', payload, {
-                headers: { 'Content-Type': 'application/json' },
-            });
-
-            await fetchInvoices();  // Refresh the list of invoices
-            closeModal();
-        } catch (error) {
-            alert(`Error: ${error.message}`);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-
-
-
 
     const [items, setItems] = useState([{ name: "", qty: 1, price: 0 }]);
     const [tax, setTax] = useState(0);
+    const [total, setTotal] = useState(0); // Total state for displaying total with tax
 
     const calculateTotalWithoutTax = () => {
         return items.reduce((total, item) => total + (item.price * item.qty), 0);
@@ -169,12 +56,10 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
 
     const calculateTotal = () => {
         const totalItemsCost = calculateTotalWithoutTax();
-        const validTax = !isNaN(tax) && tax >= 0 ? tax : 0;
+        const validTax = !isNaN(invoiceData.tax) && invoiceData.tax >= 0 ? invoiceData.tax : 0;
         const taxAmount = (totalItemsCost * validTax) / 100;
         return totalItemsCost + taxAmount;
     };
-
-
 
     const addItem = () => {
         setItems([...items, { name: "", qty: 1, price: 0 }]);
@@ -184,22 +69,77 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
         setItems(items.filter((_, i) => i !== index));
     };
 
-    const handleItemChange = (e, index, field) => {
+    const handleChange = (e, field, index = null) => {
         const { value } = e.target;
 
-        setItems((prevItems) =>
-            prevItems.map((item, i) =>
-                i === index
-                    ? {
-                        ...item,
-                        [field]: field === "qty" || field === "price" ? parseFloat(value) || 0 : value
-                    }
-                    : item
-            )
-        );
+        if (index !== null) {
+            // Handling item-specific changes (for the list of items)
+            setItems((prevItems) =>
+                prevItems.map((item, i) =>
+                    i === index
+                        ? {
+                            ...item,
+                            [field]: field === "qty" || field === "price" ? parseFloat(value) || 0 : value
+                        }
+                        : item
+                )
+            );
+        } else {
+            // Handling general invoice data changes
+            setInvoiceData((prevData) => ({
+                ...prevData,
+                [field]: field === "tax" ? parseFloat(value) || 0 : value, // Ensure tax is treated as a number
+            }));
+        }
     };
 
+    const handleSubmit = async (event) => {
+        event.preventDefault();
 
+        if (!validateForm()) return;
+
+        const invoiceNumber = `INV-${Math.floor(Math.random() * 9000) + 1000}`;
+
+        setLoading(true);
+
+        const payload = {
+            invoiceNumber, // Use the generated number
+            clientName: invoiceData.clientName,
+            clientEmail: invoiceData.clientEmail,
+            clientType: invoiceData.clientType,
+            clientPhoneNo: invoiceData.clientPhoneNo,
+            clientAddress: invoiceData.clientAddress,
+            clientCifCnp: invoiceData.clientCifCnp,
+
+            vendorName: invoiceData.vendorName,
+            vendorEmail: invoiceData.vendorEmail,
+            vendorType: invoiceData.vendorType,
+            vendorPhoneNo: invoiceData.vendorPhoneNo,
+            vendorAddress: invoiceData.vendorAddress,
+            vendorCifCnp: invoiceData.vendorCifCnp,
+
+            issueDate: invoiceData.issueDate,
+            dueDate: invoiceData.dueDate,
+            items: items, // Use the latest items state
+            tax: tax,
+            total: calculateTotal(), // Correctly calculate the total
+        };
+
+        try {
+            const response = await axios.post('http://localhost:4000/routes/invoices/create', payload, {
+                headers: { 'Content-Type': 'application/json' },
+            });
+
+            await fetchInvoices(); // Assuming you have a function to fetch invoices
+            onClose(); // Close the modal/form after successful submission
+        } catch (error) {
+            alert(`Error: ${error.message}`);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+   // console.log("Invoice Data:", invoiceData); // For debugging purposes
 
     if (!isOpen) return null;
     return (
@@ -215,7 +155,7 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                     </button>
                 </div>
 
-                <form className="mt-4">
+                <form className="mt-4" onSubmit={handleSubmit}>
                     <div className="flex flex-col border-b-2 border-gray-400 pt-4 pb-4">
                         <div className="flex justify-between">
                             <div className="w-1/2 pr-2 flex flex-col items-center">
@@ -223,8 +163,8 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                                 <input
                                     id="issueDate"
                                     type="date"
-                                    value={issueDate}
-                                    onChange={handleIssueDateChange}
+                                    value={invoiceData.issueDate}
+                                    onChange={(e) => handleChange(e, 'issueDate')}
                                     className="w-50 mt-1 p-2 border border-gray-300 rounded-md"
                                 />
                             </div>
@@ -234,14 +174,13 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                                 <input
                                     id="dueDate"
                                     type="date"
-                                    value={dueDate}
-                                    onChange={handleDueDateChange}
+                                    value={invoiceData.dueDate}
+                                    onChange={(e) => handleChange(e, 'dueDate')}
                                     className="w-50 mt-1 p-2 border border-gray-300 rounded-md"
                                 />
                             </div>
                         </div>
 
-                        {/* Error message below both inputs */}
                         {errors.dueDate && (
                             <p className="text-red-500 text-xs text-center mt-2">{errors.dueDate}</p>
                         )}
@@ -259,8 +198,8 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                                     id="clientName"
                                     type="text"
                                     placeholder="Client Name"
-                                    value={clientName}
-                                    onChange={handleClientNameChange}
+                                    value={invoiceData.clientName}
+                                    onChange={(e) => handleChange(e, 'clientName')}
                                     className="w-full mt-1 p-2 border border-gray-300 rounded-md"
                                 />
                                 {errors.clientName && <p className="text-red-500 text-xs">{errors.clientName}</p>}
@@ -272,8 +211,8 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                                     id="clientAddress"
                                     type="text"
                                     placeholder="Client Address"
-                                    value={clientAddress}
-                                    onChange={handleClientAddressChange}
+                                    value={invoiceData.clientAddress}
+                                    onChange={(e) => handleChange(e, 'clientAddress')}
                                     className="w-full mt-1 p-2 border border-gray-300 rounded-md"
                                 />
                                 {errors.clientAddress && <p className="text-red-500 text-xs">{errors.clientAddress}</p>}
@@ -283,10 +222,10 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                                 <label htmlFor="clientPhoneNo" className="block text-sm font-small text-gray-700">Phone number:</label>
                                 <input
                                     id="clientPhoneNo"
-                                    type="text"
+                                    type="number"
                                     placeholder="Client phone number"
-                                    // value={clientPhoneNo}
-                                    // onChange={a}
+                                    value={invoiceData.clientPhoneNo}
+                                    onChange={(e) => handleChange(e, 'clientPhoneNo')}
                                     className="w-full mt-1 p-2 border border-gray-300 rounded-md"
                                 />
                                 {errors.clientPhoneNo && <p className="text-red-500 text-xs">{errors.clientPhoneNo}</p>}
@@ -298,8 +237,8 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                                     id="clientEmail"
                                     type="email"
                                     placeholder="client@example.com"
-                                    value={clientEmail}
-                                    onChange={handleClientEmailChange}
+                                    value={invoiceData.clientEmail}
+                                    onChange={(e) => handleChange(e, 'clientEmail')}
                                     className="w-full mt-1 p-2 border border-gray-300 rounded-md"
                                 />
                                 {errors.clientEmail && <p className="text-red-500 text-xs">{errors.clientEmail}</p>}
@@ -308,9 +247,9 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                             <div className="my-2">
                                 <label htmlFor="type" className="block text-sm font-small text-gray-700 mt-1">Type</label>
                                 <select
-                                    id="type"
-                                    value={clientType}
-                                    onChange={handleClientTypeChange}
+                                    id="clientType"
+                                    value={invoiceData.clientType}
+                                    onChange={(e) => handleChange(e, 'clientType')}
                                     className="mt-1 p-2 w-full border border-gray-300 rounded-md"
                                 >
                                     <option value="company">Company</option>
@@ -319,15 +258,15 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                             </div>
                             <div className="my-2">
                                 <label htmlFor="client-cif-cnp" className="block text-sm font-small text-gray-700 mt-1">
-                                    {clientType === 'company' ? 'CIF' : 'CNP'}
+                                    {invoiceData.clientType === 'company' ? 'CIF' : 'CNP'}
                                 </label>
                                 <input
                                     type="text"
                                     id="client-cif-cnp"
-                                    value={clientCifCnp}
-                                    onChange={handleClientCifCnpChange}
+                                    value={invoiceData.clientCifCnp}
+                                    onChange={(e) => handleChange(e, 'clientCifCnp')}
                                     className="mt-1 p-2 w-full border border-gray-300 rounded-md"
-                                    placeholder={clientType === 'company' ? 'Enter company CIF' : 'Enter individual CNP'}
+                                    placeholder={invoiceData.clientType === 'company' ? 'Enter company CIF' : 'Enter individual CNP'}
                                 />
                                 {errors.clientCifCnp && <p className="text-red-500 text-xs">{errors.clientCifCnp}</p>}
 
@@ -344,8 +283,8 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                                     id="vendorName"
                                     type="text"
                                     placeholder="Vendor Name"
-                                    value={vendorName}
-                                    onChange={handleVendorNameChange}
+                                    value={invoiceData.vendorName}
+                                    onChange={(e) => handleChange(e, 'vendorName')}
                                     className="w-full mt-1 p-2 border border-gray-300 rounded-md"
                                 />
                                 {errors.vendorName && <p className="text-red-500 text-xs">{errors.vendorName}</p>}
@@ -358,8 +297,8 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                                     id="vendorAddress"
                                     type="text"
                                     placeholder="Vendor Address"
-                                    value={vendorAddress}
-                                    onChange={handleVendorAddressChange}
+                                    value={invoiceData.vendorAddress}
+                                    onChange={(e) => handleChange(e, 'vendorAddress')}
                                     className="w-full mt-1 p-2 border border-gray-300 rounded-md"
                                 />
                                 {errors.vendorAddress && <p className="text-red-500 text-xs">{errors.vendorAddress}</p>}
@@ -369,10 +308,10 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                                 <label htmlFor="vendorPhoneNo" className="block text-sm font-small text-gray-700">Phone number:</label>
                                 <input
                                     id="vendorPhoneNo"
-                                    type="text"
+                                    type="number"
                                     placeholder="Vendor phone number"
-                                    //    value={vendorPhoneNo}
-                                    //  onChange={a}
+                                    value={invoiceData.vendorPhoneNo}
+                                    onChange={(e) => handleChange(e, 'vendorPhoneNo')}
                                     className="w-full mt-1 p-2 border border-gray-300 rounded-md"
                                 />
                                 {errors.vendorPhoneNo && <p className="text-red-500 text-xs">{errors.vendorPhoneNo}</p>}
@@ -384,8 +323,8 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                                     id="vendorEmail"
                                     type="email"
                                     placeholder="vendor@example.com"
-                                    value={vendorEmail}
-                                    onChange={handleVendorEmailChange}
+                                    value={invoiceData.vendorEmail}
+                                    onChange={(e) => handleChange(e, 'vendorEmail')}
                                     className="w-full mt-1 p-2 border border-gray-300 rounded-md"
                                 />
                                 {errors.vendorEmail && <p className="text-red-500 text-xs">{errors.vendorEmail}</p>}
@@ -394,9 +333,9 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                             <div className="my-2">
                                 <label htmlFor="type" className="block text-sm font-small text-gray-700 mt-1">Type</label>
                                 <select
-                                    id="type"
-                                    value={vendorType}
-                                    onChange={handleVendorTypeChange}
+                                    id="vendorType"
+                                    value={invoiceData.vendorType}
+                                    onChange={(e) => handleChange(e, 'vendorType')}
                                     className="mt-1 p-2 w-full border border-gray-300 rounded-md"
                                 >
                                     <option value="company">Company</option>
@@ -407,15 +346,15 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
 
                             <div className="my-2">
                                 <label htmlFor="vendor-cif-cnp" className="block text-sm font-small text-gray-700 mt-1">
-                                    {vendorType === 'company' ? 'CIF' : 'CNP'}
+                                    {invoiceData.vendorType === 'company' ? 'CIF' : 'CNP'}
                                 </label>
                                 <input
                                     type="text"
                                     id="vendor-cif-cnp"
-                                    value={vendorCifCnp}
-                                    onChange={handleVendorCifCnpChange}
+                                    value={invoiceData.vendorCifCnp}
+                                    onChange={(e) => handleChange(e, 'vendorCifCnp')}
                                     className="mt-1 p-2 w-full border border-gray-300 rounded-md"
-                                    placeholder={vendorType === 'company' ? 'Enter company CIF' : 'Enter individual CNP'}
+                                    placeholder={invoiceData.vendorType === 'company' ? 'Enter company CIF' : 'Enter individual CNP'}
                                 />
                                 {errors.vendorCifCnp && <p className="text-red-500 text-xs">{errors.vendorCifCnp}</p>}
 
@@ -442,27 +381,30 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                             <tbody>
                                 {items.map((item, index) => (
                                     <tr key={index} className="border border-gray-300">
-
+                                        {/* Product/Service */}
                                         <td className="border border-gray-300 px-4 py-2 text-center">
                                             <input
                                                 type="text"
                                                 placeholder="Product/Service"
                                                 className="w-full h-full rounded-md border border-gray-300 bg-transparent text-gray-700 text-sm px-2 py-1 focus:outline-none focus:border-gray-400"
                                                 value={item.name}
-                                                onChange={(e) => handleItemChange(e, index, 'name')}
+                                                onChange={(e) => handleChange(e, 'name', index)}
                                             />
                                         </td>
 
+                                        {/* Quantity */}
                                         <td className="border border-gray-300 px-4 py-2 text-center">
-                                            <input type="number"
+                                            <input
+                                                type="number"
                                                 min={1}
                                                 placeholder="Qty"
-                                                className="w-20 h-full  rounded-md border border-gray-300 bg-transparent text-gray-700 text-sm px-2 py-1 focus:outline-none focus:border-gray-400"
+                                                className="w-20 h-full rounded-md border border-gray-300 bg-transparent text-gray-700 text-sm px-2 py-1 focus:outline-none focus:border-gray-400"
                                                 value={item.qty}
-                                                onChange={(e) => handleItemChange(e, index, "qty")}
+                                                onChange={(e) => handleChange(e, 'qty', index)}
                                             />
-
                                         </td>
+
+                                        {/* Price */}
                                         <td className="px-4 py-3 text-center">
                                             <input
                                                 type="number"
@@ -470,12 +412,16 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                                                 placeholder="Price"
                                                 className="w-20 h-full rounded-md border border-gray-300 bg-transparent text-gray-700 text-sm px-2 py-1 focus:outline-none focus:border-gray-400"
                                                 value={item.price}
-                                                onChange={(e) => handleItemChange(e, index, "price")}
+                                                onChange={(e) => handleChange(e, 'price', index)} 
                                             />
                                         </td>
+
+                                        {/* Total Price */}
                                         <td className="border border-gray-300 px-2 py-2 text-center">
                                             <span>${(item.qty * item.price).toFixed(2)}</span>
                                         </td>
+
+                                        {/* Remove Item Button */}
                                         <td className="px-2 py-4 text-center flex justify-center items-center">
                                             <button className="px-1 py-1 text-center" onClick={() => removeItem(index)}>
                                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" className="w-5 h-5">
@@ -483,9 +429,9 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                                                 </svg>
                                             </button>
                                         </td>
-
                                     </tr>
                                 ))}
+
                             </tbody>
                         </table>
 
@@ -501,8 +447,8 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                                 type="number"
                                 id="taxInput"
                                 name="taxInput"
-                                value={tax}
-                                onChange={handleTaxChange}
+                                value={invoiceData.tax}
+                                onChange={(e) => handleChange(e, 'tax')}
                                 className="w-20 h-full rounded-md border border-gray-300 bg-transparent text-gray-700 text-sm px-2 py-1 focus:outline-none focus:border-gray-400"
                                 placeholder="Enter tax amount"
                             />
@@ -515,14 +461,9 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                     </div>
 
 
-
-
-                    <div className="flex justify-center mt-4">
-                        <button
-                            type="submit"
-                            className="px-1 py-2 bg-purple-500 text-white font-semibold text-md rounded-md hover:bg-purple-600 transition-colors w-60"
-                            onClick={handleSubmit} >
-                            Submit
+                    <div className="flex justify-center mt-2">
+                        <button type="submit" disabled={loading} className="mt-4 px-12 py-2 font-semibold bg-purple-500 text-white rounded-md hover:bg-purple-600 disabled:bg-gray-400">
+                            {loading ? 'Submitting...' : 'Submit'}
                         </button>
                     </div>
 

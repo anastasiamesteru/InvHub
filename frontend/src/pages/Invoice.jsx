@@ -27,17 +27,17 @@ const Invoice = () => {
         try {
             await axios.delete(`http://localhost:4000/routes/invoices/${id}`);
             console.log("Invoice deleted successfully");
-            
+
             // Manually update state
             setInvoices(prevInvoices => prevInvoices.filter(invoice => invoice._id !== id));
-            
+
             // Refetch invoices (optional)
             fetchInvoices();
         } catch (error) {
             console.error("Error deleting:", error);
         }
     };
-    
+
 
     const exportInvoices = () => {
         console.log('Export invoices');
@@ -46,15 +46,48 @@ const Invoice = () => {
     const openModal = () => { setIsModalOpen(true); };
     const closeModal = () => { setIsModalOpen(false); };
 
-    const filteredInvoices = invoices.filter((invoice) =>
-        invoice.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        invoice.vendorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        // invoice.status.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        invoice.total.toString().includes(searchQuery) ||
-        invoice.issueDate.toString().includes(searchQuery) ||
-        invoice.dueDate.toString().includes(searchQuery)
+    // Sorting state
+    const [sortColumn, setSortColumn] = useState(null);
+    const [sortOrder, setSortOrder] = useState('asc');
 
-    );
+    const filteredInvoices = () => {
+        const query = searchQuery?.toLowerCase() || '';
+        let data = invoices ?? []; // Ensure data is correctly initialized
+
+        // Apply filtering
+        data = data.filter(invoice =>
+            Object.values(invoice).some(value =>
+                value?.toString().toLowerCase().includes(query)
+            )
+        );
+
+        // Apply sorting if necessary
+        if (sortColumn) {
+            data.sort((a, b) => {
+                let valueA = a[sortColumn] ?? '';
+                let valueB = b[sortColumn] ?? '';
+
+                if (typeof valueA === 'string') valueA = valueA.toLowerCase();
+                if (typeof valueB === 'string') valueB = valueB.toLowerCase();
+
+                if (valueA < valueB) return sortOrder === 'asc' ? -1 : 1;
+                if (valueA > valueB) return sortOrder === 'asc' ? 1 : -1;
+                return 0;
+            });
+        }
+
+        return data;
+    };
+
+
+    const handleSort = (column) => {
+        if (sortColumn === column) {
+            setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortColumn(column);
+            setSortOrder('asc');
+        }
+    };
 
     // Pagination Logic
 
@@ -63,10 +96,21 @@ const Invoice = () => {
 
     const indexOfLastInvoice = currentPage * invoicesPerPage;
     const indexOfFirstInvoice = indexOfLastInvoice - invoicesPerPage;
-    const currentInvoices = filteredInvoices.slice(indexOfFirstInvoice, indexOfLastInvoice);
+    const currentInvoices = filteredInvoices().slice(indexOfFirstInvoice, indexOfLastInvoice);
 
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
-    console.log(invoices);
+
+    const calculateInvoiceStatus = (issueDate, dueDate) => {
+        const issue = new Date(issueDate);
+        const due = new Date(dueDate);
+        const currentDate = new Date();
+        if (currentDate > due) {
+            return 'Overdue';
+        }
+
+        return 'On Time';
+    };
+
 
 
     return (
@@ -108,13 +152,49 @@ const Invoice = () => {
                 <table className="w-full border-collapse text-sm overflow-auto">
                     <thead>
                         <tr>
-                            <th className="px-3 py-2 text-center bg-gray-200">Invoice number</th>
-                            <th className="px-3 py-2 text-center bg-gray-200">Client</th>
-                            <th className="px-3 py-2 text-center bg-gray-200">Vendor</th>
-                            <th className="px-3 py-2 text-center bg-gray-200">Issue Date</th>
-                            <th className="px-3 py-2 text-center bg-gray-200">Due Date</th>
+                            <th
+                                className="px-3 py-2 text-center bg-gray-200 cursor-pointer"
+                                onClick={() => handleSort('invoiceNumber')}
+                            >
+                                Invoice Number
+                                {sortColumn === 'invoiceNumber' ? (sortOrder === 'asc' ? ' ▲' : ' ▼') : ''}
+                            </th>
+                            <th
+                                className="px-3 py-2 text-center bg-gray-200 cursor-pointer"
+                                onClick={() => handleSort('clientName')}
+                            >
+                                Client
+                                {sortColumn === 'clientName' ? (sortOrder === 'asc' ? ' ▲' : ' ▼') : ''}
+                            </th>
+                            <th
+                                className="px-3 py-2 text-center bg-gray-200 cursor-pointer"
+                                onClick={() => handleSort('vendorName')}
+                            >
+                                Vendor
+                                {sortColumn === 'vendorName' ? (sortOrder === 'asc' ? ' ▲' : ' ▼') : ''}
+                            </th>
+                            <th
+                                className="px-3 py-2 text-center bg-gray-200 cursor-pointer"
+                                onClick={() => handleSort('issueDate')}
+                            >
+                                Issue Date
+                                {sortColumn === 'issueDate' ? (sortOrder === 'asc' ? ' ▲' : ' ▼') : ''}
+                            </th>
+                            <th
+                                className="px-3 py-2 text-center bg-gray-200 cursor-pointer"
+                                onClick={() => handleSort('dueDate')}
+                            >
+                                Due Date
+                                {sortColumn === 'dueDate' ? (sortOrder === 'asc' ? ' ▲' : ' ▼') : ''}
+                            </th>
                             <th className="px-3 py-2 text-center bg-gray-200">Status</th>
-                            <th className="px-3 py-2 text-center bg-gray-200">Total</th>
+                            <th
+                                className="px-3 py-2 text-center bg-gray-200 cursor-pointer"
+                                onClick={() => handleSort('total')}
+                            >
+                                Total
+                                {sortColumn === 'total' ? (sortOrder === 'asc' ? ' ▲' : ' ▼') : ''}
+                            </th>
                             <th className="px-3 py-2 text-center bg-gray-200">Actions</th>
                         </tr>
                     </thead>
@@ -139,10 +219,11 @@ const Invoice = () => {
 
 
                                     <td className="px-3 py-2 text-center">
-                                        <span className={`inline-block px-2 py-1 font-semibold rounded ${invoice.status === 'On Time' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-
+                                        <span className={`inline-block px-2 py-1 font-semibold rounded ${calculateInvoiceStatus(invoice.issueDate, invoice.dueDate) === 'On Time' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                            {calculateInvoiceStatus(invoice.issueDate, invoice.dueDate)}
                                         </span>
                                     </td>
+
                                     <td className="px-3 py-2 text-center">{invoice.total}</td>
                                     <td className="px-3 py-2 text-center flex justify-center gap-2">
                                         <button className="px-2 py-1 text-center">
