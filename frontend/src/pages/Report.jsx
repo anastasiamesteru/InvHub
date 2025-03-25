@@ -4,7 +4,14 @@ import ReportModal from '../components/ReportModal';
 const Report = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [currentReports, setCurrentReports] = useState([]); // Replace with your actual report data fetching logic
+
+    const dummyReports = [
+        { id: 1, client: "Acme Corp", vendor: "Tech Supplies Ltd", amount: "$1,200", date: "2025-03-20", type: "monthly" },
+        { id: 2, client: "Beta Inc", vendor: "OfficeWorld", amount: "$3,400", date: "2025-03-18", type: "Monthly" },
+        { id: 3, client: "Gamma LLC", vendor: "Logistics Hub", amount: "$900", date: "2025-03-15", type: "Yearly" }
+    ];
+
+    const [currentReports, setCurrentReports] = useState(dummyReports);
 
     const openModal = () => setIsModalOpen(true);
     const closeModal = () => setIsModalOpen(false);
@@ -59,7 +66,7 @@ const Report = () => {
                             <th className="px-3 py-2 text-center bg-gray-200">Vendor</th>
                             <th className="px-3 py-2 text-center bg-gray-200">Amount</th>
                             <th className="px-3 py-2 text-center bg-gray-200">Date</th>
-                            <th className="px-3 py-2 text-center bg-gray-200">Status</th>
+                            <th className="px-3 py-2 text-center bg-gray-200">Type</th>
                             <th className="px-3 py-2 text-center bg-gray-200">Actions</th>
                         </tr>
                     </thead>
@@ -72,7 +79,15 @@ const Report = () => {
                                     <td className="px-3 py-2 text-center">{report.vendor}</td>
                                     <td className="px-3 py-2 text-center">{report.amount}</td>
                                     <td className="px-3 py-2 text-center">{report.date}</td>
-                                    <td className="px-3 py-2 text-center">{report.status}</td>
+                                    <td className="px-3 py-2 text-center">
+    <span
+        className={`inline-block px-2 py-1 font-semibold rounded ${report.type.toLowerCase() === 'monthly' ? 'bg-orange-100 text-orange-800' : report.type.toLowerCase() === 'yearly' ? 'bg-purple-100 text-purple-800' : ''}`}
+    >
+        {report.type}
+    </span>
+</td>
+
+
                                     <td className="px-3 py-2 text-center flex justify-center gap-2">
                                         <button className="px-2 py-1 text-center">
                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">

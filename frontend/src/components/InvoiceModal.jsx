@@ -130,8 +130,8 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                 headers: { 'Content-Type': 'application/json' },
             });
 
-            await fetchInvoices(); // Assuming you have a function to fetch invoices
-            onClose(); // Close the modal/form after successful submission
+            await fetchInvoices(); 
+            closeModal();
         } catch (error) {
             alert(`Error: ${error.message}`);
         } finally {
@@ -139,7 +139,7 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
         }
     };
 
-   // console.log("Invoice Data:", invoiceData); // For debugging purposes
+   console.log("Invoice Data:", invoiceData); // For debugging purposes
 
     if (!isOpen) return null;
     return (
