@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend, Filler } from 'chart.js';
 import { Line, Bar, Doughnut } from 'react-chartjs-2';
 
+import { assets } from '../assets/assets';
+
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend, Filler);
 const Dashboard = () => {
     const [clients, setClients] = useState([]);
     const [vendors, setVendors] = useState([]);
@@ -72,32 +77,6 @@ const Dashboard = () => {
         return invoicesThisMonth.length;
     }
 
-    function getInvoiceGrowth(invoices) {
-        const currentDate = new Date();
-
-        const currentYear = currentDate.getFullYear();
-        const currentMonth = currentDate.getMonth();
-
-        const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1;
-        const previousYear = currentMonth === 0 ? currentYear - 1 : currentYear;
-
-        const invoicesThisMonth = invoices.filter(invoice => {
-            const invoiceDate = new Date(invoice.issueDate);
-            return invoiceDate.getFullYear() === currentYear && invoiceDate.getMonth() === currentMonth;
-        });
-
-        const invoicesLastMonth = invoices.filter(invoice => {
-            const invoiceDate = new Date(invoice.issueDate);
-            return invoiceDate.getFullYear() === previousYear && invoiceDate.getMonth() === previousMonth;
-        });
-
-        if (invoicesLastMonth.length === 0) return 100;
-
-        const growth = ((invoicesThisMonth.length - invoicesLastMonth.length) / invoicesLastMonth.length) * 100;
-
-        return growth.toFixed(2);
-    }
-
 
 
     const invoiceAmounts = invoices.map(invoice => invoice.amount);
@@ -106,6 +85,61 @@ const Dashboard = () => {
         acc[item.type] = (acc[item.type] || 0) + 1;
         return acc;
     }, {});
+
+
+    const getTopProductsOrServices = (invoices) => {
+        const itemCount = {};
+
+        invoices.forEach(invoice => {
+            invoice.items.forEach(item => {
+                const itemName = item.itemName; // Accessing itemName from items array
+                if (itemName) {
+                    if (itemCount[itemName]) {
+                        itemCount[itemName]++;
+                    } else {
+                        itemCount[itemName] = 1;
+                    }
+                }
+            });
+        });
+
+        const sortedItems = Object.entries(itemCount).sort((a, b) => b[1] - a[1]);
+        return sortedItems.slice(0, 3); 
+    };
+    const topItems = getTopProductsOrServices(invoices);
+
+    const getInvoiceStatusCount = (invoices) => {
+        const currentMonth = new Date().getMonth(); 
+        let onTime = 0;
+        let overdue = 0;
+
+        invoices.forEach(invoice => {
+            const invoiceDate = new Date(invoice.issueDate); 
+            const invoiceMonth = invoiceDate.getMonth(); 
+
+            console.log("Checking invoice:", invoice); 
+
+            if (invoiceMonth === currentMonth) { 
+                const status = calculateInvoiceStatus(invoice.issueDate, invoice.dueDate);
+                console.log("Status of invoice:", status); 
+
+                if (status === 'On Time') {
+                    onTime++;
+                } else if (status === 'Overdue') {
+                    overdue++;
+                }
+            }
+        });
+
+        console.log("On Time invoices:", onTime); 
+        console.log("Overdue invoices:", overdue); 
+
+        return { onTime, overdue };
+    };
+
+
+
+
 
     // Chart Data
     const lineData = {
@@ -135,50 +169,63 @@ const Dashboard = () => {
     };
 
     const doughnutData = {
-        labels: Object.keys(itemCategories),
-        datasets: [
-            {
-                label: 'Item Categories',
-                data: Object.values(itemCategories),
-                backgroundColor: [
-                    'rgba(255, 99, 132, 0.2)',
-                    'rgba(54, 162, 235, 0.2)',
-                    'rgba(255, 206, 86, 0.2)',
-                    'rgba(75, 192, 192, 0.2)',
-                    'rgba(153, 102, 255, 0.2)',
-                    'rgba(255, 159, 64, 0.2)',
-                ],
-                borderColor: [
-                    'rgba(255, 99, 132, 1)',
-                    'rgba(54, 162, 235, 1)',
-                    'rgba(255, 206, 86, 1)',
-                    'rgba(75, 192, 192, 1)',
-                    'rgba(153, 102, 255, 1)',
-                    'rgba(255, 159, 64, 1)',
-                ],
-                borderWidth: 1,
-            }
-        ]
+        labels: Object.keys(itemCategories), // Assuming itemCategories has the categories you're showing
+        datasets: [{
+            label: 'Item Categories',
+            data: Object.values(itemCategories), // Assuming itemCategories holds the values
+            backgroundColor: [
+                'rgb(139, 92, 246)',    // Purple (Tailwind's bg-purple-500)
+                'rgb(255, 159, 28)'     // Orange (Tailwind's bg-orange-400)
+            ],
+            borderColor: [
+                'rgb(139, 92, 246)',  // Purple border
+                'rgb(255, 159, 28)'    // Orange border
+            ],
+        }]
     };
+
+    const doughnutOptions = {
+        responsive: true,
+        plugins: {
+            legend: {
+                display: false, // Hide the legend
+            },
+            tooltip: {
+                enabled: true, // Tooltips enabled for interaction
+            },
+        },
+        // Disable the axes (they won't be visible for doughnut charts anyway, but adding for certainty)
+        scales: {
+            x: {
+                display: false,
+            },
+            y: {
+                display: false,
+            },
+        },
+    };
+
 
     const lineOptions = {
         responsive: true,
         plugins: {
+            // Legend Configuration
             legend: {
+                display: false,  // Set to 'false' if you don't want to show the legend
                 labels: {
                     font: {
-                        family: 'Poppins', // Set Poppins font for the legend
-                        size: 14,          // Font size for legend labels
+                        family: 'Poppins', // Font family
+                        size: 14,          // Font size for legend
                     },
                 },
             },
             tooltip: {
                 titleFont: {
-                    family: 'Poppins', // Set Poppins font for tooltip title
+                    family: 'Poppins', // Tooltip title font
                     size: 16,          // Font size for tooltip title
                 },
                 bodyFont: {
-                    family: 'Poppins', // Set Poppins font for tooltip body
+                    family: 'Poppins', // Tooltip body font
                     size: 12,          // Font size for tooltip body
                 },
             },
@@ -187,7 +234,7 @@ const Dashboard = () => {
             x: {
                 ticks: {
                     font: {
-                        family: 'Poppins', // Set Poppins font for x-axis ticks
+                        family: 'Poppins', // Font family for x-axis ticks
                         size: 12,          // Font size for x-axis ticks
                     },
                 },
@@ -195,7 +242,7 @@ const Dashboard = () => {
             y: {
                 ticks: {
                     font: {
-                        family: 'Poppins', // Set Poppins font for y-axis ticks
+                        family: 'Poppins', // Font family for y-axis ticks
                         size: 12,          // Font size for y-axis ticks
                     },
                 },
@@ -206,58 +253,74 @@ const Dashboard = () => {
     return (
         <div className="p-6">
             <div className="flex flex-wrap gap-6 items-center mb-6">
-                <div className="w-80 h-80 p-4 bg-white shadow-md rounded-lg">
-                    <img src="https://via.placeholder.com/150" alt="Dashboard Image" className="w-full h-full object-cover rounded-lg" />
+                <div className="w-96 h-96 p-4 bg-white rounded-lg">
+                    <img className="shadow-md rounded-lg w-full h-full object-cover" src={assets.dashboardPhoto} alt="dashboardPhoto" />
                 </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 flex-1">
-                    <div className="bg-white border-l-4 border-yellow-500 p-4 rounded-lg shadow-md text-center">
-                        <h3 className="text-yellow-500 text-lg font-bold">Total Invoices This Month</h3>
-                        <p className="text-2xl text-gray-700 font-bold">{getTotalInvoicesThisMonth(invoices)}</p>
-                        <p className={`text-md ${getInvoiceGrowth(invoices) >= 0 ? "text-green-500" : "text-red-500"}`}>
-                            {getInvoiceGrowth(invoices) >= 0 ? `▲ ${getInvoiceGrowth(invoices)}%` : `▼ ${Math.abs(getInvoiceGrowth(invoices))}%`}
+
+                    <div className="bg-yellow-400 p-4 rounded-lg shadow-md text-center h-32 flex flex-col justify-center">
+                        <h3 className="text-gray-800 text-2xl font-bold">Total Invoices This Month</h3>
+                        <p className="text-2xl text-yellow-800 font-bold">{getTotalInvoicesThisMonth(invoices)} invoices</p>
+
+                    </div>
+
+                    <div className="bg-blue-400 p-4 rounded-lg shadow-md text-center h-32 flex flex-col justify-center">
+                        <h3 className="text-gray-800 text-2xl font-bold">Top Products/Services</h3>
+                        <p className="text-xl text-blue-800 font-bold">
+                            {topItems.length > 0 ? `${topItems[0][0]}` : 'No data available'}
                         </p>
                     </div>
 
-                   
-                   <div className="bg-white p-4 rounded-lg shadow-md text-center">
-                        <h3 className="text-gray-600 text-lg"></h3>
-                        <p className="text-2xl font-bold text-gray-900"></p>
-                        <p className="text-sm text-green-500"></p>
+                    <div className="bg-green-500 p-4 rounded-lg shadow-md text-center h-32 flex flex-col justify-center">
+                        <h3 className="text-gray-800 text-2xl font-bold">On-Time Invoices</h3>
+                        <p className="text-2xl font-bold text-green-800">{getInvoiceStatusCount(invoices).onTime} invoices</p>
+
                     </div>
 
-                     <div className="bg-white p-4 rounded-lg shadow-md text-center">
-                        <h3 className="text-gray-600 text-lg"></h3>
-                        <p className="text-2xl font-bold text-gray-900"></p>
-                        <p className="text-sm text-green-500"></p>
-                    </div>
-
-                     <div className="bg-white p-4 rounded-lg shadow-md text-center">
-                        <h3 className="text-gray-600 text-lg"></h3>
-                        <p className="text-2xl font-bold text-gray-900"></p>
-                        <p className="text-sm text-green-500"></p>
+                    <div className="bg-rose-500 p-4 rounded-lg shadow-md text-center h-32 flex flex-col justify-center">
+                        <h3 className="text-gray-800 text-2xl font-bold">Overdue Invoices</h3>
+                        <p className="text-2xl font-bold text-rose-800">{getInvoiceStatusCount(invoices).overdue} invoices</p>
                     </div>
                 </div>
-
-
             </div>
 
+
+
+
             <div className="flex flex-wrap justify-around gap-6">
-                <div className="w-full sm:w-80 h-64 p-4 bg-white shadow-md rounded-lg">
+            <div className="flex flex-wrap justify-around gap-6">
+    <div className="w-64 h-64 p-4 bg-zinc-100 shadow-md rounded-lg flex flex-col items-center justify-center overflow-hidden">
+        <h3 className="text-lg font-semibold text-gray-700 mt-4 mb-4">Item Categories</h3>
+        <div className="flex justify-center items-center w-full h-full">
+            <Doughnut
+                data={doughnutData}
+                options={doughnutOptions}
+                width={250}   // Set the width to 150px
+                height={250}  // Set the height to 150px
+            />
+        </div>
+    </div>
+</div>
+
+
+
+
+
+                <div className="w-full sm:w-96 h-64 p-4 bg-zinc-100 shadow-md rounded-lg">
                     <h3 className="text-lg font-semibold text-gray-700">Invoice Amounts Over Time</h3>
                     <Line data={lineData} options={lineOptions} />
                 </div>
 
-                <div className="w-full sm:w-80 h-64 p-4 bg-white shadow-md rounded-lg">
+                <div className="w-full sm:w-96 h-64 p-4 bg-zinc-100 shadow-md rounded-lg">
                     <h3 className="text-lg font-semibold text-gray-700">Invoices by Month</h3>
                     <Bar data={barData} options={lineOptions} />
                 </div>
 
-                <div className="w-full sm:w-80 h-64 p-4 bg-white shadow-md rounded-lg">
-                    <h3 className="text-lg font-semibold text-gray-700">Item Categories</h3>
-                    <Doughnut data={doughnutData} options={lineOptions} />
-                </div>
+
             </div>
         </div>
+
     );
 };
 
