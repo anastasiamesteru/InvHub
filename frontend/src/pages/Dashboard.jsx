@@ -104,24 +104,24 @@ const Dashboard = () => {
         });
 
         const sortedItems = Object.entries(itemCount).sort((a, b) => b[1] - a[1]);
-        return sortedItems.slice(0, 3); 
+        return sortedItems.slice(0, 3);
     };
     const topItems = getTopProductsOrServices(invoices);
 
     const getInvoiceStatusCount = (invoices) => {
-        const currentMonth = new Date().getMonth(); 
+        const currentMonth = new Date().getMonth();
         let onTime = 0;
         let overdue = 0;
 
         invoices.forEach(invoice => {
-            const invoiceDate = new Date(invoice.issueDate); 
-            const invoiceMonth = invoiceDate.getMonth(); 
+            const invoiceDate = new Date(invoice.issueDate);
+            const invoiceMonth = invoiceDate.getMonth();
 
-            console.log("Checking invoice:", invoice); 
+            console.log("Checking invoice:", invoice);
 
-            if (invoiceMonth === currentMonth) { 
+            if (invoiceMonth === currentMonth) {
                 const status = calculateInvoiceStatus(invoice.issueDate, invoice.dueDate);
-                console.log("Status of invoice:", status); 
+                console.log("Status of invoice:", status);
 
                 if (status === 'On Time') {
                     onTime++;
@@ -131,8 +131,8 @@ const Dashboard = () => {
             }
         });
 
-        console.log("On Time invoices:", onTime); 
-        console.log("Overdue invoices:", overdue); 
+        console.log("On Time invoices:", onTime);
+        console.log("Overdue invoices:", overdue);
 
         return { onTime, overdue };
     };
@@ -259,29 +259,41 @@ const Dashboard = () => {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 flex-1">
 
-                    <div className="bg-yellow-400 p-4 rounded-lg shadow-md text-center h-32 flex flex-col justify-center">
-                        <h3 className="text-gray-800 text-2xl font-bold">Total Invoices This Month</h3>
-                        <p className="text-2xl text-yellow-800 font-bold">{getTotalInvoicesThisMonth(invoices)} invoices</p>
-
+                    <div className="bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 p-3 rounded-lg shadow-md text-center h-24 flex flex-col justify-center">
+                        <h3 className="text-gray-800 text-xl font-bold">Total Invoices This Month</h3>
+                        <p className="text-xl text-yellow-800 font-bold">{getTotalInvoicesThisMonth(invoices)} invoices</p>
                     </div>
 
-                    <div className="bg-blue-400 p-4 rounded-lg shadow-md text-center h-32 flex flex-col justify-center">
-                        <h3 className="text-gray-800 text-2xl font-bold">Top Products/Services</h3>
-                        <p className="text-xl text-blue-800 font-bold">
+                    <div className="bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600 p-3 rounded-lg shadow-md text-center h-24 flex flex-col justify-center">
+                        <h3 className="text-gray-800 text-xl font-bold">Top Products/Services</h3>
+                        <p className="text-lg text-blue-800 font-bold">
                             {topItems.length > 0 ? `${topItems[0][0]}` : 'No data available'}
                         </p>
                     </div>
 
-                    <div className="bg-green-500 p-4 rounded-lg shadow-md text-center h-32 flex flex-col justify-center">
-                        <h3 className="text-gray-800 text-2xl font-bold">On-Time Invoices</h3>
-                        <p className="text-2xl font-bold text-green-800">{getInvoiceStatusCount(invoices).onTime} invoices</p>
-
+                    <div className="bg-gradient-to-r from-green-400 via-green-500 to-green-600 p-3 rounded-lg shadow-md text-center h-24 flex flex-col justify-center">
+                        <h3 className="text-gray-800 text-xl font-bold">On-Time Invoices</h3>
+                        <p className="text-xl font-bold text-green-800">{getInvoiceStatusCount(invoices).onTime} invoices</p>
                     </div>
 
-                    <div className="bg-rose-500 p-4 rounded-lg shadow-md text-center h-32 flex flex-col justify-center">
-                        <h3 className="text-gray-800 text-2xl font-bold">Overdue Invoices</h3>
-                        <p className="text-2xl font-bold text-rose-800">{getInvoiceStatusCount(invoices).overdue} invoices</p>
+                    <div className="bg-gradient-to-r from-rose-400 via-rose-500 to-rose-600 p-3 rounded-lg shadow-md text-center h-24 flex flex-col justify-center">
+                        <h3 className="text-gray-800 text-xl font-bold">Overdue Invoices</h3>
+                        <p className="text-xl font-bold text-rose-800">{getInvoiceStatusCount(invoices).overdue} invoices</p>
                     </div>
+
+
+                    <div className="bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 p-3 rounded-lg shadow-md text-center h-24 flex flex-col justify-center">
+                        <h3 className="text-gray-800 text-xl font-bold">Pending Payments</h3>
+                        <p className="text-xl text-orange-800 font-bold"></p>
+                    </div>
+
+
+                    <div className="bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 p-3 rounded-lg shadow-md text-center h-24 flex flex-col justify-center">
+                        <h3 className="text-gray-800 text-xl font-bold">Paid Invoices</h3>
+                        <p className="text-xl text-purple-800 font-bold"></p>
+                    </div>
+
+
                 </div>
             </div>
 
@@ -289,19 +301,19 @@ const Dashboard = () => {
 
 
             <div className="flex flex-wrap justify-around gap-6">
-            <div className="flex flex-wrap justify-around gap-6">
-    <div className="w-64 h-64 p-4 bg-zinc-100 shadow-md rounded-lg flex flex-col items-center justify-center overflow-hidden">
-        <h3 className="text-lg font-semibold text-gray-700 mt-4 mb-4">Item Categories</h3>
-        <div className="flex justify-center items-center w-full h-full">
-            <Doughnut
-                data={doughnutData}
-                options={doughnutOptions}
-                width={250}   // Set the width to 150px
-                height={250}  // Set the height to 150px
-            />
-        </div>
-    </div>
-</div>
+                <div className="flex flex-wrap justify-around gap-6">
+                    <div className="w-64 h-64 p-4 bg-zinc-100 shadow-md rounded-lg flex flex-col items-center justify-center overflow-hidden">
+                        <h3 className="text-lg font-semibold text-gray-700 mt-4 mb-4">Item Categories</h3>
+                        <div className="flex justify-center items-center w-full h-full">
+                            <Doughnut
+                                data={doughnutData}
+                                options={doughnutOptions}
+                                width={250}   // Set the width to 150px
+                                height={250}  // Set the height to 150px
+                            />
+                        </div>
+                    </div>
+                </div>
 
 
 
