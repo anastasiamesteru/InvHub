@@ -133,7 +133,7 @@ const ReportModal = ({ isOpen, onClose }) => {
                                     onChange={handleCheckboxChange}
                                     className="w-5 h-5 accent-blue-500 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none checked:bg-blue-500 hover:ring-2 hover:ring-blue-300"
                                 />
-                                <span>Number of overdue invoices</span>
+                                <span>number of overdue invoices</span>
                             </div>
                             <div className="flex items-center space-x-1">
                                 <input

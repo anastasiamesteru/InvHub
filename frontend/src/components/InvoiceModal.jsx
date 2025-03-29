@@ -1,5 +1,4 @@
-import React, { useState } from "react"
-import item from "../../../backend/models/item";
+import React, { useState, useEffect } from "react"
 import { InvoiceModalValidation } from "../utils/InvoiceModalValidation.js";
 import axios from 'axios';
 
@@ -7,51 +6,17 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
 
-    // Form validation function
-    const validateForm = () => {
-        const errors = InvoiceModalValidation({
-            clientName: invoiceData.clientName,
-            clientAddress: invoiceData.clientAddress,
-            clientPhoneNo: invoiceData.clientPhoneNo,
-            clientType: invoiceData.clientType,
-            clientCifCnp: invoiceData.clientCifCnp,
-
-            vendorName: invoiceData.vendorName,
-            vendorAddress: invoiceData.vendorAddress,
-            vendorPhoneNo: invoiceData.vendorPhoneNo,
-            vendorType: invoiceData.vendorType,
-            vendorCifCnp: invoiceData.vendorCifCnp,
-
-            issueDate: invoiceData.issueDate,
-            dueDate: invoiceData.dueDate,
-            tax: invoiceData.tax,
-            total: invoiceData.total,
-
-            items: invoiceData.items,
-        });
-
-        setErrors(errors);
-        return Object.keys(errors).length === 0;
-    };
-
     const [invoiceData, setInvoiceData] = useState({
         invoiceNumber: '',
-
         clientName: '', clientAddress: '', clientPhoneNo: '', clientEmail: '', clientType: 'company', clientCifCnp: '',
-
         vendorName: '', vendorAddress: '', vendorPhoneNo: '', vendorEmail: '', vendorType: 'company', vendorCifCnp: '',
-
         issueDate: '', dueDate: '', tax: 0, total: 0,
-
-        items: [{ name: '', qty: 1, price: 0 }],
+        items: [{ itemName: '', quantity: 1, unitPrice: 0 }],
     });
 
-    const [items, setItems] = useState([{ name: "", qty: 1, price: 0 }]);
-    const [tax, setTax] = useState(0);
-    const [total, setTotal] = useState(0); // Total state for displaying total with tax
-
+    
     const calculateTotalWithoutTax = () => {
-        return items.reduce((total, item) => total + (item.price * item.qty), 0);
+        return invoiceData.items.reduce((total, item) => total + (item.unitPrice * item.quantity), 0);
     };
 
     const calculateTotal = () => {
@@ -62,75 +27,98 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
     };
 
     const addItem = () => {
-        setItems([...items, { name: "", qty: 1, price: 0 }]);
+        setInvoiceData((prevData) => ({
+            ...prevData,
+            items: [
+                ...prevData.items,
+                { itemName: '', quantity: 1, unitPrice: 0 }, // New item with default values
+            ],
+        }));
     };
 
     const removeItem = (index) => {
-        setItems(items.filter((_, i) => i !== index));
+        setInvoiceData((prevData) => ({
+            ...prevData,
+            items: prevData.items.filter((_, i) => i !== index),
+        }));
     };
 
-    const handleChange = (e, field, index = null) => {
+    const handleItemChange = (e, field, index) => {
         const { value } = e.target;
-
-        if (index !== null) {
-            // Handling item-specific changes (for the list of items)
-            setItems((prevItems) =>
-                prevItems.map((item, i) =>
-                    i === index
-                        ? {
-                            ...item,
-                            [field]: field === "qty" || field === "price" ? parseFloat(value) || 0 : value
-                        }
-                        : item
-                )
+        setInvoiceData((prevData) => {
+            const updatedItems = prevData.items.map((item, i) =>
+                i === index
+                    ? {
+                        ...item,
+                        [field]: field === 'quantity' || field === 'unitPrice' ? parseFloat(value) || 0 : value,
+                    }
+                    : item
             );
-        } else {
-            // Handling general invoice data changes
-            setInvoiceData((prevData) => ({
-                ...prevData,
-                [field]: field === "tax" ? parseFloat(value) || 0 : value, // Ensure tax is treated as a number
-            }));
-        }
+            return { ...prevData, items: updatedItems };
+        });
+    };
+
+    // Calculate total in useEffect whenever items or tax changes
+    useEffect(() => {
+        const totalItemsCost = calculateTotalWithoutTax();
+        const validTax = !isNaN(invoiceData.tax) && invoiceData.tax >= 0 ? invoiceData.tax : 0;
+        const taxAmount = (totalItemsCost * validTax) / 100;
+        setInvoiceData((prevData) => ({
+            ...prevData,
+            total: totalItemsCost + taxAmount,
+        }));
+    }, [invoiceData.items, invoiceData.tax]);
+
+    const handleChange = (e, field) => {
+        const { value } = e.target;
+        setInvoiceData(prevData => ({
+            ...prevData,
+            [field]: field === "tax" ? parseFloat(value) || 0 : value,
+        }));
     };
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-
-        if (!validateForm()) return;
-
-        const invoiceNumber = `INV-${Math.floor(Math.random() * 9000) + 1000}`;
-
+        console.log("handleSubmit function triggered");
+    
+        const validationErrors = InvoiceModalValidation(invoiceData);
+        console.log("Validation Errors:", validationErrors); // Log the validation errors
+        
+        if (validationErrors) {
+            setErrors(validationErrors);
+            return; 
+        }
+    
         setLoading(true);
-
+    
+        const invoiceNumber = `INV-${Math.floor(Math.random() * 9000) + 1000}`;
         const payload = {
-            invoiceNumber, // Use the generated number
+            invoiceNumber,
             clientName: invoiceData.clientName,
             clientEmail: invoiceData.clientEmail,
             clientType: invoiceData.clientType,
             clientPhoneNo: invoiceData.clientPhoneNo,
             clientAddress: invoiceData.clientAddress,
             clientCifCnp: invoiceData.clientCifCnp,
-
             vendorName: invoiceData.vendorName,
             vendorEmail: invoiceData.vendorEmail,
             vendorType: invoiceData.vendorType,
             vendorPhoneNo: invoiceData.vendorPhoneNo,
             vendorAddress: invoiceData.vendorAddress,
             vendorCifCnp: invoiceData.vendorCifCnp,
-
             issueDate: invoiceData.issueDate,
             dueDate: invoiceData.dueDate,
-            items: items, // Use the latest items state
-            tax: tax,
-            total: calculateTotal(), // Correctly calculate the total
+            items: invoiceData.items, 
+            tax: invoiceData.tax,
+            total: invoiceData.total,
         };
-
+    console.log("Payload before submitting:", payload);
         try {
             const response = await axios.post('http://localhost:4000/routes/invoices/create', payload, {
                 headers: { 'Content-Type': 'application/json' },
             });
-
-            await fetchInvoices(); 
+    
+            await fetchInvoices();
             closeModal();
         } catch (error) {
             alert(`Error: ${error.message}`);
@@ -138,8 +126,9 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
             setLoading(false);
         }
     };
+    
+   // console.log("Invoice data:", invoiceData);
 
-   console.log("Invoice Data:", invoiceData); // For debugging purposes
 
     if (!isOpen) return null;
     return (
@@ -379,7 +368,7 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
 
                             {/* Table Body */}
                             <tbody>
-                                {items.map((item, index) => (
+                                {invoiceData.items.map((item, index) => (
                                     <tr key={index} className="border border-gray-300">
                                         {/* Product/Service */}
                                         <td className="border border-gray-300 px-4 py-2 text-center">
@@ -387,8 +376,8 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                                                 type="text"
                                                 placeholder="Product/Service"
                                                 className="w-full h-full rounded-md border border-gray-300 bg-transparent text-gray-700 text-sm px-2 py-1 focus:outline-none focus:border-gray-400"
-                                                value={item.name}
-                                                onChange={(e) => handleChange(e, 'name', index)}
+                                                value={item.itemName}
+                                                onChange={(e) => handleItemChange(e, 'itemName', index)} // Using handleItemChange for itemName
                                             />
                                         </td>
 
@@ -397,10 +386,10 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                                             <input
                                                 type="number"
                                                 min={1}
-                                                placeholder="Qty"
+                                                placeholder="qty"
                                                 className="w-20 h-full rounded-md border border-gray-300 bg-transparent text-gray-700 text-sm px-2 py-1 focus:outline-none focus:border-gray-400"
-                                                value={item.qty}
-                                                onChange={(e) => handleChange(e, 'qty', index)}
+                                                value={item.quantity}
+                                                onChange={(e) => handleItemChange(e, 'quantity', index)} // Using handleItemChange for quantity
                                             />
                                         </td>
 
@@ -409,16 +398,21 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                                             <input
                                                 type="number"
                                                 inputMode="decimal"
-                                                placeholder="Price"
+                                                placeholder="price"
                                                 className="w-20 h-full rounded-md border border-gray-300 bg-transparent text-gray-700 text-sm px-2 py-1 focus:outline-none focus:border-gray-400"
-                                                value={item.price}
-                                                onChange={(e) => handleChange(e, 'price', index)} 
+                                                value={item.unitPrice}
+                                                onChange={(e) => handleItemChange(e, 'unitPrice', index)} // Using handleItemChange for unitPrice
                                             />
                                         </td>
 
                                         {/* Total Price */}
                                         <td className="border border-gray-300 px-2 py-2 text-center">
-                                            <span>${(item.qty * item.price).toFixed(2)}</span>
+                                            <span>
+                                                {
+                                                    // Ensure both quantity and unitPrice are numbers, then calculate the total and format it to 2 decimal places
+                                                    (Number(item.quantity) * Number(item.unitPrice)).toFixed(2)
+                                                }
+                                            </span>
                                         </td>
 
                                         {/* Remove Item Button */}
@@ -431,8 +425,8 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                                         </td>
                                     </tr>
                                 ))}
-
                             </tbody>
+
                         </table>
 
                         {/* Add new line button */}
@@ -462,11 +456,10 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
 
 
                     <div className="flex justify-center mt-2">
-                        <button type="submit" disabled={loading} className="mt-4 px-12 py-2 font-semibold bg-purple-500 text-white rounded-md hover:bg-purple-600 disabled:bg-gray-400">
+                        <button type="submit" disabled={loading} className="mt-4 px-4 py-2 font-semibold bg-purple-500 text-white rounded-md hover:bg-purple-600 disabled:bg-gray-400">
                             {loading ? 'Submitting...' : 'Submit'}
                         </button>
                     </div>
-
                 </form>
 
             </div>

@@ -7,16 +7,11 @@ vendorRoute.post("/create", async (req, res) => {
     try {
         const vendor = new Vendor(req.body);
 
-        // Log the vendor data for debugging purposes
-        console.log('Vendor Data:', req.body);
-
-        // Save the vendor to the database
         await vendor.save();
         res.status(201).json(vendor);
     } catch (error) {
-        console.error('Error:', error); // Log the error for debugging
+        console.error('Error:', error); 
 
-        // Return more detailed error message
         return res.status(400).json({ message: error.message || 'Something went wrong while creating the vendor.' });
     }
 });

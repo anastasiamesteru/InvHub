@@ -8,16 +8,11 @@ clientRoute.post("/create", async (req, res) => {
     try {
         const client = new Client(req.body);
 
-        // Log the client data for debugging purposes
-        console.log('Client Data:', req.body);
-
-        // Save the client to the database
         await client.save();
         res.status(201).json(client);
     } catch (error) {
-        console.error('Error:', error); // Log the error for debugging
+        console.error('Error:', error); 
 
-        // Return more detailed error message
         return res.status(400).json({ message: error.message || 'Something went wrong while creating the client.' });
     }
 });

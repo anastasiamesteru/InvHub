@@ -23,12 +23,19 @@ const invoiceSchema = new mongoose.Schema({
     items: [
         {
             itemName: { type: String, required: true },
-            unitPrice: { type: String, required: true }, 
-            quantity: { type: String, required: true }   
+            unitPrice: { type: Number, required: true }, 
+            quantity: { type: Number, required: true }   
         }
     ],
+
     tax: { type: Number, required: true },
-    total: { type: Number, required: true }
+    total: { type: Number, required: true },
+
+    timeStatus: { type: String, default:"Pending"},
+    paymentStatus: { type: String},
+    paymentDate:{ type: Date}
 });
+
+
 
 export default mongoose.model('Invoice', invoiceSchema);

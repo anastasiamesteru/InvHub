@@ -5,8 +5,8 @@ export const InvoiceModalValidation = (data) => {
 
     const {
         issueDate, dueDate, clientName, clientAddress, clientPhoneNo,
-        clientEmail, clientCifCnp, clientType, vendorName, vendorAddress,
-        vendorPhoneNo, vendorEmail, vendorCifCnp, vendorType,
+         clientCifCnp, clientType, vendorName, vendorAddress,
+        vendorPhoneNo,  vendorCifCnp, vendorType,
         itemName, quantity, price
     } = data;
 
@@ -42,9 +42,9 @@ export const InvoiceModalValidation = (data) => {
     }
 
     // Item Validations
-    if (!safeTrim(itemName)) errors.itemName = "Item name is required.";
-    if (!safeTrim(quantity) || isNaN(quantity) || parseFloat(quantity) <= 0) errors.quantity = "Valid quantity is required.";
-    if (!safeTrim(price) || isNaN(price) || parseFloat(price) <= 0) errors.price = "Valid price (greater than 0) is required.";
+    //if (!safeTrim(itemName)) errors.itemName = "Item name is required.";
+    //if (!safeTrim(quantity) || isNaN(quantity) || parseFloat(quantity) <= 0) errors.quantity = "Valid quantity is required.";
+    //if (!safeTrim(price) || isNaN(price) || parseFloat(price) <= 0) errors.price = "Valid price (greater than 0) is required.";
 
     return errors;
 };

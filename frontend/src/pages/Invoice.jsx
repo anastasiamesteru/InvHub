@@ -3,6 +3,7 @@ import InvoiceModal from '../components/InvoiceModal';
 import { PDFDownloadLink, PDFViewer } from "@react-pdf/renderer";
 import InvoicePDF from "../components/InvoicePDF";
 import axios from 'axios';
+import invoice from '../../../backend/models/invoice';
 
 const Invoice = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -105,32 +106,82 @@ const Invoice = () => {
 
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-    const calculateInvoiceStatus = (issueDate, dueDate) => {
-        const issue = new Date(issueDate);
-        const due = new Date(dueDate);
-        const currentDate = new Date();
-        if (currentDate > due) {
-            return 'Overdue';
-        }
-
-        return 'On Time';
-    };
-
     const viewInvoicePdf = (invoice) => {
         setSelectedInvoice(invoice);
         setIsPdfOpen(true);
     };
 
-    const togglePaymentStatus = (invoiceId) => {
-        // Update the state to toggle the invoice status
-        setInvoices((prevInvoices) =>
-            prevInvoices.map((invoice) =>
-                invoice._id === invoiceId
-                    ? { ...invoice, status: invoice.status === 'Paid' ? 'Unpaid' : 'Paid' }
-                    : invoice
-            )
-        );
+    const handlePaymentStatusChange = async (invoiceId, isChecked, dueDate, total) => {
+        const paymentStatus = isChecked ? 'Paid' : 'Unpaid';
+        const paymentDate = isChecked ? new Date().toISOString().split('T')[0] : null;
+        console.log('Total:', total);
+
+        const currentDate = new Date();
+        const due = new Date(dueDate);
+        currentDate.setHours(0, 0, 0, 0);
+        due.setHours(0, 0, 0, 0);
+    
+        let timeStatus = 'Pending';
+        let penalty = 0;
+    
+        // Calculate penalty if overdue
+        if (paymentStatus === 'Paid') {
+            const paymentDateObject = new Date(paymentDate);
+    
+            if (paymentDateObject <= due) {
+                timeStatus = 'On Time';
+            } else {
+                timeStatus = 'Overdue';
+                const overdueDays = Math.floor((paymentDateObject - due) / (1000 * 60 * 60 * 24));
+                const penaltyRate = 0.01;
+                penalty = total * penaltyRate * overdueDays;
+            }
+        } else if (paymentStatus === 'Unpaid') {
+            if (currentDate > due) {
+                timeStatus = 'Overdue';
+                const overdueDays = Math.floor((currentDate - due) / (1000 * 60 * 60 * 24));
+                const penaltyRate = 0.01;
+                penalty = total * penaltyRate * overdueDays;
+            } else {
+                timeStatus = 'Pending';
+            }
+        }
+    
+        const newTotal = total + penalty;
+    
+        // Log the new total to make sure it's correct
+        console.log('New Total:', newTotal);
+    
+        // Call the backend to update payment status and total
+        await updatePaymentStatus(invoiceId, paymentStatus, paymentDate, timeStatus, newTotal);
     };
+    
+    
+    
+    
+    // This function updates the payment status in the backend
+   // This function updates the payment status in the backend
+const updatePaymentStatus = async (invoiceId, paymentStatus, paymentDate, timeStatus, newTotal) => {
+    try {
+        // Send the updated payment status, payment date, time status, and new total to the backend
+        await axios.patch(`http://localhost:4000/routes/invoices/${invoiceId}`, {
+            paymentStatus: paymentStatus,
+            paymentDate: paymentDate,
+            timeStatus: timeStatus,
+            total: newTotal  // Send the new total including penalties
+        });
+    
+        // Optionally, you can refresh the invoice list to reflect the updated status
+        fetchInvoices();
+    
+    } catch (error) {
+        console.error('Error updating payment status:', error);
+        alert('Failed to update payment status');
+    }
+};
+
+
+
 
 
     return (
@@ -239,24 +290,29 @@ const Invoice = () => {
 
                                     <td className="px-3 py-2 text-center">
                                         <span
-                                            className={`inline-block px-2 py-1 font-semibold rounded ${calculateInvoiceStatus(invoice.issueDate, invoice.dueDate) === 'On Time'
+                                            className={`inline-block px-2 py-1 font-semibold rounded ${invoice.timeStatus === 'On Time'
                                                 ? 'bg-green-100 text-green-800'
-                                                : 'bg-red-100 text-red-800'
+                                                : invoice.timeStatus === 'Overdue'
+                                                    ? 'bg-red-100 text-red-800'
+                                                    : 'bg-yellow-100 text-yellow-800' // For Pending invoices
                                                 }`}
                                         >
-                                            {calculateInvoiceStatus(invoice.issueDate, invoice.dueDate)}
+                                            {invoice.timeStatus}
                                         </span>
                                     </td>
 
                                     <td className="px-3 py-2 text-center">{invoice.total}</td>
+
                                     <td className="px-3 py-2 text-center">
-                                        <div className="flex items-center justify-center">
-                                            <input
-                                                type="checkbox"
-                                                className="w-5 h-5 accent-blue-500 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none checked:bg-blue-500 hover:ring-2 hover:ring-blue-300"
-                                            />
-                                        </div>
+                                        <input
+                                            type="checkbox"
+                                            checked={invoice.paymentStatus === 'Paid'}
+                                            onChange={(e) => handlePaymentStatusChange(invoice._id, e.target.checked, invoice.dueDate)}
+                                            className="w-5 h-5 accent-blue-500 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none checked:bg-blue-500 hover:ring-2 hover:ring-blue-300"
+                                        />
+
                                     </td>
+
 
                                     <td className="px-3 py-2 text-center flex justify-center gap-2">
                                         <button className="px-2 py-1 text-center">
@@ -309,9 +365,10 @@ const Invoice = () => {
                                 </tr>
                             ))
                         ) : (
-                            <tr>
-                                <td colSpan="8" className="px-3 py-2 text-center">No invoices found</td>
+                            <tr className="text-center">
+                                <td colSpan="100%" className="px-3 py-2">No invoices found</td>
                             </tr>
+
                         )}
                     </tbody>
                 </table>
