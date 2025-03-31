@@ -127,7 +127,7 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
         }
     };
     
-   // console.log("Invoice data:", invoiceData);
+    console.log("Invoice data:", invoiceData);
 
 
     if (!isOpen) return null;

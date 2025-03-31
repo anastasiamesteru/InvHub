@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import InvoiceModal from '../components/InvoiceModal';
-import { PDFDownloadLink, PDFViewer } from "@react-pdf/renderer";
-import InvoicePDF from "../components/InvoicePDF";
 import axios from 'axios';
-import invoice from '../../../backend/models/invoice';
+import InvoicePDF from '../components/InvoicePDF';
+import { PDFViewer } from "@react-pdf/renderer";
 
 const Invoice = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [invoices, setInvoices] = useState([]);
-
     const [selectedInvoice, setSelectedInvoice] = useState(null);
-    const [isPdfOpen, setIsPdfOpen] = useState(false);
+
+
 
     const fetchInvoices = async () => {
         try {
@@ -106,82 +105,75 @@ const Invoice = () => {
 
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-    const viewInvoicePdf = (invoice) => {
-        setSelectedInvoice(invoice);
-        setIsPdfOpen(true);
+
+    const updatePaymentStatus = async (invoiceId, paymentStatus, paymentDate, timeStatus, newTotal) => {
+        try {
+            await axios.patch(`http://localhost:4000/routes/invoices/${invoiceId}`, {
+                paymentStatus: paymentStatus,
+                paymentDate: paymentDate,
+                timeStatus: timeStatus,
+                total: newTotal
+            });
+
+            fetchInvoices();
+
+        } catch (error) {
+            console.error('Error updating payment status:', error);
+            alert('Failed to update payment status');
+        }
     };
 
-    const handlePaymentStatusChange = async (invoiceId, isChecked, dueDate, total) => {
+    const handlePaymentStatusChange = async (invoiceId, isChecked, invoice) => {
+        console.log(invoice)
         const paymentStatus = isChecked ? 'Paid' : 'Unpaid';
         const paymentDate = isChecked ? new Date().toISOString().split('T')[0] : null;
-        console.log('Total:', total);
+        console.log('Invoice Total:', invoice.total);
+        console.log('Invoice Due Date:', invoice.dueDate);
 
         const currentDate = new Date();
-        const due = new Date(dueDate);
+        const due = new Date(invoice.dueDate);  // Ensure we're using the invoice's dueDate here
         currentDate.setHours(0, 0, 0, 0);
         due.setHours(0, 0, 0, 0);
-    
+
         let timeStatus = 'Pending';
         let penalty = 0;
-    
+
         // Calculate penalty if overdue
         if (paymentStatus === 'Paid') {
             const paymentDateObject = new Date(paymentDate);
-    
+
             if (paymentDateObject <= due) {
                 timeStatus = 'On Time';
             } else {
                 timeStatus = 'Overdue';
                 const overdueDays = Math.floor((paymentDateObject - due) / (1000 * 60 * 60 * 24));
                 const penaltyRate = 0.01;
-                penalty = total * penaltyRate * overdueDays;
+                penalty = invoice.total * penaltyRate * overdueDays;  // Use invoice.total here
             }
         } else if (paymentStatus === 'Unpaid') {
             if (currentDate > due) {
                 timeStatus = 'Overdue';
                 const overdueDays = Math.floor((currentDate - due) / (1000 * 60 * 60 * 24));
                 const penaltyRate = 0.01;
-                penalty = total * penaltyRate * overdueDays;
+                penalty = invoice.total * penaltyRate * overdueDays;  // Use invoice.total here
             } else {
                 timeStatus = 'Pending';
             }
         }
-    
-        const newTotal = total + penalty;
-    
+
+        const newTotal = invoice.total + penalty;
+
         // Log the new total to make sure it's correct
         console.log('New Total:', newTotal);
-    
+
         // Call the backend to update payment status and total
         await updatePaymentStatus(invoiceId, paymentStatus, paymentDate, timeStatus, newTotal);
     };
-    
-    
-    
-    
-    // This function updates the payment status in the backend
-   // This function updates the payment status in the backend
-const updatePaymentStatus = async (invoiceId, paymentStatus, paymentDate, timeStatus, newTotal) => {
-    try {
-        // Send the updated payment status, payment date, time status, and new total to the backend
-        await axios.patch(`http://localhost:4000/routes/invoices/${invoiceId}`, {
-            paymentStatus: paymentStatus,
-            paymentDate: paymentDate,
-            timeStatus: timeStatus,
-            total: newTotal  // Send the new total including penalties
-        });
-    
-        // Optionally, you can refresh the invoice list to reflect the updated status
-        fetchInvoices();
-    
-    } catch (error) {
-        console.error('Error updating payment status:', error);
-        alert('Failed to update payment status');
-    }
-};
 
 
-
+    const handleViewPDF = (invoice) => {
+        setSelectedInvoice(invoice);
+    };
 
 
     return (
@@ -307,7 +299,7 @@ const updatePaymentStatus = async (invoiceId, paymentStatus, paymentDate, timeSt
                                         <input
                                             type="checkbox"
                                             checked={invoice.paymentStatus === 'Paid'}
-                                            onChange={(e) => handlePaymentStatusChange(invoice._id, e.target.checked, invoice.dueDate)}
+                                            onChange={(e) => handlePaymentStatusChange(invoice.id, e.target.checked, invoice)}
                                             className="w-5 h-5 accent-blue-500 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none checked:bg-blue-500 hover:ring-2 hover:ring-blue-300"
                                         />
 
@@ -327,7 +319,8 @@ const updatePaymentStatus = async (invoiceId, paymentStatus, paymentDate, timeSt
                                         </button>
                                         <button
                                             className="px-2 py-1 text-center"
-                                            onClick={() => viewInvoicePdf(invoice._id)}
+                                            onClick={() => handleViewPDF(invoice)}
+
                                         >
                                             <svg
                                                 xmlns="http://www.w3.org/2000/svg"
@@ -375,6 +368,32 @@ const updatePaymentStatus = async (invoiceId, paymentStatus, paymentDate, timeSt
 
 
             </div>
+
+            {/* PDF Modal */}
+            {selectedInvoice && (
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 transition-opacity duration-300 ease-in-out">
+                    <div className="bg-white p-6 rounded-lg shadow-xl w-11/12 md:w-3/4 lg:w-2/3 h-4/5 relative overflow-hidden">
+
+                        {/* Close Button */}
+                        <button
+                            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl transition-colors duration-200 z-10"
+                            onClick={() => setSelectedInvoice(null)}
+                        >
+                            ✕
+                        </button>
+
+                        {/* PDF Viewer with padding to prevent overlap */}
+                        <div className="h-full pt-6 pb-4 pl-4 pr-4 overflow-auto">
+                            <PDFViewer width="100%" height="100%">
+                                <InvoicePDF invoiceData={selectedInvoice} />
+                            </PDFViewer>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+
+
 
             {/* Pagination Controls */}
             <div className="flex justify-center mt-4">
