@@ -32,7 +32,7 @@ const invoiceSchema = new mongoose.Schema({
     total: { type: Number, required: true },
 
     timeStatus: { type: String, default:"Pending"},
-    paymentStatus: { type: String},
+    paymentStatus: { type: String, default:"Unpaid"},
     paymentDate:{ type: Date}
 });
 

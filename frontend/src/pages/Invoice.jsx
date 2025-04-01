@@ -103,78 +103,90 @@ const Invoice = () => {
     const indexOfFirstInvoice = indexOfLastInvoice - invoicesPerPage;
     const currentInvoices = filteredInvoices().slice(indexOfFirstInvoice, indexOfLastInvoice);
 
-    const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
 
-    const updatePaymentStatus = async (invoiceId, paymentStatus, paymentDate, timeStatus, newTotal) => {
-        try {
-            await axios.patch(`http://localhost:4000/routes/invoices/${invoiceId}`, {
-                paymentStatus: paymentStatus,
-                paymentDate: paymentDate,
-                timeStatus: timeStatus,
-                total: newTotal
-            });
+   // Function to update the payment status
+const updatePaymentStatus = async (invoiceId, paymentStatus, paymentDate, timeStatus, newTotal) => {
+    try {
+        // Sending the updated data to the backend
+        await axios.patch(`http://localhost:4000/routes/invoices/${invoiceId}`, {
+            paymentStatus,
+            paymentDate,
+            timeStatus,
+            total: newTotal
+        });
 
-            fetchInvoices();
+        // Fetch invoices after the update
+        fetchInvoices();
 
-        } catch (error) {
-            console.error('Error updating payment status:', error);
-            alert('Failed to update payment status');
+        // Optional: Provide a success message to the user (user experience improvement)
+        alert('Payment status updated successfully!');
+    } catch (error) {
+        console.error('Error updating payment status:', error);
+        alert('Failed to update payment status');
+    }
+};
+
+// Function to handle the payment status change (either Paid or Unpaid)
+const handlePaymentStatusChange = async (invoiceId, isChecked, invoice) => {
+    const paymentStatus = isChecked ? 'Paid' : 'Unpaid';
+    const paymentDate = isChecked ? new Date().toISOString().split('T')[0] : null;
+    const currentDate = new Date();
+    const dueDate = new Date(invoice.due_date);
+
+    // Reset time to midnight for accurate date comparisons
+    currentDate.setHours(0, 0, 0, 0);
+    dueDate.setHours(0, 0, 0, 0);
+
+    let timeStatus = 'Pending';
+    let penalty = 0;
+
+    // Payment logic (Paid or Unpaid)
+    if (paymentStatus === 'Paid') {
+        const paymentDateObject = new Date(paymentDate);
+        if (paymentDateObject <= dueDate) {
+            timeStatus = 'On Time';
+        } else {
+            timeStatus = 'Overdue';
+            penalty = calculatePenalty(paymentDateObject, dueDate, invoice.total);
         }
-    };
+    } else if (paymentStatus === 'Unpaid' && currentDate > dueDate) {
+        timeStatus = 'Overdue';
+        penalty = calculatePenalty(currentDate, dueDate, invoice.total);
+    }
 
-    const handlePaymentStatusChange = async (invoiceId, isChecked, invoice) => {
-        console.log(invoice)
-        const paymentStatus = isChecked ? 'Paid' : 'Unpaid';
-        const paymentDate = isChecked ? new Date().toISOString().split('T')[0] : null;
-        console.log('Invoice Total:', invoice.total);
-        console.log('Invoice Due Date:', invoice.dueDate);
+    const newTotal = invoice.total + penalty;
+    console.log('New Total:', newTotal);
 
-        const currentDate = new Date();
-        const due = new Date(invoice.dueDate);  // Ensure we're using the invoice's dueDate here
-        currentDate.setHours(0, 0, 0, 0);
-        due.setHours(0, 0, 0, 0);
+    // Call the backend to update payment status and total
+    await updatePaymentStatus(invoiceId, paymentStatus, paymentDate, timeStatus, newTotal);
+};
 
-        let timeStatus = 'Pending';
-        let penalty = 0;
+// Function to calculate penalty for overdue invoices
+const calculatePenalty = (paymentDate, dueDate, total) => {
+    const overdueDays = Math.floor((paymentDate - dueDate) / (1000 * 60 * 60 * 24));
+    const penaltyRate = 0.01; // 1% penalty rate per day
+    return Math.max(0, total * penaltyRate * overdueDays); // Ensure no negative penalty
+};
 
-        // Calculate penalty if overdue
-        if (paymentStatus === 'Paid') {
-            const paymentDateObject = new Date(paymentDate);
-
-            if (paymentDateObject <= due) {
-                timeStatus = 'On Time';
-            } else {
-                timeStatus = 'Overdue';
-                const overdueDays = Math.floor((paymentDateObject - due) / (1000 * 60 * 60 * 24));
-                const penaltyRate = 0.01;
-                penalty = invoice.total * penaltyRate * overdueDays;  // Use invoice.total here
-            }
-        } else if (paymentStatus === 'Unpaid') {
-            if (currentDate > due) {
-                timeStatus = 'Overdue';
-                const overdueDays = Math.floor((currentDate - due) / (1000 * 60 * 60 * 24));
-                const penaltyRate = 0.01;
-                penalty = invoice.total * penaltyRate * overdueDays;  // Use invoice.total here
-            } else {
-                timeStatus = 'Pending';
-            }
-        }
-
-        const newTotal = invoice.total + penalty;
-
-        // Log the new total to make sure it's correct
-        console.log('New Total:', newTotal);
-
-        // Call the backend to update payment status and total
-        await updatePaymentStatus(invoiceId, paymentStatus, paymentDate, timeStatus, newTotal);
-    };
 
 
     const handleViewPDF = (invoice) => {
         setSelectedInvoice(invoice);
     };
 
+    const formatDate = (date) => {
+        if (!date) return 'Invalid Date';
+        const parsedDate = new Date(date);
+        if (isNaN(parsedDate)) return 'Invalid Date';
+    
+        const day = String(parsedDate.getDate()).padStart(2, '0'); 
+        const month = String(parsedDate.getMonth() + 1).padStart(2, '0'); 
+        const year = parsedDate.getFullYear();
+    
+        return `${day}/${month}/${year}`;
+    };
+    
 
     return (
         <div className="p-4 h-w-full h-screen">
@@ -238,14 +250,14 @@ const Invoice = () => {
                             </th>
                             <th
                                 className="px-3 py-2 text-center bg-gray-200 cursor-pointer"
-                                onClick={() => handleSort('issueDate')}
+                                onClick={() => handleSort('issue_date')}
                             >
                                 Issue Date
                                 {sortColumn === 'issueDate' ? (sortOrder === 'asc' ? ' ▲' : ' ▼') : ''}
                             </th>
                             <th
                                 className="px-3 py-2 text-center bg-gray-200 cursor-pointer"
-                                onClick={() => handleSort('dueDate')}
+                                onClick={() => handleSort('due_date')}
                             >
                                 Due Date
                                 {sortColumn === 'dueDate' ? (sortOrder === 'asc' ? ' ▲' : ' ▼') : ''}
@@ -270,14 +282,10 @@ const Invoice = () => {
                                     <td className="px-3 py-2 text-center">{invoice.clientName}</td>
                                     <td className="px-3 py-2 text-center">{invoice.vendorName}</td>
                                     <td className="px-3 py-2 text-center">
-                                        {invoice.issueDate && !isNaN(Date.parse(invoice.issueDate))
-                                            ? new Date(invoice.issueDate).toISOString().split('T')[0]
-                                            : 'N/A'}
+                                    {invoice.issue_date ? formatDate(invoice.issue_date) : 'No Issue Date'}
                                     </td>
                                     <td className="px-3 py-2 text-center">
-                                        {invoice.dueDate && !isNaN(Date.parse(invoice.dueDate))
-                                            ? new Date(invoice.dueDate).toLocaleDateString('en-GB')
-                                            : 'N/A'}
+                                    {invoice.due_date ? formatDate(invoice.due_date) : 'No Due Date'}
                                     </td>
 
                                     <td className="px-3 py-2 text-center">

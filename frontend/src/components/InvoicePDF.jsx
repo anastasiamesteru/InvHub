@@ -1,33 +1,34 @@
 import React from "react";
 import { Page, Text, View, Document, StyleSheet, Font } from "@react-pdf/renderer";
 
-// Register the Poppins font from the public directory
 Font.register({
   family: 'Poppins',
-  src: '/fonts/Poppins-Regular.ttf', // Regular font
+  src: '/fonts/Poppins-Regular.ttf', 
   fontStyle: 'normal',
-  fontWeight: 400, // Regular weight
+  fontWeight: 400, 
   fonts: [
-    { src: '/fonts/Poppins-Regular.ttf', fontStyle: 'normal', fontWeight: 'normal' }, // Regular
-    { src: '/fonts/Poppins-SemiBold.ttf', fontStyle: 'normal', fontWeight: '600' },  // SemiBold
-    { src: '/fonts/Poppins-Medium.ttf', fontStyle: 'normal', fontWeight: '500' },    // Medium
+    { src: '/fonts/Poppins-Regular.ttf', fontStyle: 'normal', fontWeight: 'normal' }, 
+    { src: '/fonts/Poppins-SemiBold.ttf', fontStyle: 'normal', fontWeight: '600' },  
+    { src: '/fonts/Poppins-Medium.ttf', fontStyle: 'normal', fontWeight: '500' },    
   ]
 });
 
-// Define styles
 const styles = StyleSheet.create({
   page: {
     padding: 30,
-    fontFamily: "Poppins", // Apply Poppins font
-    backgroundColor: "#f4f4f4", // Light background for the whole page
+    fontFamily: "Poppins", 
+    backgroundColor: "#FFFFFF", 
+    color: "#000000", 
   },
-  section: { marginBottom: 15 },
+  section: {
+    marginBottom: 15,
+  },
   header: {
     fontSize: 24,
-    fontWeight: "600", // SemiBold weight
+    fontWeight: "600", 
     marginBottom: 20,
     textAlign: "center",
-    color: "#333",
+    color: "#000000", 
   },
   table: {
     display: "flex",
@@ -53,7 +54,7 @@ const styles = StyleSheet.create({
     borderRightWidth: 1,
     borderRightColor: "#ddd",
     borderRightStyle: "solid",
-    color: "#333",
+    color: "#000000", 
   },
   lastCell: {
     borderRightWidth: 0,
@@ -61,19 +62,26 @@ const styles = StyleSheet.create({
   titleText: {
     fontWeight: "bold",
     fontSize: 14,
-    color: "#555",
+    color: "#000000", 
   },
   subTitle: {
     marginBottom: 5,
     fontSize: 12,
-    color: "#777",
+    color: "#000000", 
   },
 });
 
-// Helper function to format date
+
 const formatDate = (date) => {
-  const options = { year: 'numeric', month: 'long', day: 'numeric' };
-  return new Date(date).toLocaleDateString('en-US', options);
+  if (!date) return 'Invalid Date';
+  const parsedDate = new Date(date);
+  if (isNaN(parsedDate)) return 'Invalid Date';
+
+  const day = String(parsedDate.getDate()).padStart(2, '0'); 
+  const month = String(parsedDate.getMonth() + 1).padStart(2, '0'); 
+  const year = parsedDate.getFullYear();
+
+  return `${day}/${month}/${year}`;
 };
 
 const InvoicePDF = ({ invoiceData }) => {
@@ -105,36 +113,47 @@ const InvoicePDF = ({ invoiceData }) => {
       <Page size="A4" style={styles.page}>
         <Text style={styles.header}>Invoice: {invoiceNumber}</Text>
 
-        {/* Client Info */}
-        <View style={styles.section}>
-          <Text style={styles.titleText}>Client Information</Text>
-          <Text style={styles.subTitle}><strong>Name:</strong> {clientName}</Text>
-          <Text style={styles.subTitle}><strong>Email:</strong> {clientEmail}</Text>
-          <Text style={styles.subTitle}><strong>Address:</strong> {clientAddress}</Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
+  <View style={{ flex: 1 }}>
+    <Text style={styles.subTitle}>
+      <Text style={{ fontWeight: 'bold' }}>Issue Date:</Text> {formatDate(issue_date)}
+    </Text>
+  </View>
+
+  <View style={{ flex: 1, alignItems: 'flex-end' }}>
+    <Text style={styles.subTitle}>
+      <Text style={{ fontWeight: 'bold' }}>Due Date:</Text> {formatDate(due_date)}
+    </Text>
+  </View>
+</View>
+
+
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
+        {/* Client Info - Left aligned */}
+          <View style={{ flex: 1 }}>
+            <Text style={styles.titleText}>Client Information</Text>
+            <Text style={styles.subTitle}><Text style={{ fontWeight: 'bold' }}>Name:</Text> {clientName}</Text>
+            <Text style={styles.subTitle}><Text style={{ fontWeight: 'bold' }}>Email:</Text> {clientEmail}</Text>
+            <Text style={styles.subTitle}><Text style={{ fontWeight: 'bold' }}>Address:</Text> {clientAddress}</Text>
+          </View>
+
+          {/* Vendor Info - Right aligned */}
+          <View style={{ flex: 1, alignItems: 'flex-end' }}>
+            <Text style={styles.titleText}>Vendor Information</Text>
+            <Text style={styles.subTitle}><Text style={{ fontWeight: 'bold' }}>Name:</Text> {vendorName}</Text>
+            <Text style={styles.subTitle}><Text style={{ fontWeight: 'bold' }}>Email:</Text> {vendorEmail}</Text>
+            <Text style={styles.subTitle}><Text style={{ fontWeight: 'bold' }}>Address:</Text> {vendorAddress}</Text>
+          </View>
         </View>
 
-        {/* Vendor Info */}
-        <View style={styles.section}>
-          <Text style={styles.titleText}>Vendor Information</Text>
-          <Text style={styles.subTitle}><strong>Name:</strong> {vendorName}</Text>
-          <Text style={styles.subTitle}><strong>Email:</strong> {vendorEmail}</Text>
-          <Text style={styles.subTitle}><strong>Address:</strong> {vendorAddress}</Text>
-        </View>
 
-        {/* Date Info */}
-        <View style={styles.section}>
-          <Text style={styles.titleText}>Invoice Dates</Text>
-          <Text style={styles.subTitle}><strong>Issue Date:</strong> {formatDate(issue_date)}</Text>
-          <Text style={styles.subTitle}><strong>Due Date:</strong> {formatDate(due_date)}</Text>
-        </View>
 
-        {/* Items Table */}
         <View style={styles.table}>
           <View style={styles.row}>
-            <Text style={styles.cell}><strong>Item Name</strong></Text>
-            <Text style={styles.cell}><strong>Quantity</strong></Text>
-            <Text style={styles.cell}><strong>Unit Price</strong></Text>
-            <Text style={styles.lastCell}><strong>Total</strong></Text>
+            <Text style={[styles.cell, { fontWeight: 'bold' }]}>Item Name</Text>
+            <Text style={[styles.cell, { fontWeight: 'bold' }]}>Quantity</Text>
+            <Text style={[styles.cell, { fontWeight: 'bold' }]}>Unit Price</Text>
+            <Text style={[styles.lastCell, { fontWeight: 'bold' }]}>Total</Text>
           </View>
 
           {items.map((item, index) => (
@@ -146,6 +165,7 @@ const InvoicePDF = ({ invoiceData }) => {
             </View>
           ))}
         </View>
+
       </Page>
     </Document>
   );
