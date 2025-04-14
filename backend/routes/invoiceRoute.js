@@ -14,38 +14,16 @@ invoiceRoute.get("/getall", async (req, res) => {
 });
 
 // Create a new invoice
-invoiceRoute.post('/create', async (req, res) => {
-
+invoiceRoute.post("/create", async (req, res) => {
     try {
-        const {
-            invoiceNumber,
-            clientName, clientAddress, clientPhoneNo, clientEmail, clientType, clientCifcnp,
-            vendorName, vendorAddress, vendorPhoneNo, vendorEmail, vendorType, vendorCifcnp,
-            issue_date, due_date,
-            items, tax, total,
-            timeStatus,
-            paymentStatus,
-            paymentDate
-        } = req.body;
+        const invoice = new Invoice(req.body);
 
-        
-        const newInvoice = new Invoice({
-            invoiceNumber,
-            clientName, clientAddress, clientPhoneNo, clientEmail, clientType, clientCifcnp,
-            vendorName, vendorAddress, vendorPhoneNo, vendorEmail, vendorType, vendorCifcnp,
-            issue_date, due_date,
-            items, tax, total,
-            timeStatus,
-            paymentStatus,
-            paymentDate
-        });
-
-        await newInvoice.save();
-
-        res.status(201).json({ message: 'Invoice created successfully', invoice: newInvoice });
+        await invoice.save();
+        res.status(201).json(invoice);
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Failed to create invoice' });
+        console.error('Error:', error); 
+
+        return res.status(400).json({ message: error.message || 'Something went wrong while creating the invoice.' });
     }
 });
 

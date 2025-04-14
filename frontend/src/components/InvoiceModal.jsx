@@ -2,19 +2,20 @@ import React, { useState, useEffect } from "react"
 import { InvoiceModalValidation } from "../utils/InvoiceModalValidation.js";
 import axios from 'axios';
 
-const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
+const InvoiceModal = ({ isOpen, onClose, fetchInvoices}) => {
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const [invoiceData, setInvoiceData] = useState({
         invoiceNumber: '',
-        clientName: '', clientAddress: '', clientPhoneNo: '', clientEmail: '', clientType: 'company', clientCifCnp: '',
-        vendorName: '', vendorAddress: '', vendorPhoneNo: '', vendorEmail: '', vendorType: 'company', vendorCifCnp: '',
-        issueDate: '', dueDate: '', tax: 0, total: 0,
+        clientName: '', clientAddress: '', clientPhoneNo: '', clientEmail: '', clientType: 'company', clientCifcnp: '',
+        vendorName: '', vendorAddress: '', vendorPhoneNo: '', vendorEmail: '', vendorType: 'company', vendorCifcnp: '',
+        issue_date: '', due_date: '', tax: 0, total: 0,
         items: [{ itemName: '', quantity: 1, unitPrice: 0 }],
     });
 
-    
+
     const calculateTotalWithoutTax = () => {
         return invoiceData.items.reduce((total, item) => total + (item.unitPrice * item.quantity), 0);
     };
@@ -31,7 +32,7 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
             ...prevData,
             items: [
                 ...prevData.items,
-                { itemName: '', quantity: 1, unitPrice: 0 }, // New item with default values
+                { itemName: '', quantity: 1, unitPrice: 0 },
             ],
         }));
     };
@@ -58,16 +59,24 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
         });
     };
 
-    // Calculate total in useEffect whenever items or tax changes
     useEffect(() => {
-        const totalItemsCost = calculateTotalWithoutTax();
-        const validTax = !isNaN(invoiceData.tax) && invoiceData.tax >= 0 ? invoiceData.tax : 0;
-        const taxAmount = (totalItemsCost * validTax) / 100;
-        setInvoiceData((prevData) => ({
+        if (isOpen) {
+          // Generate invoice number
+          const generatedInvoiceNumber = `INV-${Math.floor(Math.random() * 9000) + 1000}`;
+          
+          const totalItemsCost = invoiceData.items.reduce(
+            (total, item) => total + (item.unitPrice * item.quantity), 0
+          );
+          const validTax = !isNaN(invoiceData.tax) && invoiceData.tax >= 0 ? invoiceData.tax : 0;
+          const taxAmount = (totalItemsCost * validTax) / 100;
+    
+          setInvoiceData(prevData => ({
             ...prevData,
-            total: totalItemsCost + taxAmount,
-        }));
-    }, [invoiceData.items, invoiceData.tax]);
+            invoiceNumber: generatedInvoiceNumber,
+            total: totalItemsCost + taxAmount,  
+          }));
+        }
+      }, [isOpen, invoiceData.items, invoiceData.tax])
 
     const handleChange = (e, field) => {
         const { value } = e.target;
@@ -79,56 +88,55 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-        console.log("handleSubmit function triggered");
     
-        const validationErrors = InvoiceModalValidation(invoiceData);
-        console.log("Validation Errors:", validationErrors); // Log the validation errors
-        
-        if (validationErrors) {
-            setErrors(validationErrors);
-            return; 
-        }
-    
-        setLoading(true);
-    
-        const invoiceNumber = `INV-${Math.floor(Math.random() * 9000) + 1000}`;
+        // Create the payload, including the generated invoice number
         const payload = {
-            invoiceNumber,
-            clientName: invoiceData.clientName,
-            clientEmail: invoiceData.clientEmail,
-            clientType: invoiceData.clientType,
-            clientPhoneNo: invoiceData.clientPhoneNo,
-            clientAddress: invoiceData.clientAddress,
-            clientCifCnp: invoiceData.clientCifCnp,
-            vendorName: invoiceData.vendorName,
-            vendorEmail: invoiceData.vendorEmail,
-            vendorType: invoiceData.vendorType,
-            vendorPhoneNo: invoiceData.vendorPhoneNo,
-            vendorAddress: invoiceData.vendorAddress,
-            vendorCifCnp: invoiceData.vendorCifCnp,
-            issueDate: invoiceData.issueDate,
-            dueDate: invoiceData.dueDate,
-            items: invoiceData.items, 
-            tax: invoiceData.tax,
-            total: invoiceData.total,
+          invoiceNumber: invoiceData.invoiceNumber,  // This will have the generated number
+          clientName: invoiceData.clientName,
+          clientEmail: invoiceData.clientEmail,
+          clientType: invoiceData.clientType,
+          clientPhoneNo: invoiceData.clientPhoneNo,
+          clientAddress: invoiceData.clientAddress,
+          clientCifcnp: invoiceData.clientCifcnp,
+          vendorName: invoiceData.vendorName,
+          vendorEmail: invoiceData.vendorEmail,
+          vendorType: invoiceData.vendorType,
+          vendorPhoneNo: invoiceData.vendorPhoneNo,
+          vendorAddress: invoiceData.vendorAddress,
+          vendorCifcnp: invoiceData.vendorCifcnp,
+          issue_date: invoiceData.issue_date,
+          due_date: invoiceData.due_date,
+          items: invoiceData.items,
+          tax: invoiceData.tax,
+          total: invoiceData.total,
         };
-    console.log("Payload before submitting:", payload);
+    
+        // Submit the request with the payload
         try {
             const response = await axios.post('http://localhost:4000/routes/invoices/create', payload, {
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                },
             });
-    
+            console.log('Invoice response:', response);
             await fetchInvoices();
-            closeModal();
+
+            onClose();
         } catch (error) {
-            alert(`Error: ${error.message}`);
+            console.error('Error posting item data:', error);
+            if (error.response) {
+                console.error('Error response data:', error.response.data);
+                alert(`Error: ${error.response?.data?.message || error.message}`);
+            } else {
+                alert(`Error: ${error.message}`);
+            }
         } finally {
             setLoading(false);
         }
     };
-    
-    console.log("Invoice data:", invoiceData);
 
+
+   //console.log("Invoice data: ", invoiceData);
 
     if (!isOpen) return null;
     return (
@@ -148,12 +156,12 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                     <div className="flex flex-col border-b-2 border-gray-400 pt-4 pb-4">
                         <div className="flex justify-between">
                             <div className="w-1/2 pr-2 flex flex-col items-center">
-                                <label htmlFor="issueDate" className="block text-sm font-small text-gray-700">Issue date</label>
+                                <label htmlFor="issue_date" className="block text-sm font-small text-gray-700">Issue date</label>
                                 <input
-                                    id="issueDate"
+                                    id="issue_date"
                                     type="date"
-                                    value={invoiceData.issueDate}
-                                    onChange={(e) => handleChange(e, 'issueDate')}
+                                    value={invoiceData.issue_date}
+                                    onChange={(e) => handleChange(e, 'issue_date')}
                                     className="w-50 mt-1 p-2 border border-gray-300 rounded-md"
                                 />
                             </div>
@@ -161,17 +169,17 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                             <div className="w-1/2 pl-2 flex flex-col items-center">
                                 <label htmlFor="dueDate" className="block text-sm font-small text-gray-700">Due date</label>
                                 <input
-                                    id="dueDate"
+                                    id="due_date"
                                     type="date"
-                                    value={invoiceData.dueDate}
-                                    onChange={(e) => handleChange(e, 'dueDate')}
+                                    value={invoiceData.due_date}
+                                    onChange={(e) => handleChange(e, 'due_date')}
                                     className="w-50 mt-1 p-2 border border-gray-300 rounded-md"
                                 />
                             </div>
                         </div>
 
-                        {errors.dueDate && (
-                            <p className="text-red-500 text-xs text-center mt-2">{errors.dueDate}</p>
+                        {errors.due_date && (
+                            <p className="text-red-500 text-xs text-center mt-2">{errors.due_date}</p>
                         )}
                     </div>
 
@@ -252,12 +260,12 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                                 <input
                                     type="text"
                                     id="client-cif-cnp"
-                                    value={invoiceData.clientCifCnp}
-                                    onChange={(e) => handleChange(e, 'clientCifCnp')}
+                                    value={invoiceData.clientCifcnp}
+                                    onChange={(e) => handleChange(e, 'clientCifcnp')}
                                     className="mt-1 p-2 w-full border border-gray-300 rounded-md"
                                     placeholder={invoiceData.clientType === 'company' ? 'Enter company CIF' : 'Enter individual CNP'}
                                 />
-                                {errors.clientCifCnp && <p className="text-red-500 text-xs">{errors.clientCifCnp}</p>}
+                                {errors.clientCifcnp && <p className="text-red-500 text-xs">{errors.clientCifcnp}</p>}
 
                             </div>
 
@@ -340,12 +348,12 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                                 <input
                                     type="text"
                                     id="vendor-cif-cnp"
-                                    value={invoiceData.vendorCifCnp}
-                                    onChange={(e) => handleChange(e, 'vendorCifCnp')}
+                                    value={invoiceData.vendorCifcnp}
+                                    onChange={(e) => handleChange(e, 'vendorCifcnp')}
                                     className="mt-1 p-2 w-full border border-gray-300 rounded-md"
                                     placeholder={invoiceData.vendorType === 'company' ? 'Enter company CIF' : 'Enter individual CNP'}
                                 />
-                                {errors.vendorCifCnp && <p className="text-red-500 text-xs">{errors.vendorCifCnp}</p>}
+                                {errors.vendorCifcnp && <p className="text-red-500 text-xs">{errors.vendorCifcnp}</p>}
 
                             </div>
                         </div>

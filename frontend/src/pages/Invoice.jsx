@@ -33,21 +33,14 @@ const Invoice = () => {
             await axios.delete(`http://localhost:4000/routes/invoices/${id}`);
             console.log("Invoice deleted successfully");
 
-            // Manually update state
             setInvoices(prevInvoices => prevInvoices.filter(invoice => invoice._id !== id));
 
-            // Refetch invoices (optional)
             fetchInvoices();
         } catch (error) {
             console.error("Error deleting:", error);
         }
     };
-
-
-    const exportInvoices = () => {
-        console.log('Export invoices');
-    };
-
+    
     const openModal = () => { setIsModalOpen(true); };
     const closeModal = () => { setIsModalOpen(false); };
 
@@ -105,71 +98,97 @@ const Invoice = () => {
 
 
 
-   // Function to update the payment status
-const updatePaymentStatus = async (invoiceId, paymentStatus, paymentDate, timeStatus, newTotal) => {
-    try {
-        // Sending the updated data to the backend
-        await axios.patch(`http://localhost:4000/routes/invoices/${invoiceId}`, {
-            paymentStatus,
-            paymentDate,
-            timeStatus,
-            total: newTotal
-        });
+    // Function to calculate penalty for overdue invoices
+    const calculatePenalty = (paymentDate, dueDate, total) => {
+        const overdueDays = Math.floor((paymentDate - dueDate) / (1000 * 60 * 60 * 24));
+        const penaltyRate = 0.01; // 1% penalty rate per day
+        return Math.max(0, total * penaltyRate * overdueDays); // Ensure no negative penalty
+    };
 
-        // Fetch invoices after the update
-        fetchInvoices();
 
-        // Optional: Provide a success message to the user (user experience improvement)
-        alert('Payment status updated successfully!');
-    } catch (error) {
-        console.error('Error updating payment status:', error);
-        alert('Failed to update payment status');
-    }
-};
 
-// Function to handle the payment status change (either Paid or Unpaid)
-const handlePaymentStatusChange = async (invoiceId, isChecked, invoice) => {
-    const paymentStatus = isChecked ? 'Paid' : 'Unpaid';
-    const paymentDate = isChecked ? new Date().toISOString().split('T')[0] : null;
-    const currentDate = new Date();
-    const dueDate = new Date(invoice.due_date);
 
-    // Reset time to midnight for accurate date comparisons
-    currentDate.setHours(0, 0, 0, 0);
-    dueDate.setHours(0, 0, 0, 0);
 
-    let timeStatus = 'Pending';
-    let penalty = 0;
 
-    // Payment logic (Paid or Unpaid)
-    if (paymentStatus === 'Paid') {
-        const paymentDateObject = new Date(paymentDate);
-        if (paymentDateObject <= dueDate) {
-            timeStatus = 'On Time';
-        } else {
-            timeStatus = 'Overdue';
-            penalty = calculatePenalty(paymentDateObject, dueDate, invoice.total);
+    // Function to update the payment status
+    const updatePaymentStatus = async (invoiceId, paymentStatus, paymentDate, timeStatus, total) => {
+        try {
+            // Sending the updated data to the backend
+            await axios.patch(`http://localhost:4000/routes/invoices/${invoiceId}`, {
+                paymentStatus,
+                paymentDate,
+                timeStatus,
+                total: total
+            });
+
+            // Fetch invoices after the update
+            fetchInvoices();
+            console.log('PATCH payload:', {
+                paymentStatus,
+                paymentDate,
+                timeStatus,
+                total
+            });
+            
+            // Optional: Provide a success message to the user (user experience improvement)
+            alert('Payment status updated successfully!');
+        } catch (error) {
+            console.error('Error updating payment status:', error);
+            alert('Failed to update payment status');
         }
-    } else if (paymentStatus === 'Unpaid' && currentDate > dueDate) {
-        timeStatus = 'Overdue';
-        penalty = calculatePenalty(currentDate, dueDate, invoice.total);
-    }
+    };
 
-    const newTotal = invoice.total + penalty;
-    console.log('New Total:', newTotal);
-
-    // Call the backend to update payment status and total
-    await updatePaymentStatus(invoiceId, paymentStatus, paymentDate, timeStatus, newTotal);
-};
-
-// Function to calculate penalty for overdue invoices
-const calculatePenalty = (paymentDate, dueDate, total) => {
-    const overdueDays = Math.floor((paymentDate - dueDate) / (1000 * 60 * 60 * 24));
-    const penaltyRate = 0.01; // 1% penalty rate per day
-    return Math.max(0, total * penaltyRate * overdueDays); // Ensure no negative penalty
-};
-
-
+    const handlePaymentStatusChange = async (invoiceId, isChecked, invoice) => {
+        const paymentStatus = isChecked ? 'Paid' : 'Unpaid';
+        const currentDate = new Date();
+        const dueDate = new Date(invoice.due_date);
+    
+        currentDate.setHours(0, 0, 0, 0); // Set to midnight for date comparison
+        dueDate.setHours(0, 0, 0, 0); // Set to midnight for date comparison
+    
+        let paymentDate = null;
+        if (isChecked) {
+            // Only update payment date if it hasn't already been marked as 'Paid' today
+            if (!invoice.payment_date || invoice.payment_date !== currentDate.toISOString().split('T')[0]) {
+                paymentDate = currentDate.toISOString().split('T')[0]; // Set today's date as payment date
+            } else {
+                paymentDate = invoice.payment_date; // Keep the same payment date if already 'Paid' today
+            }
+        }
+    
+        let timeStatus = 'Pending';
+        let penalty = 0;
+        const baseTotal = parseFloat(invoice.total); // Ensure numeric
+        console.log('invoice.total type:', typeof invoice.total, 'value:', invoice.total);
+    
+        if (paymentStatus === 'Paid') {
+            const paymentDateObject = new Date(paymentDate);
+            
+            // Check if payment is on time or overdue
+            if (paymentDateObject <= dueDate) {
+                timeStatus = 'On Time';
+            } else {
+                timeStatus = 'Overdue';
+    
+                // Only add penalty if the payment is overdue (payment date is after due date)
+                const daysOverdue = Math.floor((paymentDateObject - dueDate) / (1000 * 60 * 60 * 24));
+                if (daysOverdue > 0) {
+                    penalty = calculatePenalty(paymentDateObject, dueDate, baseTotal);
+                }
+            }
+        } else {
+            // If unchecked (Unpaid), and it's past due date, go back to Pending
+            timeStatus = 'Pending';  // Reset status to Pending
+            penalty = 0;  // Reset penalty
+        }
+    
+        const total = parseFloat((baseTotal + penalty).toFixed(2));
+        console.log('New Total:', total);
+    
+        // Update payment status, with paymentDate set if marked as "Paid"
+        await updatePaymentStatus(invoiceId, paymentStatus, paymentDate, timeStatus, total);
+    };
+    
 
     const handleViewPDF = (invoice) => {
         setSelectedInvoice(invoice);
@@ -179,14 +198,14 @@ const calculatePenalty = (paymentDate, dueDate, total) => {
         if (!date) return 'Invalid Date';
         const parsedDate = new Date(date);
         if (isNaN(parsedDate)) return 'Invalid Date';
-    
-        const day = String(parsedDate.getDate()).padStart(2, '0'); 
-        const month = String(parsedDate.getMonth() + 1).padStart(2, '0'); 
+
+        const day = String(parsedDate.getDate()).padStart(2, '0');
+        const month = String(parsedDate.getMonth() + 1).padStart(2, '0');
         const year = parsedDate.getFullYear();
-    
+
         return `${day}/${month}/${year}`;
     };
-    
+
 
     return (
         <div className="p-4 h-w-full h-screen">
@@ -282,10 +301,10 @@ const calculatePenalty = (paymentDate, dueDate, total) => {
                                     <td className="px-3 py-2 text-center">{invoice.clientName}</td>
                                     <td className="px-3 py-2 text-center">{invoice.vendorName}</td>
                                     <td className="px-3 py-2 text-center">
-                                    {invoice.issue_date ? formatDate(invoice.issue_date) : 'No Issue Date'}
+                                        {invoice.issue_date ? formatDate(invoice.issue_date) : 'No Issue Date'}
                                     </td>
                                     <td className="px-3 py-2 text-center">
-                                    {invoice.due_date ? formatDate(invoice.due_date) : 'No Due Date'}
+                                        {invoice.due_date ? formatDate(invoice.due_date) : 'No Due Date'}
                                     </td>
 
                                     <td className="px-3 py-2 text-center">
@@ -307,7 +326,7 @@ const calculatePenalty = (paymentDate, dueDate, total) => {
                                         <input
                                             type="checkbox"
                                             checked={invoice.paymentStatus === 'Paid'}
-                                            onChange={(e) => handlePaymentStatusChange(invoice.id, e.target.checked, invoice)}
+                                            onChange={(e) => handlePaymentStatusChange(invoice._id, e.target.checked, invoice)}
                                             className="w-5 h-5 accent-blue-500 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none checked:bg-blue-500 hover:ring-2 hover:ring-blue-300"
                                         />
 
