@@ -1,339 +1,236 @@
-import React, { useState, useEffect } from 'react';
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend, Filler } from 'chart.js';
-import { Line, Bar, Doughnut } from 'react-chartjs-2';
-
+import React, { useState, useEffect, useMemo } from 'react';
+import axios from 'axios';
 import { assets } from '../assets/assets';
+import {
+    PieChart, Pie, Cell,
+    LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+    BarChart, Bar
+} from 'recharts';
 
-
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend, Filler);
 const Dashboard = () => {
-    const [clients, setClients] = useState([]);
-    const [vendors, setVendors] = useState([]);
-    const [items, setItems] = useState([]);
     const [invoices, setInvoices] = useState([]);
+    const [statusCounts, setStatusCounts] = useState({
+        onTime: 0,
+        overdue: 0,
+        paid: 0,
+        unpaid: 0,
+        pending: 0
+    });
 
-    useEffect(() => {
-        fetchClients();
-        fetchVendors();
-        fetchItems();
-        fetchInvoices();
-    }, []);
-
-    const fetchClients = async () => {
-        try {
-            const response = await fetch('http://localhost:4000/routes/clients/getall');
-            if (!response.ok) throw new Error('Failed to fetch clients');
-            const data = await response.json();
-            setClients(data);
-        } catch (error) {
-            console.error("Error fetching clients:", error);
-        }
-    };
-
-    const fetchVendors = async () => {
-        try {
-            const response = await fetch('http://localhost:4000/routes/vendors/getall');
-            if (!response.ok) throw new Error('Failed to fetch vendors');
-            const data = await response.json();
-            setVendors(data);
-        } catch (error) {
-            console.error("Error fetching vendors:", error);
-        }
-    };
-
-    const fetchItems = async () => {
-        try {
-            const response = await fetch('http://localhost:4000/routes/items/getall');
-            if (!response.ok) throw new Error('Failed to fetch items');
-            const data = await response.json();
-            setItems(data);
-        } catch (error) {
-            console.error("Error fetching items:", error);
-        }
-    };
-
+    // Fetch invoices from the API
     const fetchInvoices = async () => {
         try {
-            const response = await fetch('http://localhost:4000/routes/invoices/getall');
-            if (!response.ok) throw new Error('Failed to fetch invoices');
-            const data = await response.json();
-            setInvoices(data);
+            const response = await axios.get('http://localhost:4000/routes/invoices/getall');
+            setInvoices(response.data);
         } catch (error) {
             console.error("Error fetching invoices:", error);
         }
     };
 
-    function getTotalInvoicesThisMonth(invoices) {
-        const currentDate = new Date();
+    useEffect(() => {
+        fetchInvoices();
+    }, []);
 
-        const currentYear = currentDate.getFullYear();
-        const currentMonth = currentDate.getMonth();
+    // Data processing for charts
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-        const invoicesThisMonth = invoices.filter(invoice => {
-            const invoiceDate = new Date(invoice.issueDate);
-            return invoiceDate.getFullYear() === currentYear && invoiceDate.getMonth() === currentMonth;
+    const monthlyData = useMemo(() => {
+        const data = {};
+        const itemTypeCounts = { product: 0, service: 0 };
+
+        // Initialize the status tracking for line chart
+        const statusOverTime = {
+            onTime: [],
+            overdue: [],
+            pending: []
+        };
+
+        const currentMonth = new Date().getMonth();
+        const currentYear = new Date().getFullYear();
+
+        invoices.forEach(inv => {
+            const date = new Date(inv.issue_date);
+            const month = `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+
+            if (!data[month]) {
+                data[month] = { month, totalAmount: 0, count: 0, onTime: 0, overdue: 0, pending: 0 };
+            }
+
+            data[month].totalAmount += Number(inv.total_amount || 0);
+            data[month].count += 1;
+
+            // Update status counts for line chart
+            if (inv.timeStatus?.trim().toLowerCase() === "on time") data[month].onTime += 1;
+            if (inv.timeStatus?.trim().toLowerCase() === "overdue") data[month].overdue += 1;
+            if (inv.timeStatus?.trim().toLowerCase() === "pending") data[month].pending += 1;
+
+            if (inv.items && Array.isArray(inv.items)) {
+                inv.items.forEach(item => {
+                    const type = item.type?.toLowerCase();
+                    if (type === 'product') itemTypeCounts.product += 1;
+                    else if (type === 'service') itemTypeCounts.service += 1;
+                });
+            }
         });
 
-        return invoicesThisMonth.length;
-    }
+        // Format line chart data for status counts
+        const lineChartData = Object.values(data).sort((a, b) => new Date(`1 ${a.month}`) - new Date(`1 ${b.month}`)).map(monthData => ({
+            month: monthData.month,
+            onTime: monthData.onTime,
+            overdue: monthData.overdue,
+            pending: monthData.pending
+        }));
 
+        // Pie chart data for Paid vs Unpaid
+        const pieData = [
+            { name: 'Paid', value: statusCounts.paid },
+            { name: 'Unpaid', value: statusCounts.unpaid }
+        ];
 
+        // Get bar chart data for the entire year
+        const barChartData = Object.values(data)
+            .filter((d) => {
+                const monthDate = new Date(d.month);
+                return monthDate.getFullYear() === currentYear;
+            })
+            .sort((a, b) => new Date(`1 ${a.month}`) - new Date(`1 ${b.month}`));
 
-    const invoiceAmounts = invoices.map(invoice => invoice.amount);
-    const invoiceMonths = invoices.map(invoice => new Date(invoice.issueDate).toLocaleString('default', { month: 'short' }));
-    const itemCategories = items.reduce((acc, item) => {
-        acc[item.type] = (acc[item.type] || 0) + 1;
-        return acc;
-    }, {});
+        return {
+            lineChartData,
+            barChartData,
+            pieData
+        };
+    }, [invoices, statusCounts]);
 
+    useEffect(() => {
+        const processInvoices = () => {
+            const today = new Date();
+            const currentMonth = today.getMonth();
+            const currentYear = today.getFullYear();
 
-    const getTopProductsOrServices = (invoices) => {
-        const itemCount = {};
+            let onTime = 0;
+            let overdue = 0;
+            let paid = 0;
+            let unpaid = 0;
+            let pending = 0;
 
-        invoices.forEach(invoice => {
-            invoice.items.forEach(item => {
-                const itemName = item.itemName; // Accessing itemName from items array
-                if (itemName) {
-                    if (itemCount[itemName]) {
-                        itemCount[itemName]++;
-                    } else {
-                        itemCount[itemName] = 1;
-                    }
+            invoices.forEach((invoice) => {
+                const invoiceDate = new Date(invoice.issue_date);
+
+                const isCurrentMonth = invoiceDate.getMonth() === currentMonth && invoiceDate.getFullYear() === currentYear;
+
+                if (isCurrentMonth) {
+                    if (invoice.timeStatus?.trim().toLowerCase() === "pending") pending += 1;
+                    if (invoice.timeStatus?.trim().toLowerCase() === "on time") onTime += 1;
+                    if (invoice.timeStatus?.trim().toLowerCase() === "overdue") overdue += 1;
+
+                    if (invoice.paymentStatus?.trim().toLowerCase() === "paid") paid += 1;
+                    if (invoice.paymentStatus?.trim().toLowerCase() === "unpaid") unpaid += 1;
                 }
             });
-        });
 
-        const sortedItems = Object.entries(itemCount).sort((a, b) => b[1] - a[1]);
-        return sortedItems.slice(0, 3);
-    };
-    const topItems = getTopProductsOrServices(invoices);
+            // Update status counts
+            setStatusCounts({ onTime, overdue, paid, unpaid, pending });
+        };
 
-    const getInvoiceStatusCount = (invoices) => {
-        const currentMonth = new Date().getMonth();
-        let onTime = 0;
-        let overdue = 0;
-
-        invoices.forEach(invoice => {
-            const invoiceDate = new Date(invoice.issueDate);
-            const invoiceMonth = invoiceDate.getMonth();
-
-            console.log("Checking invoice:", invoice);
-
-            if (invoiceMonth === currentMonth) {
-                const status = calculateInvoiceStatus(invoice.issueDate, invoice.dueDate);
-                console.log("Status of invoice:", status);
-
-                if (status === 'On Time') {
-                    onTime++;
-                } else if (status === 'Overdue') {
-                    overdue++;
-                }
-            }
-        });
-
-        console.log("On Time invoices:", onTime);
-        console.log("Overdue invoices:", overdue);
-
-        return { onTime, overdue };
-    };
-
-
-
-
-
-    // Chart Data
-    const lineData = {
-        labels: invoiceMonths,
-        datasets: [
-            {
-                label: 'Invoice Amounts Over Time',
-                data: invoiceAmounts,
-                borderColor: 'rgba(75, 192, 192, 1)',
-                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                fill: true,
-            }
-        ]
-    };
-
-    const barData = {
-        labels: invoiceMonths,
-        datasets: [
-            {
-                label: 'Invoices by Month',
-                data: invoiceAmounts,
-                backgroundColor: 'rgba(53, 162, 235, 0.2)',
-                borderColor: 'rgba(53, 162, 235, 1)',
-                borderWidth: 1,
-            }
-        ]
-    };
-
-    const doughnutData = {
-        labels: Object.keys(itemCategories), // Assuming itemCategories has the categories you're showing
-        datasets: [{
-            label: 'Item Categories',
-            data: Object.values(itemCategories), // Assuming itemCategories holds the values
-            backgroundColor: [
-                'rgb(139, 92, 246)',    // Purple (Tailwind's bg-purple-500)
-                'rgb(255, 159, 28)'     // Orange (Tailwind's bg-orange-400)
-            ],
-            borderColor: [
-                'rgb(139, 92, 246)',  // Purple border
-                'rgb(255, 159, 28)'    // Orange border
-            ],
-        }]
-    };
-
-    const doughnutOptions = {
-        responsive: true,
-        plugins: {
-            legend: {
-                display: false, // Hide the legend
-            },
-            tooltip: {
-                enabled: true, // Tooltips enabled for interaction
-            },
-        },
-        // Disable the axes (they won't be visible for doughnut charts anyway, but adding for certainty)
-        scales: {
-            x: {
-                display: false,
-            },
-            y: {
-                display: false,
-            },
-        },
-    };
-
-
-    const lineOptions = {
-        responsive: true,
-        plugins: {
-            // Legend Configuration
-            legend: {
-                display: false,  // Set to 'false' if you don't want to show the legend
-                labels: {
-                    font: {
-                        family: 'Poppins', // Font family
-                        size: 14,          // Font size for legend
-                    },
-                },
-            },
-            tooltip: {
-                titleFont: {
-                    family: 'Poppins', // Tooltip title font
-                    size: 16,          // Font size for tooltip title
-                },
-                bodyFont: {
-                    family: 'Poppins', // Tooltip body font
-                    size: 12,          // Font size for tooltip body
-                },
-            },
-        },
-        scales: {
-            x: {
-                ticks: {
-                    font: {
-                        family: 'Poppins', // Font family for x-axis ticks
-                        size: 12,          // Font size for x-axis ticks
-                    },
-                },
-            },
-            y: {
-                ticks: {
-                    font: {
-                        family: 'Poppins', // Font family for y-axis ticks
-                        size: 12,          // Font size for y-axis ticks
-                    },
-                },
-            },
-        },
-    };
+        if (invoices.length > 0) {
+            processInvoices();
+        }
+    }, [invoices]);
 
     return (
-        <div className="p-6">
+        <div className="p-6" style={{ fontFamily: 'Poppins, sans-serif' }}>
             <div className="flex flex-wrap gap-6 items-center mb-6">
                 <div className="w-96 h-96 p-4 bg-white rounded-lg">
                     <img className="shadow-md rounded-lg w-full h-full object-cover" src={assets.dashboardPhoto} alt="dashboardPhoto" />
                 </div>
-
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 flex-1">
-
-                    <div className="bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 p-3 rounded-lg shadow-md text-center h-24 flex flex-col justify-center">
-                        <h3 className="text-gray-800 text-xl font-bold">Total Invoices This Month</h3>
-                        <p className="text-xl text-yellow-800 font-bold">{getTotalInvoicesThisMonth(invoices)} invoices</p>
+                    <div className="bg-orange-500 p-3 rounded-lg shadow-md text-center h-24 flex flex-col justify-center">
+                        <h3 className="text-white text-xl font-bold">Total Invoices</h3>
+                        <p className="text-xl text-white font-bold">{statusCounts.paid + statusCounts.overdue + statusCounts.unpaid} invoices</p>
                     </div>
 
-                    <div className="bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600 p-3 rounded-lg shadow-md text-center h-24 flex flex-col justify-center">
-                        <h3 className="text-gray-800 text-xl font-bold">Top Products/Services</h3>
-                        <p className="text-lg text-blue-800 font-bold">
-                            {topItems.length > 0 ? `${topItems[0][0]}` : 'No data available'}
-                        </p>
+                    <div className="bg-violet-500 p-3 rounded-lg shadow-md text-center h-24 flex flex-col justify-center">
+                        <h3 className="text-white text-xl font-bold">On-Time Invoices</h3>
+                        <p className="text-xl font-bold text-white">{statusCounts.onTime} invoices</p>
                     </div>
 
-                    <div className="bg-gradient-to-r from-green-400 via-green-500 to-green-600 p-3 rounded-lg shadow-md text-center h-24 flex flex-col justify-center">
-                        <h3 className="text-gray-800 text-xl font-bold">On-Time Invoices</h3>
-                        <p className="text-xl font-bold text-green-800">{getInvoiceStatusCount(invoices).onTime} invoices</p>
+                    <div className="bg-blue-500 p-3 rounded-lg shadow-md text-center h-24 flex flex-col justify-center">
+                        <h3 className="text-white text-xl font-bold">Overdue Invoices</h3>
+                        <p className="text-xl font-bold text-white">{statusCounts.overdue} invoices</p>
                     </div>
 
-                    <div className="bg-gradient-to-r from-rose-400 via-rose-500 to-rose-600 p-3 rounded-lg shadow-md text-center h-24 flex flex-col justify-center">
-                        <h3 className="text-gray-800 text-xl font-bold">Overdue Invoices</h3>
-                        <p className="text-xl font-bold text-rose-800">{getInvoiceStatusCount(invoices).overdue} invoices</p>
+                    <div className="bg-green-600 p-3 rounded-lg shadow-md text-center h-24 flex flex-col justify-center">
+                        <h3 className="text-white text-xl font-bold">Paid Invoices</h3>
+                        <p className="text-xl text-white font-bold">{statusCounts.paid} invoices</p>
                     </div>
 
-
-                    <div className="bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 p-3 rounded-lg shadow-md text-center h-24 flex flex-col justify-center">
-                        <h3 className="text-gray-800 text-xl font-bold">Pending Payments</h3>
-                        <p className="text-xl text-orange-800 font-bold"></p>
+                    <div className="bg-rose-500 p-3 rounded-lg shadow-md text-center h-24 flex flex-col justify-center">
+                        <h3 className="text-white text-xl font-bold">Unpaid Invoices</h3>
+                        <p className="text-xl text-white font-bold">{statusCounts.unpaid} invoices</p>
                     </div>
 
-
-                    <div className="bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 p-3 rounded-lg shadow-md text-center h-24 flex flex-col justify-center">
-                        <h3 className="text-gray-800 text-xl font-bold">Paid Invoices</h3>
-                        <p className="text-xl text-purple-800 font-bold"></p>
+                    <div className="bg-yellow-500 p-3 rounded-lg shadow-md text-center h-24 flex flex-col justify-center">
+                        <h3 className="text-white text-xl font-bold">Pending Invoices</h3>
+                        <p className="text-xl text-white font-bold">{statusCounts.pending} invoices</p>
                     </div>
-
-
                 </div>
             </div>
 
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* PieChart: Paid vs Unpaid Invoices for the current month */}
+                <div className="w-full h-72 p-4 bg-zinc-100 shadow-md rounded-lg flex flex-col items-center justify-center overflow-hidden">
+                    <h3 className="text-lg font-semibold text-gray-700 mt-4">Paid vs Unpaid Invoices for Current Month</h3>
+                    <PieChart width={270} height={270}> {/* Adjusted width to 100% */}
+                        <Pie
+                            dataKey="value"
+                            data={monthlyData.pieData}
+                            cx="50%"
+                            cy="50%"
+                         
+                        >
+                            <Cell fill="#16a34a" />
+                            <Cell fill="#f43f5e" />
+                        </Pie>
+                        <Tooltip />
+                    </PieChart>
 
-
-
-            <div className="flex flex-wrap justify-around gap-6">
-                <div className="flex flex-wrap justify-around gap-6">
-                    <div className="w-64 h-64 p-4 bg-zinc-100 shadow-md rounded-lg flex flex-col items-center justify-center overflow-hidden">
-                        <h3 className="text-lg font-semibold text-gray-700 mt-4 mb-4">Item Categories</h3>
-                        <div className="flex justify-center items-center w-full h-full">
-                            <Doughnut
-                                data={doughnutData}
-                                options={doughnutOptions}
-                                width={250}   // Set the width to 150px
-                                height={250}  // Set the height to 150px
-                            />
-                        </div>
-                    </div>
                 </div>
 
-
-
-
-
-                <div className="w-full sm:w-96 h-64 p-4 bg-zinc-100 shadow-md rounded-lg">
-                    <h3 className="text-lg font-semibold text-gray-700">Invoice Amounts Over Time</h3>
-                    <Line data={lineData} options={lineOptions} />
+                {/* LineChart: On-Time, Overdue, Pending Invoices for the current month */}
+                <div className="w-full h-72 p-4 bg-zinc-100 shadow-md rounded-lg">
+                    <h3 className="text-lg font-semibold text-gray-700">Invoice Status Over Time (Current Month)</h3>
+                    <LineChart width={600} height={220} data={monthlyData.lineChartData}> {/* Increased size */}
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="month" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Line type="monotone" dataKey="onTime" stroke="#22c55e" />
+                        <Line type="monotone" dataKey="overdue" stroke="#e11d48" />
+                        <Line type="monotone" dataKey="pending" stroke="#f59e0b" />
+                    </LineChart>
                 </div>
 
-                <div className="w-full sm:w-96 h-64 p-4 bg-zinc-100 shadow-md rounded-lg">
-                    <h3 className="text-lg font-semibold text-gray-700">Invoices by Month</h3>
-                    <Bar data={barData} options={lineOptions} />
+                {/* BarChart: Monthly Invoices & Amount for the whole year */}
+                <div className="w-full h-72 p-4 bg-zinc-100 shadow-md rounded-lg">
+                    <h3 className="text-lg font-semibold text-gray-700">Monthly Invoices & Total Amount</h3>
+                    <BarChart width={400} height={250} data={monthlyData.barChartData}> {/* Increased size */}
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="month" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Bar dataKey="count" fill="#34d399" />
+                        <Bar dataKey="totalAmount" fill="#facc15" />
+                    </BarChart>
                 </div>
-
-
             </div>
+
         </div>
-
     );
+
+
 };
 
 export default Dashboard;

@@ -31,7 +31,7 @@ const Invoice = () => {
     const deleteInvoice = async (id) => {
         try {
             await axios.delete(`http://localhost:4000/routes/invoices/${id}`);
-            console.log("Invoice deleted successfully");
+//console.log("Invoice deleted successfully");
 
             setInvoices(prevInvoices => prevInvoices.filter(invoice => invoice._id !== id));
 
@@ -123,18 +123,11 @@ const Invoice = () => {
 
             // Fetch invoices after the update
             fetchInvoices();
-            console.log('PATCH payload:', {
-                paymentStatus,
-                paymentDate,
-                timeStatus,
-                total
-            });
+           
             
             // Optional: Provide a success message to the user (user experience improvement)
-            alert('Payment status updated successfully!');
         } catch (error) {
             console.error('Error updating payment status:', error);
-            alert('Failed to update payment status');
         }
     };
 
@@ -159,7 +152,7 @@ const Invoice = () => {
         let timeStatus = 'Pending';
         let penalty = 0;
         const baseTotal = parseFloat(invoice.total); // Ensure numeric
-        console.log('invoice.total type:', typeof invoice.total, 'value:', invoice.total);
+    //    console.log('invoice.total type:', typeof invoice.total, 'value:', invoice.total);
     
         if (paymentStatus === 'Paid') {
             const paymentDateObject = new Date(paymentDate);
@@ -183,7 +176,7 @@ const Invoice = () => {
         }
     
         const total = parseFloat((baseTotal + penalty).toFixed(2));
-        console.log('New Total:', total);
+      //  console.log('New Total:', total);
     
         // Update payment status, with paymentDate set if marked as "Paid"
         await updatePaymentStatus(invoiceId, paymentStatus, paymentDate, timeStatus, total);

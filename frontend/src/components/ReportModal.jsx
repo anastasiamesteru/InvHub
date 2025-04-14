@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
-const ReportModal = ({ isOpen, onClose }) => {
+const ReportModal = ({ isOpen, onClose, fetchReports }) => {
     const [loading, setLoading] = useState(false);
     const [invoices, setInvoices] = useState([]);
 
@@ -13,10 +14,11 @@ const ReportModal = ({ isOpen, onClose }) => {
             paymentStatus: {
                 numberOfPaidInvoices: false,
                 numberOfUnpaidInvoices: false,
-                numberOfInvoicesPaidOnTime: false,
+                numberOfPendingInvoices: false,
                 paymentComplianceRate: false,
             },
             overdueAnalysis: {
+                numberOfInvoicesPaidOnTime: false,
                 numberOfOverdueInvoices: false,
                 numberOfInvoicesOverdue30Days: false,
                 numberOfInvoicesOverdue60Days: false,
@@ -27,63 +29,7 @@ const ReportModal = ({ isOpen, onClose }) => {
             },
         },
     });
-   
-    const computeAndUpdateIndicators = (reportData) => {
-        const { startDate, endDate } = reportData;  // Get the start and end dates from reportData
-        const filteredInvoices = invoices.filter(invoice => {
-            const issueDate = new Date(invoice.issueDate);
-            return issueDate >= new Date(startDate) && issueDate <= new Date(endDate);
-        });
 
-        // Update payment status metrics
-        if (reportData.indicators.paymentStatus) {
-            const numberOfPaidInvoices = filteredInvoices.filter(invoice => invoice.status === 'Paid').length;
-            const numberOfInvoicesPaidOnTime = filteredInvoices.filter(invoice => invoice.status === 'Paid' && new Date(invoice.paymentDate) <= new Date(invoice.dueDate)).length;
-    
-            // Set computed values
-            reportData.indicators.paymentStatus.numberOfPaidInvoices = numberOfPaidInvoices;
-            reportData.indicators.paymentStatus.numberOfInvoicesPaidOnTime = numberOfInvoicesPaidOnTime;
-            reportData.indicators.paymentStatus.paymentComplianceRate = (numberOfInvoicesPaidOnTime / numberOfPaidInvoices) * 100;
-        }
-
-        // Update overdue analysis metrics
-        if (reportData.indicators.overdueAnalysis) {
-            const numberOfOverdueInvoices = filteredInvoices.filter(invoice => new Date(invoice.dueDate) < new Date(invoice.paymentDate) && invoice.status === 'Unpaid').length;
-            const numberOfInvoicesOverdue30Days = filteredInvoices.filter(invoice => {
-                const overdueDays = (new Date(invoice.paymentDate) - new Date(invoice.dueDate)) / (1000 * 60 * 60 * 24);
-                return overdueDays > 30 && overdueDays <= 60 && invoice.status === 'Unpaid';
-            }).length;
-            const numberOfInvoicesOverdue60Days = filteredInvoices.filter(invoice => {
-                const overdueDays = (new Date(invoice.paymentDate) - new Date(invoice.dueDate)) / (1000 * 60 * 60 * 24);
-                return overdueDays > 60 && overdueDays <= 90 && invoice.status === 'Unpaid';
-            }).length;
-            const numberOfInvoicesOverdue90PlusDays = filteredInvoices.filter(invoice => {
-                const overdueDays = (new Date(invoice.paymentDate) - new Date(invoice.dueDate)) / (1000 * 60 * 60 * 24);
-                return overdueDays > 90 && invoice.status === 'Unpaid';
-            }).length;
-    
-            // Set computed values
-            reportData.indicators.overdueAnalysis.numberOfOverdueInvoices = numberOfOverdueInvoices;
-            reportData.indicators.overdueAnalysis.numberOfInvoicesOverdue30Days = numberOfInvoicesOverdue30Days;
-            reportData.indicators.overdueAnalysis.numberOfInvoicesOverdue60Days = numberOfInvoicesOverdue60Days;
-            reportData.indicators.overdueAnalysis.numberOfInvoicesOverdue90PlusDays = numberOfInvoicesOverdue90PlusDays;
-    
-            // Additional percentages (if needed)
-            reportData.indicators.overdueAnalysis.overduePercentage = (numberOfOverdueInvoices / filteredInvoices.length) * 100;
-            reportData.indicators.overdueAnalysis.overdue30DaysPercentage = (numberOfInvoicesOverdue30Days / numberOfOverdueInvoices) * 100;
-            reportData.indicators.overdueAnalysis.overdue60DaysPercentage = (numberOfInvoicesOverdue60Days / numberOfOverdueInvoices) * 100;
-            reportData.indicators.overdueAnalysis.overdue90PlusDaysPercentage = (numberOfInvoicesOverdue90PlusDays / numberOfOverdueInvoices) * 100;
-        }
-
-        // Update financials metrics
-        if (reportData.indicators.financials && filteredInvoices.length > 0) {
-            const outstandingBalance = filteredInvoices.reduce((total, invoice) => total + invoice.outstandingAmount, 0);
-            reportData.indicators.financials.outstandingBalance = outstandingBalance;
-        }
-
-        // Return the updated reportData with computed metrics
-        return reportData;
-    };
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -92,6 +38,109 @@ const ReportModal = ({ isOpen, onClose }) => {
             [name]: value,
         }));
     };
+
+    const computeAndUpdateIndicators = (reportData, invoices = []) => {
+        if (!Array.isArray(invoices) || !reportData?.indicators) return reportData;
+
+        const { startDate, endDate, indicators } = reportData;
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+
+        const filtered = invoices.filter(inv => {
+            const issue = new Date(inv.issue_date);
+            return issue >= start && issue <= end;
+        });
+
+        let resultIndicators = {
+            paymentStatus: {},
+            overdueAnalysis: {},
+            financials: {}
+        };
+
+        if (indicators.paymentStatus) {
+            let paid = 0, unpaid = 0, pending = 0, onTime = 0;
+
+            filtered.forEach(inv => {
+                const status = inv.paymentStatus?.trim().toLowerCase();
+                const paymentDate = new Date(inv.paymentDate);
+                const dueDate = new Date(inv.dueDate);
+
+                if (status === "paid") {
+                    paid += 1;
+                    if (paymentDate <= dueDate) onTime += 1;
+                } else if (status === "unpaid") {
+                    unpaid += 1;
+                } else if (status === "pending") {
+                    pending += 1;
+                }
+            });
+
+            if (indicators.paymentStatus.numberOfPaidInvoices) resultIndicators.paymentStatus.numberOfPaidInvoices = paid;
+            if (indicators.paymentStatus.numberOfUnpaidInvoices) resultIndicators.paymentStatus.numberOfUnpaidInvoices = unpaid;
+            if (indicators.paymentStatus.numberOfPendingInvoices) resultIndicators.paymentStatus.numberOfPendingInvoices = pending;
+            if (indicators.paymentStatus.paymentComplianceRate)
+                resultIndicators.paymentStatus.paymentComplianceRate = paid > 0 ? (onTime / paid) * 100 : 0;
+        }
+
+        if (indicators.overdueAnalysis) {
+            let paidOnTime = 0, overdue = 0, over30 = 0, over60 = 0, over90 = 0;
+
+            filtered.forEach(inv => {
+                const status = inv.paymentStatus?.trim().toLowerCase();
+                const paymentDate = new Date(inv.paymentDate);
+                const dueDate = new Date(inv.dueDate);
+                const daysLate = (paymentDate - dueDate) / (1000 * 60 * 60 * 24);
+
+                if (status === "paid" && paymentDate <= dueDate) {
+                    paidOnTime += 1;
+                }
+
+                if (status === "unpaid" && paymentDate > dueDate) {
+                    overdue += 1;
+                    if (daysLate > 30 && daysLate <= 60) over30 += 1;
+                    else if (daysLate > 60 && daysLate <= 90) over60 += 1;
+                    else if (daysLate > 90) over90 += 1;
+                }
+            });
+
+            if (indicators.overdueAnalysis.numberOfInvoicesPaidOnTime)
+                resultIndicators.overdueAnalysis.numberOfInvoicesPaidOnTime = paidOnTime;
+            if (indicators.overdueAnalysis.numberOfOverdueInvoices)
+                resultIndicators.overdueAnalysis.numberOfOverdueInvoices = overdue;
+            if (indicators.overdueAnalysis.numberOfInvoicesOverdue30Days)
+                resultIndicators.overdueAnalysis.numberOfInvoicesOverdue30Days = over30;
+            if (indicators.overdueAnalysis.numberOfInvoicesOverdue60Days)
+                resultIndicators.overdueAnalysis.numberOfInvoicesOverdue60Days = over60;
+            if (indicators.overdueAnalysis.numberOfInvoicesOverdue90PlusDays)
+                resultIndicators.overdueAnalysis.numberOfInvoicesOverdue90PlusDays = over90;
+        }
+
+        if (indicators.financials?.outstandingBalance) {
+            const totalOutstanding = filtered.reduce((sum, inv) => sum + (inv.outstandingAmount || 0), 0);
+            resultIndicators.financials.outstandingBalance = totalOutstanding;
+        }
+
+        return {
+            ...reportData,
+            indicators: {
+                ...reportData.indicators,
+                paymentStatus: {
+                    ...reportData.indicators.paymentStatus,
+                    ...resultIndicators.paymentStatus
+                },
+                overdueAnalysis: {
+                    ...reportData.indicators.overdueAnalysis,
+                    ...resultIndicators.overdueAnalysis
+                },
+                financials: {
+                    ...reportData.indicators.financials,
+                    ...resultIndicators.financials
+                }
+            }
+        };
+
+    };
+
 
     const handleCheckboxChange = (event) => {
         const { value, checked } = event.target;
@@ -148,10 +197,11 @@ const ReportModal = ({ isOpen, onClose }) => {
                 paymentStatus: {
                     numberOfPaidInvoices: reportData.indicators.paymentStatus.numberOfPaidInvoices,
                     numberOfUnpaidInvoices: reportData.indicators.paymentStatus.numberOfUnpaidInvoices,
-                    numberOfInvoicesPaidOnTime: reportData.indicators.paymentStatus.numberOfInvoicesPaidOnTime,
+                    numberOfPendingInvoices: reportData.indicators.paymentStatus.numberOfPendingInvoices,
                     paymentComplianceRate: reportData.indicators.paymentStatus.paymentComplianceRate,
                 },
                 overdueAnalysis: {
+                    numberOfInvoicesPaidOnTime: reportData.indicators.overdueAnalysis.numberOfInvoicesPaidOnTime,
                     numberOfOverdueInvoices: reportData.indicators.overdueAnalysis.numberOfOverdueInvoices,
                     numberOfInvoicesOverdue30Days: reportData.indicators.overdueAnalysis.numberOfInvoicesOverdue30Days,
                     numberOfInvoicesOverdue60Days: reportData.indicators.overdueAnalysis.numberOfInvoicesOverdue60Days,
@@ -249,119 +299,240 @@ const ReportModal = ({ isOpen, onClose }) => {
                             </div>
                         </div>
                     </div>
-
-                    {/* Payment Status Group */}
                     <div className="flex flex-col gap-2">
-                        <span className="font-semibold text-gray-800">Payment Status</span>
-                        <div className="flex items-center space-x-1">
-                            <input
-                                type="checkbox"
-                                value="paymentStatus.numberOfPaidInvoices" // Use the category and indicator format
-                                checked={reportData.indicators.paymentStatus?.numberOfPaidInvoices || false} // Check if it's true in the nested object
-                                onChange={handleCheckboxChange}
-                                className="w-5 h-5 accent-blue-500 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none checked:bg-blue-500 hover:ring-2 hover:ring-blue-300"
-                            />
-                            <span>Number of paid invoices</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                            <input
-                                type="checkbox"
-                                value="paymentStatus.numberOfUnpaidInvoices"
-                                checked={reportData.indicators.paymentStatus?.numberOfUnpaidInvoices || false}
-                                onChange={handleCheckboxChange}
-                                className="w-5 h-5 accent-blue-500 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none checked:bg-blue-500 hover:ring-2 hover:ring-blue-300"
-                            />
-                            <span>Number of unpaid invoices</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                            <input
-                                type="checkbox"
-                                value="paymentStatus.numberOfInvoicesPaidOnTime"
-                                checked={reportData.indicators.paymentStatus?.numberOfInvoicesPaidOnTime || false}
-                                onChange={handleCheckboxChange}
-                                className="w-5 h-5 accent-blue-500 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none checked:bg-blue-500 hover:ring-2 hover:ring-blue-300"
-                            />
-                            <span>Number of invoices paid on time</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                            <input
-                                type="checkbox"
-                                value="paymentStatus.paymentComplianceRate"
-                                checked={reportData.indicators.paymentStatus?.paymentComplianceRate || false}
-                                onChange={handleCheckboxChange}
-                                className="w-5 h-5 accent-blue-500 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none checked:bg-blue-500 hover:ring-2 hover:ring-blue-300"
-                            />
-                            <span>Payment compliance rate</span>
-                        </div>
-                    </div>
+    <span className="font-semibold text-gray-800">Payment Status</span>
 
-                    {/* Overdue Analysis Group */}
-                    <div className="flex flex-col gap-2">
-                        <span className="font-semibold text-gray-800">Overdue Analysis</span>
-                        <div className="flex items-center space-x-1">
-                            <input
-                                type="checkbox"
-                                value="overdueAnalysis.numberOfOverdueInvoices"
-                                checked={reportData.indicators.overdueAnalysis?.numberOfOverdueInvoices || false}
-                                onChange={handleCheckboxChange}
-                                className="w-5 h-5 accent-blue-500 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none checked:bg-blue-500 hover:ring-2 hover:ring-blue-300"
-                            />
-                            <span>Number of overdue invoices</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                            <input
-                                type="checkbox"
-                                value="overdueAnalysis.numberOfInvoicesOverdue30Days"
-                                checked={reportData.indicators.overdueAnalysis?.numberOfInvoicesOverdue30Days || false}
-                                onChange={handleCheckboxChange}
-                                className="w-5 h-5 accent-blue-500 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none checked:bg-blue-500 hover:ring-2 hover:ring-blue-300"
-                            />
-                            <span>Number of invoices overdue by 30 days</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                            <input
-                                type="checkbox"
-                                value="overdueAnalysis.numberOfInvoicesOverdue60Days"
-                                checked={reportData.indicators.overdueAnalysis?.numberOfInvoicesOverdue60Days || false}
-                                onChange={handleCheckboxChange}
-                                className="w-5 h-5 accent-blue-500 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none checked:bg-blue-500 hover:ring-2 hover:ring-blue-300"
-                            />
-                            <span>Number of invoices overdue by 60 days</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                            <input
-                                type="checkbox"
-                                value="overdueAnalysis.numberOfInvoicesOverdue90PlusDays"
-                                checked={reportData.indicators.overdueAnalysis?.numberOfInvoicesOverdue90PlusDays || false}
-                                onChange={handleCheckboxChange}
-                                className="w-5 h-5 accent-blue-500 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none checked:bg-blue-500 hover:ring-2 hover:ring-blue-300"
-                            />
-                            <span>Number of invoices overdue by 90+ days</span>
-                        </div>
-                    </div>
+    <div className="flex items-center space-x-1">
+        <input
+            type="checkbox"
+            checked={reportData.indicators.paymentStatus?.numberOfPaidInvoices || false}
+            onChange={(e) =>
+                setReportData(prev => ({
+                    ...prev,
+                    indicators: {
+                        ...prev.indicators,
+                        paymentStatus: {
+                            ...prev.indicators.paymentStatus,
+                            numberOfPaidInvoices: e.target.checked
+                        }
+                    }
+                }))
+            }
+            className="w-5 h-5 accent-blue-500 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none checked:bg-blue-500 hover:ring-2 hover:ring-blue-300"
+        />
+        <span>Number of paid invoices</span>
+    </div>
 
-                    {/* Financials Group */}
-                    <div className="flex flex-col gap-2">
-                        <span className="font-semibold text-gray-800">Financials</span>
-                        <div className="flex items-center space-x-1">
-                            <input
-                                type="checkbox"
-                                value="financials.outstandingBalance"
-                                checked={reportData.indicators.financials?.outstandingBalance || false}
-                                onChange={handleCheckboxChange}
-                                className="w-5 h-5 accent-blue-500 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none checked:bg-blue-500 hover:ring-2 hover:ring-blue-300"
-                            />
-                            <span>Outstanding balance</span>
-                        </div>
-                    </div>
+    <div className="flex items-center space-x-1">
+        <input
+            type="checkbox"
+            checked={reportData.indicators.paymentStatus?.numberOfUnpaidInvoices || false}
+            onChange={(e) =>
+                setReportData(prev => ({
+                    ...prev,
+                    indicators: {
+                        ...prev.indicators,
+                        paymentStatus: {
+                            ...prev.indicators.paymentStatus,
+                            numberOfUnpaidInvoices: e.target.checked
+                        }
+                    }
+                }))
+            }
+            className="w-5 h-5 accent-blue-500 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none checked:bg-blue-500 hover:ring-2 hover:ring-blue-300"
+        />
+        <span>Number of unpaid invoices</span>
+    </div>
 
+    <div className="flex items-center space-x-1">
+        <input
+            type="checkbox"
+            checked={reportData.indicators.paymentStatus?.numberOfPendingInvoices || false}
+            onChange={(e) =>
+                setReportData(prev => ({
+                    ...prev,
+                    indicators: {
+                        ...prev.indicators,
+                        paymentStatus: {
+                            ...prev.indicators.paymentStatus,
+                            numberOfPendingInvoices: e.target.checked
+                        }
+                    }
+                }))
+            }
+            className="w-5 h-5 accent-blue-500 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none checked:bg-blue-500 hover:ring-2 hover:ring-blue-300"
+        />
+        <span>Number of invoices paid on time</span>
+    </div>
 
+    <div className="flex items-center space-x-1">
+        <input
+            type="checkbox"
+            checked={reportData.indicators.paymentStatus?.paymentComplianceRate || false}
+            onChange={(e) =>
+                setReportData(prev => ({
+                    ...prev,
+                    indicators: {
+                        ...prev.indicators,
+                        paymentStatus: {
+                            ...prev.indicators.paymentStatus,
+                            paymentComplianceRate: e.target.checked
+                        }
+                    }
+                }))
+            }
+            className="w-5 h-5 accent-blue-500 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none checked:bg-blue-500 hover:ring-2 hover:ring-blue-300"
+        />
+        <span>Payment compliance rate</span>
+    </div>
+</div>
 
-                    <div className="flex justify-center mt-2">
-                        <button type="submit" disabled={loading} className="mt-4 px-4 py-2 font-semibold bg-purple-500 text-white rounded-md hover:bg-purple-600 disabled:bg-gray-400">
-                            {loading ? 'Submitting...' : 'Submit'}
-                        </button>
-                    </div>
+{/* Overdue Analysis Group */}
+<div className="flex flex-col gap-2">
+    <span className="font-semibold text-gray-800">Overdue Analysis</span>
+
+    <div className="flex items-center space-x-1">
+        <input
+            type="checkbox"
+            checked={reportData.indicators.overdueAnalysis?.numberOfInvoicesPaidOnTime || false}
+            onChange={(e) =>
+                setReportData(prev => ({
+                    ...prev,
+                    indicators: {
+                        ...prev.indicators,
+                        overdueAnalysis: {
+                            ...prev.indicators.overdueAnalysis,
+                            numberOfInvoicesPaidOnTime: e.target.checked
+                        }
+                    }
+                }))
+            }
+            className="w-5 h-5 accent-blue-500 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none checked:bg-blue-500 hover:ring-2 hover:ring-blue-300"
+        />
+        <span>Number of invoices paid on time</span>
+    </div>
+
+    <div className="flex items-center space-x-1">
+        <input
+            type="checkbox"
+            checked={reportData.indicators.overdueAnalysis?.numberOfOverdueInvoices || false}
+            onChange={(e) =>
+                setReportData(prev => ({
+                    ...prev,
+                    indicators: {
+                        ...prev.indicators,
+                        overdueAnalysis: {
+                            ...prev.indicators.overdueAnalysis,
+                            numberOfOverdueInvoices: e.target.checked
+                        }
+                    }
+                }))
+            }
+            className="w-5 h-5 accent-blue-500 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none checked:bg-blue-500 hover:ring-2 hover:ring-blue-300"
+        />
+        <span>Number of overdue invoices</span>
+    </div>
+
+    <div className="flex items-center space-x-1">
+        <input
+            type="checkbox"
+            checked={reportData.indicators.overdueAnalysis?.numberOfInvoicesOverdue30Days || false}
+            onChange={(e) =>
+                setReportData(prev => ({
+                    ...prev,
+                    indicators: {
+                        ...prev.indicators,
+                        overdueAnalysis: {
+                            ...prev.indicators.overdueAnalysis,
+                            numberOfInvoicesOverdue30Days: e.target.checked
+                        }
+                    }
+                }))
+            }
+            className="w-5 h-5 accent-blue-500 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none checked:bg-blue-500 hover:ring-2 hover:ring-blue-300"
+        />
+        <span>Number of invoices overdue by 30 days</span>
+    </div>
+
+    <div className="flex items-center space-x-1">
+        <input
+            type="checkbox"
+            checked={reportData.indicators.overdueAnalysis?.numberOfInvoicesOverdue60Days || false}
+            onChange={(e) =>
+                setReportData(prev => ({
+                    ...prev,
+                    indicators: {
+                        ...prev.indicators,
+                        overdueAnalysis: {
+                            ...prev.indicators.overdueAnalysis,
+                            numberOfInvoicesOverdue60Days: e.target.checked
+                        }
+                    }
+                }))
+            }
+            className="w-5 h-5 accent-blue-500 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none checked:bg-blue-500 hover:ring-2 hover:ring-blue-300"
+        />
+        <span>Number of invoices overdue by 60 days</span>
+    </div>
+
+    <div className="flex items-center space-x-1">
+        <input
+            type="checkbox"
+            checked={reportData.indicators.overdueAnalysis?.numberOfInvoicesOverdue90PlusDays || false}
+            onChange={(e) =>
+                setReportData(prev => ({
+                    ...prev,
+                    indicators: {
+                        ...prev.indicators,
+                        overdueAnalysis: {
+                            ...prev.indicators.overdueAnalysis,
+                            numberOfInvoicesOverdue90PlusDays: e.target.checked
+                        }
+                    }
+                }))
+            }
+            className="w-5 h-5 accent-blue-500 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none checked:bg-blue-500 hover:ring-2 hover:ring-blue-300"
+        />
+        <span>Number of invoices overdue by 90+ days</span>
+    </div>
+</div>
+
+{/* Financials Group */}
+<div className="flex flex-col gap-2">
+    <span className="font-semibold text-gray-800">Financials</span>
+
+    <div className="flex items-center space-x-1">
+        <input
+            type="checkbox"
+            checked={reportData.indicators.financials?.outstandingBalance || false}
+            onChange={(e) =>
+                setReportData(prev => ({
+                    ...prev,
+                    indicators: {
+                        ...prev.indicators,
+                        financials: {
+                            ...prev.indicators.financials,
+                            outstandingBalance: e.target.checked
+                        }
+                    }
+                }))
+            }
+            className="w-5 h-5 accent-blue-500 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none checked:bg-blue-500 hover:ring-2 hover:ring-blue-300"
+        />
+        <span>Outstanding balance</span>
+    </div>
+</div>
+
+<div className="flex justify-center mt-2">
+    <button
+        type="submit"
+        disabled={loading}
+        className="mt-4 px-4 py-2 font-semibold bg-purple-500 text-white rounded-md hover:bg-purple-600 disabled:bg-gray-400"
+    >
+        {loading ? 'Submitting...' : 'Submit'}
+    </button>
+</div>
+
                 </form>
             </div>
         </div>

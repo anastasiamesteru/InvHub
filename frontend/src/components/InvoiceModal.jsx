@@ -134,7 +134,17 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices}) => {
         }
     };
 
+const formatDate = (date) => {
+    if (!date) return 'Invalid Date';
+    const parsedDate = new Date(date);
+    if (isNaN(parsedDate)) return 'Invalid Date';
 
+    const day = String(parsedDate.getDate()).padStart(2, '0');
+    const month = String(parsedDate.getMonth() + 1).padStart(2, '0');
+    const year = parsedDate.getFullYear();
+
+    return `${day}/${month}/${year}`;
+};
    //console.log("Invoice data: ", invoiceData);
 
     if (!isOpen) return null;

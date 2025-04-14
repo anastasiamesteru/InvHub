@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import ReportModal from '../components/ReportModal';
-
-const ReportsPage = () => {
+import axios from 'axios';
+import { PDFViewer } from "@react-pdf/renderer";
+import ReportPDF from '../components/ReportPDF';
+const Report = () => {
     const [reports, setReports] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -157,7 +159,7 @@ const ReportsPage = () => {
                 <table className="w-full border-collapse text-sm overflow-auto">
                     <thead>
                         <tr>
-                        <th
+                            <th
                                 className="px-3 py-2 text-center bg-gray-200 cursor-pointer"
                                 onClick={() => handleSort('reportNumber')}
                             >
@@ -207,30 +209,22 @@ const ReportsPage = () => {
 
                                     <td className="px-3 py-2 text-center">
                                         <div>
-                                            <strong>Payment Status:</strong>
-                                            <ul>
-                                                <li>Number of Paid Invoices: {report.indicators.paymentStatus.numberOfPaidInvoices ? "✔️" : "❌"}</li>
-                                                <li>Number of Unpaid Invoices: {report.indicators.paymentStatus.numberOfUnpaidInvoices ? "✔️" : "❌"}</li>
-                                                <li>Number of Invoices Paid On Time: {report.indicators.paymentStatus.numberOfInvoicesPaidOnTime ? "✔️" : "❌"}</li>
-                                                <li>Payment Compliance Rate: {report.indicators.paymentStatus.paymentComplianceRate ? "✔️" : "❌"}</li>
-                                            </ul>
-                                        </div>
-                                        <div>
-                                            <strong>Overdue Analysis:</strong>
-                                            <ul>
-                                                <li>Number of Overdue Invoices: {report.indicators.overdueAnalysis.numberOfOverdueInvoices ? "Yes" : "No"}</li>
-                                                <li>Invoices Overdue 30 Days: {report.indicators.overdueAnalysis.numberOfInvoicesOverdue30Days ? "Yes" : "No"}</li>
-                                                <li>Invoices Overdue 60 Days: {report.indicators.overdueAnalysis.numberOfInvoicesOverdue60Days ? "Yes" : "No"}</li>
-                                                <li>Invoices Overdue 90+ Days: {report.indicators.overdueAnalysis.numberOfInvoicesOverdue90PlusDays ? "Yes" : "No"}</li>
-                                            </ul>
-                                        </div>
-                                        <div>
-                                            <strong>Financials:</strong>
-                                            <ul>
-                                                <li>Outstanding Balance: {report.indicators.financials.outstandingBalance ? "Yes" : "No"}</li>
-                                            </ul>
+                                            <div>
+                                                <strong>Payment Status: </strong>
+                                                {Object.values(report.indicators.paymentStatus).filter(value => value).length} / 4 indicators
+                                            </div>
+                                            <div>
+                                                <strong>Overdue Analysis: </strong>
+                                                {Object.values(report.indicators.overdueAnalysis).filter(value => value).length} / 4 indicators
+                                            </div>
+                                            <div>
+                                                <strong>Financials: </strong>
+                                                {Object.values(report.indicators.financials).filter(value => value).length} / 1 indicator
+                                            </div>
                                         </div>
                                     </td>
+
+
                                     <td className="px-3 py-2 text-center flex justify-center gap-2">
                                         <button className="px-2 py-1 text-center">
                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
@@ -328,4 +322,4 @@ const ReportsPage = () => {
     );
 };
 
-export default ReportsPage;
+export default Report;
