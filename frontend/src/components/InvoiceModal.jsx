@@ -5,7 +5,6 @@ import axios from 'axios';
 const InvoiceModal = ({ isOpen, onClose, fetchInvoices}) => {
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
-    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const [invoiceData, setInvoiceData] = useState({
         invoiceNumber: '',

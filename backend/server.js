@@ -7,6 +7,7 @@ import invoiceRoutes from './routes/invoiceRoute.js';
 import itemRoutes from './routes/itemRoute.js';
 import clientRoutes from './routes/clientRoute.js';
 import vendorRoutes from './routes/vendorRoute.js';
+import reportRoute from './routes/reportRoute,js';
 import authRoute from './routes/authRoute.js';
 
 const app = express();
@@ -25,6 +26,7 @@ app.use('/routes/invoices', invoiceRoutes);
 app.use('/routes/items', itemRoutes);
 app.use('/routes/clients', clientRoutes);
 app.use('/routes/vendors', vendorRoutes);
+app.use('/routes/reports', reportRoute);
 app.use('/auth', authRoute);
 
 mongoose.connect(process.env.MONGO_URL)

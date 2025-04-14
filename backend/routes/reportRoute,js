@@ -1,0 +1,48 @@
+import express from 'express';
+import Report from '../models/report.js';
+
+const reportRoute = express.Router();
+
+//Create a new report
+reportRoute.post("/create", async (req, res) => {
+    try {
+        const report = new Report(req.body);
+
+        await report.save();
+        res.status(201).json(report);
+    } catch (error) {
+        console.error('Error:', error); 
+
+        return res.status(400).json({ message: error.message || 'Something went wrong while creating the report.' });
+    }
+});
+
+
+//Get all reports
+reportRoute.get("/getall", async (req, res) => {
+    try {
+        const report = await Report.find();
+        res.status(200).json(report);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+
+// Delete a report by ID
+reportRoute.delete('/:id', async (req, res) => {
+    try {
+        const deletedReport = await Report.findByIdAndDelete(req.params.id);
+
+        if (!deletedReport) {
+            return res.status(404).json({ message: 'Report not found' });
+        }
+
+        res.status(200).json({ message: 'Report deleted successfully' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error deleting report', error: error.message });
+    }
+});
+
+export default reportRoute;
