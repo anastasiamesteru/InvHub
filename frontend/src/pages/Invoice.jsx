@@ -105,11 +105,6 @@ const Invoice = () => {
         return Math.max(0, total * penaltyRate * overdueDays); // Ensure no negative penalty
     };
 
-
-
-
-
-
     // Function to update the payment status
     const updatePaymentStatus = async (invoiceId, paymentStatus, paymentDate, timeStatus, total) => {
         try {

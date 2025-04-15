@@ -3,6 +3,8 @@ import ReportModal from '../components/ReportModal';
 import axios from 'axios';
 import { PDFViewer } from "@react-pdf/renderer";
 import ReportPDF from '../components/ReportPDF';
+
+
 const Report = () => {
     const [reports, setReports] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
@@ -95,28 +97,6 @@ const Report = () => {
         setSelectedReport(report);
     };
 
-    const renderIndicators = (indicators) => {
-        const selectedIndicators = [];
-
-        Object.entries(indicators).forEach(([category, values]) => {
-            Object.entries(values).forEach(([key, value]) => {
-                if (value) {
-                    const label = key.replace(/([A-Z])/g, " $1");
-                    selectedIndicators.push(`${category}: ${label}`);
-                }
-            });
-        });
-
-        return selectedIndicators.length > 0 ? (
-            <ul className="text-sm text-gray-600 list-disc list-inside">
-                {selectedIndicators.map((item, index) => (
-                    <li key={index}>{item}</li>
-                ))}
-            </ul>
-        ) : (
-            <p className="text-sm text-gray-400">No indicators selected.</p>
-        );
-    };
 
 
     return (
@@ -211,15 +191,15 @@ const Report = () => {
                                         <div>
                                             <div>
                                                 <strong>Payment Status: </strong>
-                                                {Object.values(report.indicators.paymentStatus).filter(value => value).length} / 4 indicators
+                                                {Object.values(report.indicators.paymentStatus).filter(value => value).length} /{Object.keys(report.indicators.paymentStatus).length} indicators
                                             </div>
                                             <div>
                                                 <strong>Overdue Analysis: </strong>
-                                                {Object.values(report.indicators.overdueAnalysis).filter(value => value).length} / 4 indicators
+                                                {Object.values(report.indicators.overdueAnalysis).filter(value => value).length} / {Object.keys(report.indicators.overdueAnalysis).length} indicators
                                             </div>
                                             <div>
-                                                <strong>Financials: </strong>
-                                                {Object.values(report.indicators.financials).filter(value => value).length} / 1 indicator
+                                                <strong>Invoice Patterns: </strong>
+                                                {Object.values(report.indicators.invoicePatterns).filter(value => value).length} / {Object.keys(report.indicators.invoicePatterns).length} indicators
                                             </div>
                                         </div>
                                     </td>

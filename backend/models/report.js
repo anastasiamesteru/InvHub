@@ -8,21 +8,32 @@ const reportSchema = new mongoose.Schema({
     endDate: {  type: Date,  required: true}, 
     indicators: {
         paymentStatus: {
-            numberOfPaidInvoices: { type: Number }, 
+            numberOfPaidInvoices: { type: Number },
             numberOfUnpaidInvoices: { type: Number },
-            numberOfPendingInvoices:{ type: Number },
-            paymentComplianceRate: { type: Number },
+            numberOfPendingInvoices: { type: Number },
+            percentPaid: { type: Number },
+            percentUnpaid: { type: Number },
+            percentPending: { type: Number },
         },
+        
         overdueAnalysis: {
             numberOfInvoicesPaidOnTime: { type: Number },
             numberOfOverdueInvoices: { type: Number },
             numberOfInvoicesOverdue30Days: { type: Number },
             numberOfInvoicesOverdue60Days: { type: Number },
             numberOfInvoicesOverdue90PlusDays: { type: Number },
+            percentOverdue: { type: Number },
+            percentOverdue30: { type: Number },
+            percentOverdue60: { type: Number },
+            percentOverdue90Plus: { type: Number },
         },
-        financials: {
-            outstandingBalance: { type: Number }, 
+        
+        invoicePatterns: {
+            averageDaysToPayment: { type: Number },
+            medianDaysToPayment: { type: Number },
+            modeOfPaymentDelays: { type: Number },
         },
+        
     },
 });
 

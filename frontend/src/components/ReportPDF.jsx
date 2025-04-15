@@ -14,79 +14,76 @@ Font.register({
   ]
 });
 
+
 const styles = StyleSheet.create({
-    page: {
-      padding: 30,
-      fontFamily: 'Poppins',
-      backgroundColor: '#FFFFFF',
-      color: '#000000',
-    },
-    section: {
-      marginBottom: 20,
-    },
-    titleText: {
-      fontSize: 18,
-      fontWeight: 'bold',
-      marginBottom: 10,
-    },
-    subTitle: {
-      fontSize: 14,
-      marginBottom: 5,
-    },
-    table: {
-      width: '100%',
-      borderCollapse: 'collapse', // Ensures the borders are merged and clean
-      marginBottom: 10,
-    },
-    tableRow: {
-      display: 'flex',
-      flexDirection: 'row',
-      borderBottom: '1px solid #000', // Horizontal border between rows
-      paddingVertical: 8,
-    },
-    tableCell: {
-      flex: 1,
-      textAlign: 'center',
-      fontSize: 12,
-      padding: 5,
-      borderRight: '1px solid #000', // Vertical borders between columns
-    },
-    tableHeader: {
-      fontWeight: 'bold',
-      backgroundColor: '#f1f1f1', // Light gray background for header
-      borderBottom: '2px solid #000', // Thick bottom border to separate from data rows
-      fontSize: 14, // Larger font size for header
-    },
-    tableFooter: {
-      display: 'flex',
-      flexDirection: 'row',
-      fontWeight: 'bold',
-      paddingTop: 5,
-      paddingBottom: 10,
-      borderTop: '2px solid #000', // Top border for footer
-      marginTop: 10,
-    },
-    tableFooterCell: {
-      flex: 1,
-      textAlign: 'center',
-      fontSize: 12,
-      padding: 5,
-      fontWeight: 'bold',
-    },
-    header: {
-      marginBottom: 30,
-      textAlign: 'center',
-    },
-    reportTitle: {
-      fontSize: 24,
-      fontWeight: 'bold',
-      marginBottom: 5,
-    },
-    dateText: {
-      fontSize: 14,
-    },
-  });
-  
+  page: {
+    padding: 30,
+    fontFamily: "Poppins",
+    backgroundColor: "#FFFFFF",
+    color: "#000000",
+  },
+  section: {
+    marginBottom: 15,
+  },
+  header: {
+    fontSize: 24,
+    fontWeight: "600",
+    marginBottom: 20,
+    textAlign: "center",
+    color: "#000000",
+  },
+  table: {
+    display: "flex",
+    flexDirection: "column",
+    width: "100%",
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderStyle: "solid",
+    marginTop: 20,
+  },
+  row: {
+    flexDirection: "row",
+    borderBottomWidth: 1,
+    borderBottomColor: "#ddd",
+    borderBottomStyle: "solid",
+    paddingVertical: 8,
+    paddingHorizontal: 5,
+  },
+  cell: {
+    flex: 1,
+    textAlign: "left",
+    fontSize: 12,
+    padding: 6,
+    borderRightWidth: 1,
+    borderRightColor: "#ddd",
+    borderRightStyle: "solid",
+    color: "#000000",
+    flexWrap: "wrap",
+    overflow: "hidden",
+    whiteSpace: 'normal', // Make sure text wraps within the cell
+  },
+  lastCell: {
+    borderRightWidth: 0,
+    fontSize: 12,
+    padding: 6,
+    textAlign: "left",
+    flex: 1,
+    flexWrap: "wrap",
+    overflow: "hidden",
+    whiteSpace: 'normal', // Ensure wrapping here too
+  },
+  titleText: {
+    fontWeight: "bold",
+    fontSize: 14,
+    color: "#000000",
+  },
+  subTitle: {
+    marginBottom: 5,
+    fontSize: 12,
+    color: "#000000",
+  },
+});
+
 // Format date
 const formatDate = (date) => {
   if (!date) return 'Invalid Date';
@@ -120,7 +117,7 @@ const ReportPDF = ({ reportData }) => {
     indicators: {
       paymentStatus = {},
       overdueAnalysis = {},
-      financials = {}
+      invoicePatterns = {}
     } = {},
   } = reportData;
 
@@ -152,74 +149,118 @@ const ReportPDF = ({ reportData }) => {
         <View style={styles.section}>
           <Text style={styles.titleText}>Payment Status</Text>
           <View style={styles.table}>
-            <View style={styles.tableRow}>
-              <Text style={[styles.tableCell, styles.tableHeader]}>Status</Text>
-              <Text style={[styles.tableCell, styles.tableHeader]}>Count</Text>
+            {/* Header Row */}
+            <View style={styles.row}>
+              <Text style={[styles.cell, { fontWeight: 'bold', textAlign: 'center' }]}>Status</Text>
+              <Text style={[styles.lastCell, { fontWeight: 'bold', textAlign: 'center' }]}>Count</Text>
             </View>
-            <View style={styles.tableRow}>
-              <Text style={styles.tableCell}>Paid Invoices</Text>
-              <Text style={styles.tableCell}>{paymentStatus.numberOfPaidInvoices}</Text>
+
+            {/* Payment Status Rows */}
+            <View style={styles.row}>
+              <Text style={[styles.cell, { textAlign: 'center' }]}>Paid Invoices</Text>
+              <Text style={[styles.lastCell, { textAlign: 'center' }]}>{paymentStatus.numberOfPaidInvoices}</Text>
             </View>
-            <View style={styles.tableRow}>
-              <Text style={styles.tableCell}>Unpaid Invoices</Text>
-              <Text style={styles.tableCell}>{paymentStatus.numberOfUnpaidInvoices}</Text>
+            <View style={styles.row}>
+              <Text style={[styles.cell, { textAlign: 'center' }]}>Unpaid Invoices</Text>
+              <Text style={[styles.lastCell, { textAlign: 'center' }]}>{paymentStatus.numberOfUnpaidInvoices}</Text>
             </View>
-            <View style={styles.tableRow}>
-              <Text style={styles.tableCell}>Pending Invoices</Text>
-              <Text style={styles.tableCell}>{paymentStatus.numberOfPendingInvoices}</Text>
+            <View style={styles.row}>
+              <Text style={[styles.cell, { textAlign: 'center' }]}>Pending Invoices</Text>
+              <Text style={[styles.lastCell, { textAlign: 'center' }]}>{paymentStatus.numberOfPendingInvoices}</Text>
             </View>
-            <View style={styles.tableRow}>
-              <Text style={styles.tableCell}>Compliance Rate</Text>
-              <Text style={styles.tableCell}>{paymentStatus.paymentComplianceRate}%</Text>
+            <View style={styles.row}>
+              <Text style={[styles.cell, { textAlign: 'center' }]}>Percent Paid</Text>
+              <Text style={[styles.lastCell, { textAlign: 'center' }]}>{paymentStatus.percentPaid}%</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={[styles.cell, { textAlign: 'center' }]}>Percent Unpaid</Text>
+              <Text style={[styles.lastCell, { textAlign: 'center' }]}>{paymentStatus.percentUnpaid}%</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={[styles.cell, { textAlign: 'center' }]}>Percent Pending</Text>
+              <Text style={[styles.lastCell, { textAlign: 'center' }]}>{paymentStatus.percentPending}%</Text>
             </View>
           </View>
         </View>
+
 
         {/* Overdue Analysis Table */}
         <View style={styles.section}>
           <Text style={styles.titleText}>Overdue Analysis</Text>
           <View style={styles.table}>
-            <View style={styles.tableRow}>
-              <Text style={[styles.tableCell, styles.tableHeader]}>Analysis</Text>
-              <Text style={[styles.tableCell, styles.tableHeader]}>Count</Text>
+            {/* Header Row */}
+            <View style={styles.row}>
+              <Text style={[styles.cell, { fontWeight: 'bold', textAlign: 'center' }]}>Analysis</Text>
+              <Text style={[styles.lastCell, { fontWeight: 'bold', textAlign: 'center' }]}>Count</Text>
             </View>
-            <View style={styles.tableRow}>
-              <Text style={styles.tableCell}>Invoices Paid On Time</Text>
-              <Text style={styles.tableCell}>{overdueAnalysis.numberOfInvoicesPaidOnTime}</Text>
+
+            {/* Overdue Analysis Rows */}
+            <View style={styles.row}>
+              <Text style={[styles.cell, { textAlign: 'center' }]}>Invoices Paid On Time</Text>
+              <Text style={[styles.lastCell, { textAlign: 'center' }]}>{overdueAnalysis.numberOfInvoicesPaidOnTime}</Text>
             </View>
-            <View style={styles.tableRow}>
-              <Text style={styles.tableCell}>Overdue Invoices</Text>
-              <Text style={styles.tableCell}>{overdueAnalysis.numberOfOverdueInvoices}</Text>
+            <View style={styles.row}>
+              <Text style={[styles.cell, { textAlign: 'center' }]}>Overdue Invoices</Text>
+              <Text style={[styles.lastCell, { textAlign: 'center' }]}>{overdueAnalysis.numberOfOverdueInvoices}</Text>
             </View>
-            <View style={styles.tableRow}>
-              <Text style={styles.tableCell}>Overdue 30 Days</Text>
-              <Text style={styles.tableCell}>{overdueAnalysis.numberOfInvoicesOverdue30Days}</Text>
+            <View style={styles.row}>
+              <Text style={[styles.cell, { textAlign: 'center' }]}>Overdue 30 Days</Text>
+              <Text style={[styles.lastCell, { textAlign: 'center' }]}>{overdueAnalysis.numberOfInvoicesOverdue30Days}</Text>
             </View>
-            <View style={styles.tableRow}>
-              <Text style={styles.tableCell}>Overdue 60 Days</Text>
-              <Text style={styles.tableCell}>{overdueAnalysis.numberOfInvoicesOverdue60Days}</Text>
+            <View style={styles.row}>
+              <Text style={[styles.cell, { textAlign: 'center' }]}>Overdue 60 Days</Text>
+              <Text style={[styles.lastCell, { textAlign: 'center' }]}>{overdueAnalysis.numberOfInvoicesOverdue60Days}</Text>
             </View>
-            <View style={styles.tableRow}>
-              <Text style={styles.tableCell}>Overdue 90+ Days</Text>
-              <Text style={styles.tableCell}>{overdueAnalysis.numberOfInvoicesOverdue90PlusDays}</Text>
+            <View style={styles.row}>
+              <Text style={[styles.cell, { textAlign: 'center' }]}>Overdue 90+ Days</Text>
+              <Text style={[styles.lastCell, { textAlign: 'center' }]}>{overdueAnalysis.numberOfInvoicesOverdue90PlusDays}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={[styles.cell, { textAlign: 'center' }]}>Percent Overdue</Text>
+              <Text style={[styles.lastCell, { textAlign: 'center' }]}>{overdueAnalysis.percentOverdue}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={[styles.cell, { textAlign: 'center' }]}>Percent Overdue 30 Days</Text>
+              <Text style={[styles.lastCell, { textAlign: 'center' }]}>{overdueAnalysis.percentOverdue30}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={[styles.cell, { textAlign: 'center' }]}>Percent Overdue 60 Days</Text>
+              <Text style={[styles.lastCell, { textAlign: 'center' }]}>{overdueAnalysis.percentOverdue60}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={[styles.cell, { textAlign: 'center' }]}>Percent Overdue 90+ Days</Text>
+              <Text style={[styles.lastCell, { textAlign: 'center' }]}>{overdueAnalysis.percentOverdue90Plus}</Text>
             </View>
           </View>
         </View>
 
-        {/* Financials Table */}
+
+        {/* Invoice Patterns Table */}
         <View style={styles.section}>
-          <Text style={styles.titleText}>Financials</Text>
+          <Text style={styles.titleText}>Invoice Patterns</Text>
           <View style={styles.table}>
-            <View style={styles.tableRow}>
-              <Text style={[styles.tableCell, styles.tableHeader]}>Financial Data</Text>
-              <Text style={[styles.tableCell, styles.tableHeader]}>Amount</Text>
+            {/* Header Row */}
+            <View style={styles.row}>
+              <Text style={[styles.cell, { fontWeight: 'bold', textAlign: 'center' }]}>Invoice Pattern Data</Text>
+              <Text style={[styles.lastCell, { fontWeight: 'bold', textAlign: 'center' }]}>Amount</Text>
             </View>
-            <View style={styles.tableRow}>
-              <Text style={styles.tableCell}>Outstanding Balance</Text>
-              <Text style={styles.tableCell}>${financials.outstandingBalance?.toFixed(2)}</Text>
+
+            {/* Invoice Patterns Rows */}
+            <View style={styles.row}>
+              <Text style={[styles.cell, { textAlign: 'center' }]}>Average Days to Payment</Text>
+              <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoicePatterns.averageDaysToPayment}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={[styles.cell, { textAlign: 'center' }]}>Median Days to Payment</Text>
+              <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoicePatterns.medianDaysToPayment}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={[styles.cell, { textAlign: 'center' }]}>Mode of Payment Delays</Text>
+              <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoicePatterns.modeOfPaymentDelays}</Text>
             </View>
           </View>
         </View>
+
       </Page>
     </Document>
   );
