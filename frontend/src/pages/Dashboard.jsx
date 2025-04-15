@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
-import { assets } from '../assets/assets';
 import {
     PieChart, Pie, Cell,
     LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -17,7 +16,6 @@ const Dashboard = () => {
         pending: 0
     });
 
-    // Fetch invoices from the API
     const fetchInvoices = async () => {
         try {
             const response = await axios.get('http://localhost:4000/routes/invoices/getall');
@@ -31,73 +29,92 @@ const Dashboard = () => {
         fetchInvoices();
     }, []);
 
-    // Data processing for charts
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const now = new Date();
+    const currentYear = now.getFullYear();
+
+    let totalAmount = 0;
+    let outstandingAmount = 0;
+    let overdueAmount = 0;
+    let pendingAmount = 0;
+
+    invoices.forEach(invoice => {
+        const issueDate = new Date(invoice.issue_date);
+        if (issueDate.getFullYear() !== currentYear) return;
+
+        const amount = Number(invoice.total || 0);
+        totalAmount += amount;
+
+        if (invoice.paymentStatus?.toLowerCase() === "unpaid") {
+            const dueDate = new Date(invoice.due_date);
+            if (dueDate >= now) {
+                outstandingAmount += amount;
+            } else {
+                overdueAmount += amount;
+            }
+        }
+
+        if (invoice.timeStatus?.toLowerCase() === "pending") {
+            pendingAmount += amount;
+        }
+    });
 
     const monthlyData = useMemo(() => {
         const data = {};
-        // Initialize the status tracking for line chart
-        const statusOverTime = {
-            onTime: [],
-            overdue: [],
-            pending: []
-        };
-
-        const currentMonth = new Date().getMonth();
-        const currentYear = new Date().getFullYear();
+        const barChartData = {};  // New object to store Paid/Unpaid counts for each month
 
         invoices.forEach(inv => {
             const date = new Date(inv.issue_date);
             const month = `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
 
             if (!data[month]) {
-                data[month] = { month, totalAmount: 0, count: 0, onTime: 0, overdue: 0, pending: 0 };
+                data[month] = { month, totalAmount: 0, outstandingAmount: 0, overdueAmount: 0, onTime: 0, overdue: 0, pending: 0 };
             }
 
-            data[month].totalAmount += Number(inv.total_amount || 0);
-            data[month].count += 1;
-
-            // Update status counts for line chart
-            if (inv.timeStatus?.trim().toLowerCase() === "on time") data[month].onTime += 1;
-            if (inv.timeStatus?.trim().toLowerCase() === "overdue") data[month].overdue += 1;
-            if (inv.timeStatus?.trim().toLowerCase() === "pending") data[month].pending += 1;
-
-            if (inv.items && Array.isArray(inv.items)) {
-                inv.items.forEach(item => {
-                    const type = item.type?.toLowerCase();
-                    if (type === 'product') itemTypeCounts.product += 1;
-                    else if (type === 'service') itemTypeCounts.service += 1;
-                });
+            if (!barChartData[month]) {
+                barChartData[month] = { month, Paid: 0, Unpaid: 0 }; // Initialize Paid/Unpaid count for each month
             }
+
+            const amount = Number(inv.total || 0);
+            data[month].totalAmount += amount;
+
+            const paymentStatus = inv.paymentStatus?.toLowerCase();
+            if (paymentStatus === "unpaid") {
+                const dueDate = new Date(inv.due_date);
+                if (dueDate >= now) {
+                    data[month].outstandingAmount += amount;
+                } else {
+                    data[month].overdueAmount += amount;
+                }
+                barChartData[month].Unpaid += 1;
+
+
+            }
+            else {
+                barChartData[month].Paid += 1;
+
+            }
+
+            const timeStatus = inv.timeStatus?.trim().toLowerCase();
+            if (timeStatus === "on time") data[month].onTime += 1;
+            if (timeStatus === "overdue") data[month].overdue += 1;
         });
 
-        // Format line chart data for status counts
-        const lineChartData = Object.values(data).sort((a, b) => new Date(`1 ${a.month}`) - new Date(`1 ${b.month}`)).map(monthData => ({
-            month: monthData.month,
-            onTime: monthData.onTime,
-            overdue: monthData.overdue,
-            pending: monthData.pending
-        }));
+        const lineChartData = Object.values(data)
+            .sort((a, b) => new Date(`1 ${a.month}`) - new Date(`1 ${b.month}`))
+            .map(d => ({
+                month: d.month,
+                outstandingAmount: d.outstandingAmount,
+                overdueAmount: d.overdueAmount,
+                totalAmount: d.totalAmount
+            }));
 
-        // Pie chart data for Paid vs Unpaid
-        const pieData = [
+        const pieChartData = [
             { name: 'Paid', value: statusCounts.paid },
             { name: 'Unpaid', value: statusCounts.unpaid }
         ];
 
-        // Get bar chart data for the entire year
-        const barChartData = Object.values(data)
-            .filter((d) => {
-                const monthDate = new Date(d.month);
-                return monthDate.getFullYear() === currentYear;
-            })
-            .sort((a, b) => new Date(`1 ${a.month}`) - new Date(`1 ${b.month}`));
-
-        return {
-            lineChartData,
-            barChartData,
-            pieData
-        };
+        return { lineChartData, pieChartData, barChartData };
     }, [invoices, statusCounts]);
 
     useEffect(() => {
@@ -106,28 +123,25 @@ const Dashboard = () => {
             const currentMonth = today.getMonth();
             const currentYear = today.getFullYear();
 
-            let onTime = 0;
-            let overdue = 0;
-            let paid = 0;
-            let unpaid = 0;
-            let pending = 0;
+            let onTime = 0, overdue = 0, paid = 0, unpaid = 0, pending = 0;
 
-            invoices.forEach((invoice) => {
-                const invoiceDate = new Date(invoice.issue_date);
-
-                const isCurrentMonth = invoiceDate.getMonth() === currentMonth && invoiceDate.getFullYear() === currentYear;
+            invoices.forEach(invoice => {
+                const issueDate = new Date(invoice.issue_date);
+                const isCurrentMonth = issueDate.getMonth() === currentMonth && issueDate.getFullYear() === currentYear;
 
                 if (isCurrentMonth) {
-                    if (invoice.timeStatus?.trim().toLowerCase() === "pending") pending += 1;
-                    if (invoice.timeStatus?.trim().toLowerCase() === "on time") onTime += 1;
-                    if (invoice.timeStatus?.trim().toLowerCase() === "overdue") overdue += 1;
+                    const timeStatus = invoice.timeStatus?.trim().toLowerCase();
+                    const paymentStatus = invoice.paymentStatus?.trim().toLowerCase();
 
-                    if (invoice.paymentStatus?.trim().toLowerCase() === "paid") paid += 1;
-                    if (invoice.paymentStatus?.trim().toLowerCase() === "unpaid") unpaid += 1;
+                    if (timeStatus === "on time") onTime++;
+                    if (timeStatus === "overdue") overdue++;
+                    if (timeStatus === "pending") pending++;
+
+                    if (paymentStatus === "paid") paid++;
+                    if (paymentStatus === "unpaid") unpaid++;
                 }
             });
 
-            // Update status counts
             setStatusCounts({ onTime, overdue, paid, unpaid, pending });
         };
 
@@ -136,9 +150,11 @@ const Dashboard = () => {
         }
     }, [invoices]);
 
+    const COLORS = ['#eab308', '#9333ea']; // Dark Slate + Soft Stone
+
     return (
         <div className="p-6 space-y-10 min-h-screen bg-violet-50">
-            {/* Header Section with Photo */}
+            {/* Header */}
             <div className="flex flex-col lg:flex-row items-center gap-6">
                 <div className="flex-1 text-center lg:text-left">
                     <h1 className="text-2xl font-semibold text-gray-800">Welcome back!</h1>
@@ -147,89 +163,101 @@ const Dashboard = () => {
                     </p>
                 </div>
             </div>
-    
-            {/* Main Content Section */}
+
+            {/* Summary and Graph */}
             <div className="flex flex-col lg:flex-row gap-6">
-                {/* Summary Cards on the Left */}
-                <div className="bg-white p-6 rounded-lg shadow-md">
-                    <div className="flex flex-col gap-6">
-                        {/* Yellow Card on Top */}
-                        <div className="bg-yellow-500 p-4 rounded-lg shadow-md text-center h-28 flex flex-col justify-center">
-                            <h3 className="text-white text-base font-semibold">Total Collected</h3>
-                            <p className="text-2xl font-bold text-white">
-                                {statusCounts.paid + statusCounts.unpaid}
-                            </p>
+                {/* Summary Cards */}
+                <div className="bg-white p-6 rounded-lg shadow-md w-full lg:w-1/3 space-y-6">
+                    <div className="bg-gray-100 p-4 rounded-lg shadow-md h-28 flex flex-col justify-center">
+                        <h3 className="text-indigo-800 text-xl font-bold">Total Collected</h3>
+                        <p className="text-2xl font-bold text-center text-slate-800">${totalAmount.toFixed(2)}</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div className="bg-gray-200 p-4 rounded-lg shadow-md">
+                            <h3 className="text-indigo-800 text-base font-semibold">Total Outstanding</h3>
+                            <p className="text-2xl font-bold text-center text-slate-800">${outstandingAmount.toFixed(2)}</p>
                         </div>
-    
-                        {/* Other Cards Below */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
-                            <div className="bg-violet-500 p-2 rounded-lg shadow-md text-center h-28 flex flex-col justify-center">
-                                <h3 className="text-white text-base font-semibold">Total Outstanding</h3>
-                                <p className="text-2xl font-bold text-white">{statusCounts.onTime}</p>
-                            </div>
-    
-                            <div className="bg-green-600 p-2 rounded-lg shadow-md text-center h-28 flex flex-col justify-center">
-                                <h3 className="text-white text-base font-semibold">Total Overdue</h3>
-                                <p className="text-2xl font-bold text-white">{statusCounts.paid}</p>
-                            </div>
+                        <div className="bg-gray-200 p-4 rounded-lg shadow-md">
+                            <h3 className="text-indigo-800 text-base font-semibold">Total Overdue</h3>
+                            <p className="text-2xl font-bold text-center text-slate-800">${overdueAmount.toFixed(2)}</p>
                         </div>
                     </div>
+
+                    <div className="bg-gray-200 p-4 rounded-lg shadow-md">
+                        <h3 className="text-indigo-800 text-base font-semibold">Total Invoices</h3>
+                        <p className="text-2xl font-bold text-center text-slate-800">{statusCounts.paid + statusCounts.unpaid}</p>
+                    </div>
                 </div>
-    
-                {/* Graph on the Right */}
-                <div className="bg-white p-6 rounded-lg shadow-md">
-                    {/* Your Graph Component or Placeholder */}
-                    <h3 className="text-xl font-semibold text-gray-800">Invoice Performance Graph</h3>
-                    <div className="mt-4">
-                        {/* Add your graph here, e.g., Chart.js, Plotly, or any custom graph component */}
-                        <div className="h-64 bg-gray-200">Graph goes here</div>
+
+                {/* Line Chart */}
+                <div className="p-6 rounded-lg w-full lg:w-4/5">
+                    <h3 className="text-xl font-semibold text-gray-800">Invoice Performance</h3>
+                    <div className="mt-4 h-80">
+                        <ResponsiveContainer width="100%" height={300}>
+                            <LineChart data={monthlyData.lineChartData} margin={{ top: 10, right: 30, left: 0, bottom: 10 }}>
+
+                                <XAxis dataKey="month" tickFormatter={(value) => value.split(' ')[0]} />
+                                <YAxis allowDecimals={true} />
+                                <Line type="monotone" dataKey="outstandingAmount" stroke="#e11d48" strokeWidth={3} />
+                                <Line type="monotone" dataKey="overdueAmount" stroke="#10b981" strokeWidth={3} />
+                                <Line type="monotone" dataKey="totalAmount" stroke="#f59e0b" strokeWidth={3} />
+
+                            </LineChart>
+                        </ResponsiveContainer>
                     </div>
                 </div>
             </div>
-    
-            {/* Flashcards Section */}
-            <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {/* Flashcard 1 */}
-                <div className="bg-teal-500 p-6 rounded-lg shadow-lg text-center">
-                    <h3 className="text-white text-lg font-semibold">Flashcard 1</h3>
-                    <p className="text-white mt-2">Some content for flashcard 1.</p>
-                </div>
-    
-                {/* Flashcard 2 */}
-                <div className="bg-indigo-600 p-6 rounded-lg shadow-lg text-center">
-                    <h3 className="text-white text-lg font-semibold">Flashcard 2</h3>
-                    <p className="text-white mt-2">Some content for flashcard 2.</p>
-                </div>
-    
-                {/* Flashcard 3 */}
-                <div className="bg-yellow-600 p-6 rounded-lg shadow-lg text-center">
-                    <h3 className="text-white text-lg font-semibold">Flashcard 3</h3>
-                    <p className="text-white mt-2">Some content for flashcard 3.</p>
-                </div>
-    
-                {/* Flashcard 4 */}
-                <div className="bg-orange-500 p-6 rounded-lg shadow-lg text-center">
-                    <h3 className="text-white text-lg font-semibold">Flashcard 4</h3>
-                    <p className="text-white mt-2">Some content for flashcard 4.</p>
-                </div>
-    
-                {/* Flashcard 5 */}
-                <div className="bg-pink-600 p-6 rounded-lg shadow-lg text-center">
-                    <h3 className="text-white text-lg font-semibold">Flashcard 5</h3>
-                    <p className="text-white mt-2">Some content for flashcard 5.</p>
-                </div>
-    
-                {/* Flashcard 6 */}
-                <div className="bg-purple-500 p-6 rounded-lg shadow-lg text-center">
-                    <h3 className="text-white text-lg font-semibold">Flashcard 6</h3>
-                    <p className="text-white mt-2">Some content for flashcard 6.</p>
+
+            {/* Pie Chart */}
+            <div className="bg-white p-6 rounded-lg shadow-md">
+                <h3 className="text-xl font-semibold text-gray-800 mb-4">Payment Status</h3>
+
+                <div className="flex grid grid-cols-3 gap-6">
+                    {/* First Pie Chart takes 1/3 width */}
+                    <div className="col-span-1">
+                        <ResponsiveContainer width="100%" height={300}>
+                            <PieChart>
+                                <Pie
+                                    data={monthlyData.pieChartData}
+                                    cx="50%"
+                                    cy="50%"
+                                    labelLine={false}
+                                    outerRadius={100}
+                                    fill="#8884d8"
+                                    dataKey="value"
+                                    label={({ name, value, percent }) =>
+                                        `${name}: ${(percent * 100).toFixed(0)}%`
+                                    }
+                                >
+                                    {monthlyData.pieChartData.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                    ))}
+                                </Pie>
+                                <Tooltip />
+                            </PieChart>
+                        </ResponsiveContainer>
+                    </div>
+
+                    {/* Second Bar Chart takes 2/3 width */}
+                    <div className="col-span-2">
+                        <ResponsiveContainer width="100%" height={300}>
+                            <BarChart data={Object.values(monthlyData.barChartData)}>
+                                <XAxis dataKey="month" />
+                                <YAxis />
+                                <Tooltip />
+                                <Legend />
+
+                                <Bar dataKey="Paid" fill="#16a34a" />
+                                <Bar dataKey="Unpaid" fill="#9f1239" />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
             </div>
+
         </div>
     );
-    
-
-
 };
 
 export default Dashboard;
