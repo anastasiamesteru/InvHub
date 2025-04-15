@@ -4,7 +4,7 @@ import { assets } from '../assets/assets';
 import {
     PieChart, Pie, Cell,
     LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-    BarChart, Bar
+    BarChart, Bar, ResponsiveContainer
 } from 'recharts';
 
 const Dashboard = () => {
@@ -36,8 +36,6 @@ const Dashboard = () => {
 
     const monthlyData = useMemo(() => {
         const data = {};
-        const itemTypeCounts = { product: 0, service: 0 };
-
         // Initialize the status tracking for line chart
         const statusOverTime = {
             onTime: [],
@@ -139,96 +137,97 @@ const Dashboard = () => {
     }, [invoices]);
 
     return (
-        <div className="p-6" style={{ fontFamily: 'Poppins, sans-serif' }}>
-            <div className="flex flex-wrap gap-6 items-center mb-6">
-                <div className="w-96 h-96 p-4 bg-white rounded-lg">
-                    <img className="shadow-md rounded-lg w-full h-full object-cover" src={assets.dashboardPhoto} alt="dashboardPhoto" />
+        <div className="p-6 space-y-10 min-h-screen bg-violet-50">
+            {/* Header Section with Photo */}
+            <div className="flex flex-col lg:flex-row items-center gap-6">
+                <div className="flex-1 text-center lg:text-left">
+                    <h1 className="text-2xl font-semibold text-gray-800">Welcome back!</h1>
+                    <p className="text-gray-600 mt-2">
+                        Here's a quick overview of your invoice performance this month.
+                    </p>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 flex-1">
-                    <div className="bg-orange-500 p-3 rounded-lg shadow-md text-center h-24 flex flex-col justify-center">
-                        <h3 className="text-white text-xl font-bold">Total Invoices</h3>
-                        <p className="text-xl text-white font-bold">{statusCounts.paid + statusCounts.overdue + statusCounts.unpaid} invoices</p>
+            </div>
+    
+            {/* Main Content Section */}
+            <div className="flex flex-col lg:flex-row gap-6">
+                {/* Summary Cards on the Left */}
+                <div className="bg-white p-6 rounded-lg shadow-md">
+                    <div className="flex flex-col gap-6">
+                        {/* Yellow Card on Top */}
+                        <div className="bg-yellow-500 p-4 rounded-lg shadow-md text-center h-28 flex flex-col justify-center">
+                            <h3 className="text-white text-base font-semibold">Total Collected</h3>
+                            <p className="text-2xl font-bold text-white">
+                                {statusCounts.paid + statusCounts.unpaid}
+                            </p>
+                        </div>
+    
+                        {/* Other Cards Below */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
+                            <div className="bg-violet-500 p-2 rounded-lg shadow-md text-center h-28 flex flex-col justify-center">
+                                <h3 className="text-white text-base font-semibold">Total Outstanding</h3>
+                                <p className="text-2xl font-bold text-white">{statusCounts.onTime}</p>
+                            </div>
+    
+                            <div className="bg-green-600 p-2 rounded-lg shadow-md text-center h-28 flex flex-col justify-center">
+                                <h3 className="text-white text-base font-semibold">Total Overdue</h3>
+                                <p className="text-2xl font-bold text-white">{statusCounts.paid}</p>
+                            </div>
+                        </div>
                     </div>
-
-                    <div className="bg-violet-500 p-3 rounded-lg shadow-md text-center h-24 flex flex-col justify-center">
-                        <h3 className="text-white text-xl font-bold">On-Time Invoices</h3>
-                        <p className="text-xl font-bold text-white">{statusCounts.onTime} invoices</p>
-                    </div>
-
-                    <div className="bg-blue-500 p-3 rounded-lg shadow-md text-center h-24 flex flex-col justify-center">
-                        <h3 className="text-white text-xl font-bold">Overdue Invoices</h3>
-                        <p className="text-xl font-bold text-white">{statusCounts.overdue} invoices</p>
-                    </div>
-
-                    <div className="bg-green-600 p-3 rounded-lg shadow-md text-center h-24 flex flex-col justify-center">
-                        <h3 className="text-white text-xl font-bold">Paid Invoices</h3>
-                        <p className="text-xl text-white font-bold">{statusCounts.paid} invoices</p>
-                    </div>
-
-                    <div className="bg-rose-500 p-3 rounded-lg shadow-md text-center h-24 flex flex-col justify-center">
-                        <h3 className="text-white text-xl font-bold">Unpaid Invoices</h3>
-                        <p className="text-xl text-white font-bold">{statusCounts.unpaid} invoices</p>
-                    </div>
-
-                    <div className="bg-yellow-500 p-3 rounded-lg shadow-md text-center h-24 flex flex-col justify-center">
-                        <h3 className="text-white text-xl font-bold">Pending Invoices</h3>
-                        <p className="text-xl text-white font-bold">{statusCounts.pending} invoices</p>
+                </div>
+    
+                {/* Graph on the Right */}
+                <div className="bg-white p-6 rounded-lg shadow-md">
+                    {/* Your Graph Component or Placeholder */}
+                    <h3 className="text-xl font-semibold text-gray-800">Invoice Performance Graph</h3>
+                    <div className="mt-4">
+                        {/* Add your graph here, e.g., Chart.js, Plotly, or any custom graph component */}
+                        <div className="h-64 bg-gray-200">Graph goes here</div>
                     </div>
                 </div>
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {/* PieChart: Paid vs Unpaid Invoices for the current month */}
-                <div className="w-full h-72 p-4 bg-zinc-100 shadow-md rounded-lg flex flex-col items-center justify-center overflow-hidden">
-                    <h3 className="text-lg font-semibold text-gray-700 mt-4">Paid vs Unpaid Invoices for Current Month</h3>
-                    <PieChart width={270} height={270}> {/* Adjusted width to 100% */}
-                        <Pie
-                            dataKey="value"
-                            data={monthlyData.pieData}
-                            cx="50%"
-                            cy="50%"
-                         
-                        >
-                            <Cell fill="#16a34a" />
-                            <Cell fill="#f43f5e" />
-                        </Pie>
-                        <Tooltip />
-                    </PieChart>
-
+    
+            {/* Flashcards Section */}
+            <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* Flashcard 1 */}
+                <div className="bg-teal-500 p-6 rounded-lg shadow-lg text-center">
+                    <h3 className="text-white text-lg font-semibold">Flashcard 1</h3>
+                    <p className="text-white mt-2">Some content for flashcard 1.</p>
                 </div>
-
-                {/* LineChart: On-Time, Overdue, Pending Invoices for the current month */}
-                <div className="w-full h-72 p-4 bg-zinc-100 shadow-md rounded-lg">
-                    <h3 className="text-lg font-semibold text-gray-700">Invoice Status Over Time (Current Month)</h3>
-                    <LineChart width={600} height={220} data={monthlyData.lineChartData}> {/* Increased size */}
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="month" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Line type="monotone" dataKey="onTime" stroke="#22c55e" />
-                        <Line type="monotone" dataKey="overdue" stroke="#e11d48" />
-                        <Line type="monotone" dataKey="pending" stroke="#f59e0b" />
-                    </LineChart>
+    
+                {/* Flashcard 2 */}
+                <div className="bg-indigo-600 p-6 rounded-lg shadow-lg text-center">
+                    <h3 className="text-white text-lg font-semibold">Flashcard 2</h3>
+                    <p className="text-white mt-2">Some content for flashcard 2.</p>
                 </div>
-
-                {/* BarChart: Monthly Invoices & Amount for the whole year */}
-                <div className="w-full h-72 p-4 bg-zinc-100 shadow-md rounded-lg">
-                    <h3 className="text-lg font-semibold text-gray-700">Monthly Invoices & Total Amount</h3>
-                    <BarChart width={400} height={250} data={monthlyData.barChartData}> {/* Increased size */}
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="month" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Bar dataKey="count" fill="#34d399" />
-                        <Bar dataKey="totalAmount" fill="#facc15" />
-                    </BarChart>
+    
+                {/* Flashcard 3 */}
+                <div className="bg-yellow-600 p-6 rounded-lg shadow-lg text-center">
+                    <h3 className="text-white text-lg font-semibold">Flashcard 3</h3>
+                    <p className="text-white mt-2">Some content for flashcard 3.</p>
+                </div>
+    
+                {/* Flashcard 4 */}
+                <div className="bg-orange-500 p-6 rounded-lg shadow-lg text-center">
+                    <h3 className="text-white text-lg font-semibold">Flashcard 4</h3>
+                    <p className="text-white mt-2">Some content for flashcard 4.</p>
+                </div>
+    
+                {/* Flashcard 5 */}
+                <div className="bg-pink-600 p-6 rounded-lg shadow-lg text-center">
+                    <h3 className="text-white text-lg font-semibold">Flashcard 5</h3>
+                    <p className="text-white mt-2">Some content for flashcard 5.</p>
+                </div>
+    
+                {/* Flashcard 6 */}
+                <div className="bg-purple-500 p-6 rounded-lg shadow-lg text-center">
+                    <h3 className="text-white text-lg font-semibold">Flashcard 6</h3>
+                    <p className="text-white mt-2">Some content for flashcard 6.</p>
                 </div>
             </div>
-
         </div>
     );
+    
 
 
 };

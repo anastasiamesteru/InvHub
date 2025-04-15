@@ -51,13 +51,12 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: "left",
     fontSize: 12,
-    padding: 6,
+    padding: 2,
     borderRightWidth: 1,
     borderRightColor: "#ddd",
     borderRightStyle: "solid",
     color: "#000000",
     flexWrap: "wrap",
-    overflow: "hidden",
     whiteSpace: 'normal', // Make sure text wraps within the cell
   },
   lastCell: {
@@ -201,7 +200,7 @@ const InvoicePDF = ({ invoiceData }) => {
 
         <View style={{ marginTop: 10, alignItems: 'flex-end' }}>
           <View style={{ flexDirection: 'row', gap: 10 }}>
-            <Text style={{ fontSize: 12, fontWeight: 'bold', color: '#000' }}>Tax:</Text>
+            <Text style={{ fontSize: 12, fontWeight: 'bold', color: '#000' }}>Tax: </Text>
             <Text style={{ fontSize: 12, color: '#000' }}>{parseFloat(tax).toFixed(2)}%</Text>
           </View>
 

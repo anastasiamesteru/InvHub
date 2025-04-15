@@ -46,14 +46,14 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#ddd",
     borderBottomStyle: "solid",
-    paddingVertical: 8,
+    paddingVertical: 2,
     paddingHorizontal: 5,
   },
   cell: {
     flex: 1,
     textAlign: "left",
     fontSize: 12,
-    padding: 6,
+    padding: 4,
     borderRightWidth: 1,
     borderRightColor: "#ddd",
     borderRightStyle: "solid",
@@ -124,7 +124,10 @@ const ReportPDF = ({ reportData }) => {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <Text style={styles.header}>{reportNumber}</Text>
+      <Text style={[styles.header, {textAlign:'center'} ]}>{title}</Text>
+
+      <Text style={[styles.title, {textAlign:'center'} ]}>{reportNumber}</Text>
+        <View style={styles.section}></View>
 
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
           <View style={{ flex: 1 }}>
@@ -140,10 +143,7 @@ const ReportPDF = ({ reportData }) => {
           </View>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.titleText}>Report Title</Text>
-          <Text style={styles.subTitle}>{title}</Text>
-        </View>
+       
 
         {/* Payment Status Table */}
         <View style={styles.section}>
@@ -155,33 +155,34 @@ const ReportPDF = ({ reportData }) => {
               <Text style={[styles.lastCell, { fontWeight: 'bold', textAlign: 'center' }]}>Count</Text>
             </View>
 
-            {/* Payment Status Rows */}
-            <View style={styles.row}>
-              <Text style={[styles.cell, { textAlign: 'center' }]}>Paid Invoices</Text>
-              <Text style={[styles.lastCell, { textAlign: 'center' }]}>{paymentStatus.numberOfPaidInvoices}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={[styles.cell, { textAlign: 'center' }]}>Unpaid Invoices</Text>
-              <Text style={[styles.lastCell, { textAlign: 'center' }]}>{paymentStatus.numberOfUnpaidInvoices}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={[styles.cell, { textAlign: 'center' }]}>Pending Invoices</Text>
-              <Text style={[styles.lastCell, { textAlign: 'center' }]}>{paymentStatus.numberOfPendingInvoices}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={[styles.cell, { textAlign: 'center' }]}>Percent Paid</Text>
-              <Text style={[styles.lastCell, { textAlign: 'center' }]}>{paymentStatus.percentPaid}%</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={[styles.cell, { textAlign: 'center' }]}>Percent Unpaid</Text>
-              <Text style={[styles.lastCell, { textAlign: 'center' }]}>{paymentStatus.percentUnpaid}%</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={[styles.cell, { textAlign: 'center' }]}>Percent Pending</Text>
-              <Text style={[styles.lastCell, { textAlign: 'center' }]}>{paymentStatus.percentPending}%</Text>
-            </View>
+            {/* Conditional Rows */}
+            {paymentStatus.numberOfPaidInvoices != null && (
+              <View style={styles.row}>
+                <Text style={[styles.cell, { textAlign: 'center' }]}>Paid Invoices</Text>
+                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{paymentStatus.numberOfPaidInvoices}</Text>
+              </View>
+            )}
+            {paymentStatus.numberOfUnpaidInvoices != null && (
+              <View style={styles.row}>
+                <Text style={[styles.cell, { textAlign: 'center' }]}>Unpaid Invoices</Text>
+                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{paymentStatus.numberOfUnpaidInvoices}</Text>
+              </View>
+            )}
+            {paymentStatus.percentPaid != null && (
+              <View style={styles.row}>
+                <Text style={[styles.cell, { textAlign: 'center' }]}>Percent Paid</Text>
+                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{paymentStatus.percentPaid}%</Text>
+              </View>
+            )}
+            {paymentStatus.percentUnpaid != null && (
+              <View style={styles.row}>
+                <Text style={[styles.cell, { textAlign: 'center' }]}>Percent Unpaid</Text>
+                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{paymentStatus.percentUnpaid}%</Text>
+              </View>
+            )}
           </View>
         </View>
+
 
 
         {/* Overdue Analysis Table */}
@@ -194,45 +195,64 @@ const ReportPDF = ({ reportData }) => {
               <Text style={[styles.lastCell, { fontWeight: 'bold', textAlign: 'center' }]}>Count</Text>
             </View>
 
-            {/* Overdue Analysis Rows */}
-            <View style={styles.row}>
-              <Text style={[styles.cell, { textAlign: 'center' }]}>Invoices Paid On Time</Text>
-              <Text style={[styles.lastCell, { textAlign: 'center' }]}>{overdueAnalysis.numberOfInvoicesPaidOnTime}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={[styles.cell, { textAlign: 'center' }]}>Overdue Invoices</Text>
-              <Text style={[styles.lastCell, { textAlign: 'center' }]}>{overdueAnalysis.numberOfOverdueInvoices}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={[styles.cell, { textAlign: 'center' }]}>Overdue 30 Days</Text>
-              <Text style={[styles.lastCell, { textAlign: 'center' }]}>{overdueAnalysis.numberOfInvoicesOverdue30Days}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={[styles.cell, { textAlign: 'center' }]}>Overdue 60 Days</Text>
-              <Text style={[styles.lastCell, { textAlign: 'center' }]}>{overdueAnalysis.numberOfInvoicesOverdue60Days}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={[styles.cell, { textAlign: 'center' }]}>Overdue 90+ Days</Text>
-              <Text style={[styles.lastCell, { textAlign: 'center' }]}>{overdueAnalysis.numberOfInvoicesOverdue90PlusDays}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={[styles.cell, { textAlign: 'center' }]}>Percent Overdue</Text>
-              <Text style={[styles.lastCell, { textAlign: 'center' }]}>{overdueAnalysis.percentOverdue}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={[styles.cell, { textAlign: 'center' }]}>Percent Overdue 30 Days</Text>
-              <Text style={[styles.lastCell, { textAlign: 'center' }]}>{overdueAnalysis.percentOverdue30}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={[styles.cell, { textAlign: 'center' }]}>Percent Overdue 60 Days</Text>
-              <Text style={[styles.lastCell, { textAlign: 'center' }]}>{overdueAnalysis.percentOverdue60}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={[styles.cell, { textAlign: 'center' }]}>Percent Overdue 90+ Days</Text>
-              <Text style={[styles.lastCell, { textAlign: 'center' }]}>{overdueAnalysis.percentOverdue90Plus}</Text>
-            </View>
+            {/* Conditionally Rendered Rows */}
+            {overdueAnalysis.numberOfInvoicesPaidOnTime != null && (
+              <View style={styles.row}>
+                <Text style={[styles.cell, { textAlign: 'center' }]}>Invoices Paid On Time</Text>
+                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{overdueAnalysis.numberOfInvoicesPaidOnTime}</Text>
+              </View>
+            )}
+            {overdueAnalysis.numberOfOverdueInvoices != null && (
+              <View style={styles.row}>
+                <Text style={[styles.cell, { textAlign: 'center' }]}>Overdue Invoices</Text>
+                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{overdueAnalysis.numberOfOverdueInvoices}</Text>
+              </View>
+            )}
+            {overdueAnalysis.numberOfInvoicesOverdue30Days != null && (
+              <View style={styles.row}>
+                <Text style={[styles.cell, { textAlign: 'center' }]}>Overdue 30 Days</Text>
+                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{overdueAnalysis.numberOfInvoicesOverdue30Days}</Text>
+              </View>
+            )}
+            {overdueAnalysis.numberOfInvoicesOverdue60Days != null && (
+              <View style={styles.row}>
+                <Text style={[styles.cell, { textAlign: 'center' }]}>Overdue 60 Days</Text>
+                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{overdueAnalysis.numberOfInvoicesOverdue60Days}</Text>
+              </View>
+            )}
+            {overdueAnalysis.numberOfInvoicesOverdue90PlusDays != null && (
+              <View style={styles.row}>
+                <Text style={[styles.cell, { textAlign: 'center' }]}>Overdue 90+ Days</Text>
+                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{overdueAnalysis.numberOfInvoicesOverdue90PlusDays}</Text>
+              </View>
+            )}
+            {overdueAnalysis.percentOverdue != null && (
+              <View style={styles.row}>
+                <Text style={[styles.cell, { textAlign: 'center' }]}>Percent Overdue</Text>
+                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{overdueAnalysis.percentOverdue}</Text>
+              </View>
+            )}
+            {overdueAnalysis.percentOverdue30 != null && (
+              <View style={styles.row}>
+                <Text style={[styles.cell, { textAlign: 'center' }]}>Percent Overdue 30 Days</Text>
+                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{overdueAnalysis.percentOverdue30}</Text>
+              </View>
+            )}
+            {overdueAnalysis.percentOverdue60 != null && (
+              <View style={styles.row}>
+                <Text style={[styles.cell, { textAlign: 'center' }]}>Percent Overdue 60 Days</Text>
+                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{overdueAnalysis.percentOverdue60}</Text>
+              </View>
+            )}
+            {overdueAnalysis.percentOverdue90Plus != null && (
+              <View style={styles.row}>
+                <Text style={[styles.cell, { textAlign: 'center' }]}>Percent Overdue 90+ Days</Text>
+                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{overdueAnalysis.percentOverdue90Plus}</Text>
+              </View>
+            )}
           </View>
         </View>
+
 
 
         {/* Invoice Patterns Table */}
@@ -245,21 +265,28 @@ const ReportPDF = ({ reportData }) => {
               <Text style={[styles.lastCell, { fontWeight: 'bold', textAlign: 'center' }]}>Amount</Text>
             </View>
 
-            {/* Invoice Patterns Rows */}
-            <View style={styles.row}>
-              <Text style={[styles.cell, { textAlign: 'center' }]}>Average Days to Payment</Text>
-              <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoicePatterns.averageDaysToPayment}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={[styles.cell, { textAlign: 'center' }]}>Median Days to Payment</Text>
-              <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoicePatterns.medianDaysToPayment}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={[styles.cell, { textAlign: 'center' }]}>Mode of Payment Delays</Text>
-              <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoicePatterns.modeOfPaymentDelays}</Text>
-            </View>
+            {/* Conditionally Rendered Rows */}
+            {invoicePatterns.averageDaysToPayment != null && (
+              <View style={styles.row}>
+                <Text style={[styles.cell, { textAlign: 'center' }]}>Average Days to Payment</Text>
+                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoicePatterns.averageDaysToPayment}</Text>
+              </View>
+            )}
+            {invoicePatterns.medianDaysToPayment != null && (
+              <View style={styles.row}>
+                <Text style={[styles.cell, { textAlign: 'center' }]}>Median Days to Payment</Text>
+                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoicePatterns.medianDaysToPayment}</Text>
+              </View>
+            )}
+            {invoicePatterns.modeOfPaymentDelays != null && (
+              <View style={styles.row}>
+                <Text style={[styles.cell, { textAlign: 'center' }]}>Mode of Payment Delays</Text>
+                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoicePatterns.modeOfPaymentDelays}</Text>
+              </View>
+            )}
           </View>
         </View>
+
 
       </Page>
     </Document>

@@ -11,35 +11,11 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
         startDate: '',
         endDate: '',
         indicators: {
-            paymentStatus: {
-                numberOfPaidInvoices: 0,
-                numberOfUnpaidInvoices: 0,
-                numberOfPendingInvoices: 0,
-                paymentComplianceRate: 0,
-                percentPaid: 0,
-                percentUnpaid: 0,
-                percentPending: 0,
-            },
-            overdueAnalysis: {
-                numberOfInvoicesPaidOnTime: 0,
-                numberOfOverdueInvoices: 0,
-                numberOfInvoicesOverdue30Days: 0,
-                numberOfInvoicesOverdue60Days: 0,
-                numberOfInvoicesOverdue90PlusDays: 0,
-                percentOnTime: 0,
-                percentOverdue: 0,
-                percentOverdue30: 0,
-                percentOverdue60: 0,
-                percentOverdue90Plus: 0,
-            },
-            invoicePatterns: {
-                averageDaysToPayment: 0,
-                medianDaysToPayment: 0,
-                modeOfPaymentDelays: 0,
-            },
+            paymentStatus: null,
+            overdueAnalysis: null,
+            invoicePatterns: null,
         },
     });
-
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -65,100 +41,85 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
     useEffect(() => {
         fetchInvoices();
     }, []);
+
     const computeAndUpdateIndicators = (reportData) => {
         const { startDate, endDate } = reportData;
-    
+
         // Filter invoices within the given date range
         const invoicesInRange = invoices.filter(invoice => {
             const invoiceDate = new Date(invoice.issue_date);
             return invoiceDate >= new Date(startDate) && invoiceDate <= new Date(endDate);
         });
-    
+
         const totalInvoices = invoicesInRange.length;
-    
+
         // Payment Status Indicators
-        if (reportData.indicators.paymentStatus?.numberOfPaidInvoices) {
+        if (reportData.indicators.paymentStatus) {
             const numberOfPaidInvoices = invoicesInRange.filter(invoice => invoice.paymentStatus === 'Paid').length;
-            reportData.indicators.paymentStatus.numberOfPaidInvoices = numberOfPaidInvoices;
-        }
-    
-        if (reportData.indicators.paymentStatus?.numberOfUnpaidInvoices) {
             const numberOfUnpaidInvoices = invoicesInRange.filter(invoice => invoice.paymentStatus === 'Unpaid').length;
-            reportData.indicators.paymentStatus.numberOfUnpaidInvoices = numberOfUnpaidInvoices;
-        }
-    
-        if (reportData.indicators.paymentStatus?.numberOfPendingInvoices) {
-            const numberOfPendingInvoices = invoicesInRange.filter(invoice => invoice.timeStatus === 'Pending').length;
-            reportData.indicators.paymentStatus.numberOfPendingInvoices = numberOfPendingInvoices;
-        }
-    
-        if (reportData.indicators.paymentStatus?.percentPaid) {
-            const numberOfPaidInvoices = invoicesInRange.filter(invoice => invoice.paymentStatus === 'Paid').length;
+
             const percentPaid = totalInvoices > 0 ? (numberOfPaidInvoices / totalInvoices) * 100 : 0;
-            reportData.indicators.paymentStatus.percentPaid = percentPaid;
-        }
-    
-        if (reportData.indicators.paymentStatus?.percentUnpaid) {
-            const numberOfUnpaidInvoices = invoicesInRange.filter(invoice => invoice.paymentStatus === 'Unpaid').length;
             const percentUnpaid = totalInvoices > 0 ? (numberOfUnpaidInvoices / totalInvoices) * 100 : 0;
-            reportData.indicators.paymentStatus.percentUnpaid = percentUnpaid;
+
+            reportData.indicators.paymentStatus = {
+                numberOfPaidInvoices,
+                numberOfUnpaidInvoices,
+                percentPaid,
+                percentUnpaid,
+            };
         }
-    
-        if (reportData.indicators.paymentStatus?.percentPending) {
-            const numberOfPendingInvoices = invoicesInRange.filter(invoice => invoice.timeStatus === 'Pending').length;
-            const percentPending = totalInvoices > 0 ? (numberOfPendingInvoices / totalInvoices) * 100 : 0;
-            reportData.indicators.paymentStatus.percentPending = percentPending;
-        }
-    
+
         // Overdue Analysis
         if (reportData.indicators.overdueAnalysis) {
             const overdueInvoices = invoicesInRange.filter(invoice => invoice.paymentStatus === 'Unpaid');
-    
+
             const numberOfOverdueInvoices = overdueInvoices.filter(invoice =>
                 new Date(invoice.paymentDate) > new Date(invoice.due_date)
             ).length;
-    
+
             const overdue30to60Days = overdueInvoices.filter(invoice => {
                 const overdueDays = (new Date(invoice.paymentDate) - new Date(invoice.due_date)) / (1000 * 60 * 60 * 24);
                 return overdueDays > 30 && overdueDays <= 60;
             }).length;
-    
+
             const overdue60to90Days = overdueInvoices.filter(invoice => {
                 const overdueDays = (new Date(invoice.paymentDate) - new Date(invoice.due_date)) / (1000 * 60 * 60 * 24);
                 return overdueDays > 60 && overdueDays <= 90;
             }).length;
-    
+
             const overdue90PlusDays = overdueInvoices.filter(invoice => {
                 const overdueDays = (new Date(invoice.paymentDate) - new Date(invoice.due_date)) / (1000 * 60 * 60 * 24);
                 return overdueDays > 90;
             }).length;
-    
+
             const percentOverdue = totalInvoices > 0 ? (numberOfOverdueInvoices / totalInvoices) * 100 : 0;
             const percentOverdue30 = totalInvoices > 0 ? (overdue30to60Days / totalInvoices) * 100 : 0;
             const percentOverdue60 = totalInvoices > 0 ? (overdue60to90Days / totalInvoices) * 100 : 0;
             const percentOverdue90Plus = totalInvoices > 0 ? (overdue90PlusDays / totalInvoices) * 100 : 0;
-    
-            reportData.indicators.overdueAnalysis.numberOfOverdueInvoices = numberOfOverdueInvoices;
-            reportData.indicators.overdueAnalysis.numberOfInvoicesOverdue30Days = overdue30to60Days;
-            reportData.indicators.overdueAnalysis.numberOfInvoicesOverdue60Days = overdue60to90Days;
-            reportData.indicators.overdueAnalysis.numberOfInvoicesOverdue90PlusDays = overdue90PlusDays;
-            reportData.indicators.overdueAnalysis.percentOverdue = percentOverdue;
-            reportData.indicators.overdueAnalysis.percentOverdue30 = percentOverdue30;
-            reportData.indicators.overdueAnalysis.percentOverdue60 = percentOverdue60;
-            reportData.indicators.overdueAnalysis.percentOverdue90Plus = percentOverdue90Plus;
+
+            reportData.indicators.overdueAnalysis = {
+                numberOfOverdueInvoices,
+                numberOfInvoicesOverdue30Days: overdue30to60Days,
+                numberOfInvoicesOverdue60Days: overdue60to90Days,
+                numberOfInvoicesOverdue90PlusDays: overdue90PlusDays,
+                percentOverdue,
+                percentOverdue30,
+                percentOverdue60,
+                percentOverdue90Plus,
+            };
         }
-    
+
         // Invoice Patterns
         if (reportData.indicators.invoicePatterns) {
             const paidInvoices = invoicesInRange.filter(invoice =>
                 invoice.paymentStatus === 'Paid' && invoice.paymentDate && invoice.issue_date
             );
-    
+
             const paymentDelays = paidInvoices.map(invoice => {
                 const delay = (new Date(invoice.paymentDate) - new Date(invoice.issue_date)) / (1000 * 60 * 60 * 24);
                 return Math.round(delay);
             });
-    
+
             function calculateMedian(arr) {
                 if (arr.length === 0) return 0;
                 const sorted = [...arr].sort((a, b) => a - b);
@@ -167,7 +128,7 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
                     ? (sorted[mid - 1] + sorted[mid]) / 2
                     : sorted[mid];
             }
-    
+
             function calculateMode(arr) {
                 if (arr.length === 0) return 0;
                 const freqMap = {};
@@ -181,19 +142,20 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
                 }
                 return parseInt(mode);
             }
-    
+
             const average = paymentDelays.length > 0
                 ? paymentDelays.reduce((sum, val) => sum + val, 0) / paymentDelays.length
                 : 0;
-    
-            reportData.indicators.invoicePatterns.averageDaysToPayment = Math.round(average);
-            reportData.indicators.invoicePatterns.medianDaysToPayment = calculateMedian(paymentDelays);
-            reportData.indicators.invoicePatterns.modeOfPaymentDelays = calculateMode(paymentDelays);
+
+            reportData.indicators.invoicePatterns = {
+                averageDaysToPayment: Math.round(average),
+                medianDaysToPayment: calculateMedian(paymentDelays),
+                modeOfPaymentDelays: calculateMode(paymentDelays),
+            };
         }
-    
+
         return reportData;
     };
-    
 
     const handleCheckboxChange = (event) => {
         const { value, checked } = event.target;
@@ -243,42 +205,12 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
 
         const updatedReportData = computeAndUpdateIndicators(reportData);
 
-
         const payload = {
             reportNumber: updatedReportData.reportNumber,
             title: updatedReportData.title,
             startDate: updatedReportData.startDate,
             endDate: updatedReportData.endDate,
-            indicators: {
-                paymentStatus: {
-                    numberOfPaidInvoices: updatedReportData.indicators.paymentStatus.numberOfPaidInvoices,
-                    numberOfUnpaidInvoices: updatedReportData.indicators.paymentStatus.numberOfUnpaidInvoices,
-                    numberOfPendingInvoices: updatedReportData.indicators.paymentStatus.numberOfPendingInvoices,
-                    percentPaid: updatedReportData.indicators.paymentStatus.percentPaid,
-                    percentUnpaid: updatedReportData.indicators.paymentStatus.percentUnpaid,
-                    percentPending: updatedReportData.indicators.paymentStatus.percentPending,
-
-
-                },
-                overdueAnalysis: {
-                    numberOfInvoicesPaidOnTime: updatedReportData.indicators.overdueAnalysis.numberOfInvoicesPaidOnTime,
-                    numberOfOverdueInvoices: updatedReportData.indicators.overdueAnalysis.numberOfOverdueInvoices,
-                    numberOfInvoicesOverdue30Days: updatedReportData.indicators.overdueAnalysis.numberOfInvoicesOverdue30Days,
-                    numberOfInvoicesOverdue60Days: updatedReportData.indicators.overdueAnalysis.numberOfInvoicesOverdue60Days,
-                    numberOfInvoicesOverdue90PlusDays: updatedReportData.indicators.overdueAnalysis.numberOfInvoicesOverdue90PlusDays,
-                    percentOverdue: updatedReportData.indicators.overdueAnalysis.percentOverdue,
-                    percentOverdue30: updatedReportData.indicators.overdueAnalysis.percentOverdue30,
-                    percentOverdue60: updatedReportData.indicators.overdueAnalysis.percentOverdue60,
-                    percentOverdue90Plus: updatedReportData.indicators.overdueAnalysis.percentOverdue90Plus,
-
-                },
-                invoicePatterns: {
-                    averageDaysToPayment: updatedReportData.indicators.invoicePatterns.averageDaysToPayment,
-                    medianDaysToPayment: updatedReportData.indicators.invoicePatterns.medianDaysToPayment,
-                    modeOfPaymentDelays: updatedReportData.indicators.invoicePatterns.modeOfPaymentDelays,
-
-                },
-            },
+            indicators: updatedReportData.indicators,
             invoices,  // Include invoices here
         };
 
@@ -289,7 +221,7 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
                 },
             });
             console.log('Report response:', response);
-            await fetchReports();  
+            await fetchReports();
             onClose();
         } catch (error) {
             console.error('Error posting report data:', error);
@@ -411,26 +343,6 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
                             <span>Number of unpaid invoices</span>
                         </div>
 
-                        <div className="flex items-center space-x-1">
-                            <input
-                                type="checkbox"
-                                checked={reportData.indicators.paymentStatus?.numberOfPendingInvoices || false}
-                                onChange={(e) =>
-                                    setReportData(prev => ({
-                                        ...prev,
-                                        indicators: {
-                                            ...prev.indicators,
-                                            paymentStatus: {
-                                                ...prev.indicators.paymentStatus,
-                                                numberOfPendingInvoices: e.target.checked
-                                            }
-                                        }
-                                    }))
-                                }
-                                className="w-5 h-5 accent-blue-500 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none checked:bg-blue-500 hover:ring-2 hover:ring-blue-300"
-                            />
-                            <span>Number of pending invoices</span>
-                        </div>
 
                         <div className="flex items-center space-x-1">
                             <input
@@ -474,26 +386,6 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
                             <span>Percentage unpaid</span>
                         </div>
 
-                        <div className="flex items-center space-x-1">
-                            <input
-                                type="checkbox"
-                                checked={reportData.indicators.paymentStatus?.percentPending || false}
-                                onChange={(e) =>
-                                    setReportData(prev => ({
-                                        ...prev,
-                                        indicators: {
-                                            ...prev.indicators,
-                                            paymentStatus: {
-                                                ...prev.indicators.paymentStatus,
-                                                percentPending: e.target.checked
-                                            }
-                                        }
-                                    }))
-                                }
-                                className="w-5 h-5 accent-blue-500 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none checked:bg-blue-500 hover:ring-2 hover:ring-blue-300"
-                            />
-                            <span>Percentage pending</span>
-                        </div>
                     </div>
 
 
@@ -678,7 +570,6 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
 
                     {/* invoicePatterns Group */}
                     <div className="grid grid-cols-1 gap-4">
-
                         <div className="flex items-center space-x-1">
                             <input
                                 type="checkbox"
@@ -690,7 +581,7 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
                                             ...prev.indicators,
                                             invoicePatterns: {
                                                 ...prev.indicators.invoicePatterns,
-                                                averageDaysToPayment: e.target.checked
+                                                averageDaysToPayment: e.target.checked // Toggle only this value
                                             }
                                         }
                                     }))
@@ -699,6 +590,7 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
                             />
                             <span>Average days to payment</span>
                         </div>
+
                         <div className="flex items-center space-x-1">
                             <input
                                 type="checkbox"
@@ -710,7 +602,7 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
                                             ...prev.indicators,
                                             invoicePatterns: {
                                                 ...prev.indicators.invoicePatterns,
-                                                medianDaysToPayment: e.target.checked
+                                                medianDaysToPayment: e.target.checked // Toggle only this value
                                             }
                                         }
                                     }))
@@ -731,7 +623,7 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
                                             ...prev.indicators,
                                             invoicePatterns: {
                                                 ...prev.indicators.invoicePatterns,
-                                                modeOfPaymentDelays: e.target.checked
+                                                modeOfPaymentDelays: e.target.checked // Toggle only this value
                                             }
                                         }
                                     }))
