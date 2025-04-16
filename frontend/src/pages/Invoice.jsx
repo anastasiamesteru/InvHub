@@ -91,12 +91,16 @@ const Invoice = () => {
 
     const [currentPage, setCurrentPage] = useState(1);
     const invoicesPerPage = 8;
-
+    
+    // Calculate the index range for the current page
     const indexOfLastInvoice = currentPage * invoicesPerPage;
     const indexOfFirstInvoice = indexOfLastInvoice - invoicesPerPage;
+    
+    // Get the invoices to display for the current page
     const currentInvoices = filteredInvoices().slice(indexOfFirstInvoice, indexOfLastInvoice);
-
-
+    
+    // Calculate total number of pages
+    const totalPages = Math.ceil(filteredInvoices().length / invoicesPerPage);
 
     // Function to calculate penalty for overdue invoices
     const calculatePenalty = (paymentDate, dueDate, total) => {
@@ -149,26 +153,25 @@ const Invoice = () => {
         const baseTotal = parseFloat(invoice.total); // Ensure numeric
     //    console.log('invoice.total type:', typeof invoice.total, 'value:', invoice.total);
     
-        if (paymentStatus === 'Paid') {
-            const paymentDateObject = new Date(paymentDate);
-            
-            // Check if payment is on time or overdue
-            if (paymentDateObject <= dueDate) {
-                timeStatus = 'On Time';
-            } else {
-                timeStatus = 'Overdue';
-    
-                // Only add penalty if the payment is overdue (payment date is after due date)
-                const daysOverdue = Math.floor((paymentDateObject - dueDate) / (1000 * 60 * 60 * 24));
-                if (daysOverdue > 0) {
-                    penalty = calculatePenalty(paymentDateObject, dueDate, baseTotal);
-                }
-            }
+    if (paymentStatus === 'Paid') {
+        const paymentDateObject = new Date(paymentDate);
+      
+        if (paymentDateObject <= dueDate) {
+          timeStatus = 'On Time';
         } else {
-            // If unchecked (Unpaid), and it's past due date, go back to Pending
-            timeStatus = 'Pending';  // Reset status to Pending
-            penalty = 0;  // Reset penalty
+          timeStatus = 'Overdue';
+      
+          // Only calculate penalty if it wasn't already set
+          if (!invoice.payment_date || !invoice.penalty || invoice.penalty === 0) {
+            const daysOverdue = Math.floor((paymentDateObject - dueDate) / (1000 * 60 * 60 * 24));
+            if (daysOverdue > 0) {
+              penalty = calculatePenalty(paymentDateObject, dueDate, baseTotal);
+            }
+          } else {
+            penalty = invoice.penalty; // reuse existing penalty
+          }
         }
+      }
     
         const total = parseFloat((baseTotal + penalty).toFixed(2));
       //  console.log('New Total:', total);
@@ -308,7 +311,7 @@ const Invoice = () => {
                                         </span>
                                     </td>
 
-                                    <td className="px-3 py-2 text-center">{invoice.total}</td>
+                                    <td className="px-3 py-2 text-center">${invoice.total}</td>
 
                                     <td className="px-3 py-2 text-center">
                                         <input
@@ -409,43 +412,39 @@ const Invoice = () => {
 
 
 
-
-            {/* Pagination Controls */}
-            <div className="flex justify-center mt-4">
-                <button
-                    className="px-4 py-2 mx-2 text-sm font-semibold text-white bg-purple-500 rounded-lg hover:bg-purple-700"
-                    onClick={() => setCurrentPage(1)}
-                    disabled={currentPage === 1}
-                >
-                    First
-                </button>
-                <button
-                    className="px-4 py-2 mx-2 text-sm font-semibold text-white bg-purple-500 rounded-lg hover:bg-purple-700"
-                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                    disabled={currentPage === 1}
-                >
-                    Prev
-                </button>
-                <span className="px-4 py-2 mx-2 text-sm text-gray-600">{currentPage}</span>
-                <button
-                    className="px-4 py-2 mx-2 text-sm font-semibold text-white bg-purple-500 rounded-lg hover:bg-purple-700"
-                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(filteredInvoices.length / invoicesPerPage)))}
-                    disabled={currentPage === Math.ceil(filteredInvoices.length / invoicesPerPage)}
-                >
-                    Next
-                </button>
-                <button
-                    className="px-4 py-2 mx-2 text-sm font-semibold text-white bg-purple-500 rounded-lg hover:bg-purple-700"
-                    onClick={() => setCurrentPage(Math.ceil(filteredInvoices.length / invoicesPerPage))}
-                    disabled={currentPage === Math.ceil(filteredInvoices.length / invoicesPerPage)}
-                >
-                    Last
-                </button>
-            </div>
-
-
-
-        </div >
+ {/* Pagination Controls */}
+ <div className="flex justify-center mt-4">
+      <button
+        className="px-4 py-2 mx-2 text-sm font-semibold text-white bg-purple-500 rounded-lg hover:bg-purple-700"
+        onClick={() => setCurrentPage(1)}
+        disabled={currentPage === 1}
+      >
+        First
+      </button>
+      <button
+        className="px-4 py-2 mx-2 text-sm font-semibold text-white bg-purple-500 rounded-lg hover:bg-purple-700"
+        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+        disabled={currentPage === 1}
+      >
+        Prev
+      </button>
+      <span className="px-4 py-2 mx-2 text-sm text-gray-600">{currentPage}</span>
+      <button
+        className="px-4 py-2 mx-2 text-sm font-semibold text-white bg-purple-500 rounded-lg hover:bg-purple-700"
+        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+        disabled={currentPage === totalPages}
+      >
+        Next
+      </button>
+      <button
+        className="px-4 py-2 mx-2 text-sm font-semibold text-white bg-purple-500 rounded-lg hover:bg-purple-700"
+        onClick={() => setCurrentPage(totalPages)}
+        disabled={currentPage === totalPages}
+      >
+        Last
+      </button>
+    </div>
+  </div>
     );
 };
 

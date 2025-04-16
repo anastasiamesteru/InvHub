@@ -386,7 +386,7 @@ const Database = () => {
                                     <tr key={item._id}>
                                         <td className="px-3 py-2 text-center">{item.name}</td>
                                         <td className="px-3 py-2 text-center break-words max-w-xs">{item.description}</td>
-                                        <td className="px-3 py-2 text-center">{item.price}</td>
+                                        <td className="px-3 py-2 text-center">${item.price}</td>
                                         <td className="px-3 py-2 text-center">
                                             <span className={`inline-block px-2 py-1 font-semibold rounded ${item.type === 'product' ? 'bg-orange-100 text-orange-800' : 'bg-purple-100 text-purple-800'}`}>
                                                 {item.type}

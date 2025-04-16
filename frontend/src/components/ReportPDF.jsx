@@ -125,8 +125,9 @@ const ReportPDF = ({ reportData }) => {
     <Document>
       <Page size="A4" style={styles.page}>
       <Text style={[styles.header, {textAlign:'center'} ]}>{title}</Text>
-
       <Text style={[styles.title, {textAlign:'center'} ]}>{reportNumber}</Text>
+        
+        
         <View style={styles.section}></View>
 
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
@@ -144,6 +145,8 @@ const ReportPDF = ({ reportData }) => {
         </View>
 
        
+    <Text style={styles.subTitle}>This report provides a comprehensive overview of invoice activity and payment behavior for the specified reporting period. It highlights key performance indicators related to payment status, overdue trends, and payment timing, offering actionable insights for financial tracking and decision-making.</Text>
+    <Text></Text>
 
         {/* Payment Status Table */}
         <View style={styles.section}>
@@ -171,18 +174,17 @@ const ReportPDF = ({ reportData }) => {
             {paymentStatus.percentPaid != null && (
               <View style={styles.row}>
                 <Text style={[styles.cell, { textAlign: 'center' }]}>Percent Paid</Text>
-                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{paymentStatus.percentPaid}%</Text>
+                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{paymentStatus.percentPaid.toFixed(2)}%</Text>
               </View>
             )}
             {paymentStatus.percentUnpaid != null && (
               <View style={styles.row}>
                 <Text style={[styles.cell, { textAlign: 'center' }]}>Percent Unpaid</Text>
-                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{paymentStatus.percentUnpaid}%</Text>
+                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{paymentStatus.percentUnpaid.toFixed(2)}%</Text>
               </View>
             )}
           </View>
         </View>
-
 
 
         {/* Overdue Analysis Table */}
@@ -196,10 +198,10 @@ const ReportPDF = ({ reportData }) => {
             </View>
 
             {/* Conditionally Rendered Rows */}
-            {overdueAnalysis.numberOfInvoicesPaidOnTime != null && (
+            {overdueAnalysis.numberOfOnTimeInvoices != null && (
               <View style={styles.row}>
                 <Text style={[styles.cell, { textAlign: 'center' }]}>Invoices Paid On Time</Text>
-                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{overdueAnalysis.numberOfInvoicesPaidOnTime}</Text>
+                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{overdueAnalysis.numberOfOnTimeInvoices}</Text>
               </View>
             )}
             {overdueAnalysis.numberOfOverdueInvoices != null && (
@@ -224,6 +226,12 @@ const ReportPDF = ({ reportData }) => {
               <View style={styles.row}>
                 <Text style={[styles.cell, { textAlign: 'center' }]}>Overdue 90+ Days</Text>
                 <Text style={[styles.lastCell, { textAlign: 'center' }]}>{overdueAnalysis.numberOfInvoicesOverdue90PlusDays}</Text>
+              </View>
+            )}
+            {overdueAnalysis.percentOnTime != null && (
+              <View style={styles.row}>
+                <Text style={[styles.cell, { textAlign: 'center' }]}>Percent On Time</Text>
+                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{overdueAnalysis.percentOnTime}</Text>
               </View>
             )}
             {overdueAnalysis.percentOverdue != null && (
@@ -252,8 +260,6 @@ const ReportPDF = ({ reportData }) => {
             )}
           </View>
         </View>
-
-
 
         {/* Invoice Patterns Table */}
         <View style={styles.section}>

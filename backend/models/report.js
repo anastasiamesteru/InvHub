@@ -1,38 +1,60 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 const reportSchema = new mongoose.Schema({
-    reportNumber: { type: String, required: true },
-
-    title: { type: String, required: true }, 
-    startDate: { type: Date, required: true },
-    endDate: {  type: Date,  required: true}, 
+    reportNumber: String,
+    title: String,
+    startDate: Date,
+    endDate: Date,
     indicators: {
         paymentStatus: {
-            numberOfPaidInvoices: { type: Number,default:null },
-            numberOfUnpaidInvoices: { type: Number , default:null},
-            percentPaid: { type: Number , default:null},
-            percentUnpaid: { type: Number , default:null},
+            numberOfPaidInvoices: { type: Number },
+            numberOfUnpaidInvoices: { type: Number },
+            percentPaid: { type: Number },
+            percentUnpaid: { type: Number },
         },
-        
         overdueAnalysis: {
-            numberOfInvoicesPaidOnTime: { type: Number , default:null},
-            numberOfOverdueInvoices: { type: Number , default:null},
-            numberOfInvoicesOverdue30Days: { type: Number , default:null},
-            numberOfInvoicesOverdue60Days: { type: Number , default:null},
-            numberOfInvoicesOverdue90PlusDays: { type: Number , default:null},
-            percentOverdue: { type: Number , default:null},
-            percentOverdue30: { type: Number , default:null},
-            percentOverdue60: { type: Number , default:null},
-            percentOverdue90Plus: { type: Number , default:null},
+            numberOfOnTimeInvoices: { type: Number },
+            numberOfOverdueInvoices: { type: Number },
+            numberOfInvoicesOverdue30Days: { type: Number },
+            numberOfInvoicesOverdue60Days: { type: Number },
+            numberOfInvoicesOverdue90PlusDays: { type: Number },
+            percentOverdue: { type: Number },
+            percentOverdue30: { type: Number },
+            percentOverdue60: { type: Number },
+            percentOverdue90Plus: { type: Number },
+            percentOnTime: { type: Number },
         },
-        
         invoicePatterns: {
-            averageDaysToPayment: { type: Number , default:null},
-            medianDaysToPayment: { type: Number , default:null},
-            modeOfPaymentDelays: { type: Number , default:null},
+            averageDaysToPayment: { type: Number },
+            medianDaysToPayment: { type: Number },
+            modeOfPaymentDelays: { type: Number },
         },
-        
+    },
+    selectedCheckboxes: {
+        paymentStatus: {
+            checkednumberOfPaidInvoices: { type: Boolean },
+            checkednumberOfUnpaidInvoices: { type: Boolean },
+            checkedpercentPaid: { type: Boolean },
+            checkedpercentUnpaid: { type: Boolean },
+        },
+        overdueAnalysis: {
+            checkednumberOfOnTimeInvoices: { type: Boolean },
+            checkednumberOfOverdueInvoices: { type: Boolean },
+            checkednumberOfInvoicesOverdue30Days: { type: Boolean },
+            checkednumberOfInvoicesOverdue60Days: { type: Boolean },
+            checkednumberOfInvoicesOverdue90PlusDays: { type: Boolean },
+            checkedpercentOverdue30: { type: Boolean },
+            checkedpercentOverdue90: { type: Boolean },
+            checkedpercentOverdue90Plus: { type: Boolean },
+            checkedpercentOnTime: { type: Boolean },
+        },
+        invoicePatterns: {
+            checkedaverageDaysToPayment: { type: Boolean },
+            checkedmedianDaysToPayment: { type: Boolean },
+            checkedmodeOfPaymentDelays: { type: Boolean },
+        },
     },
 });
 
-export default mongoose.model('Report', reportSchema);
+const Report = mongoose.model('Report', reportSchema);
+export default Report;

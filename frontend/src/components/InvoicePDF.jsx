@@ -190,8 +190,8 @@ const InvoicePDF = ({ invoiceData }) => {
             <View style={[styles.row, index === items.length - 1 && { borderBottomWidth: 0 }]} key={index}>
               <Text style={[styles.cell, { textAlign: 'center' }]}>{item.itemName}</Text>
               <Text style={[styles.cell, { textAlign: 'center' }]}>{item.quantity}</Text>
-              <Text style={[styles.cell, { textAlign: 'center' }]}>{item.unitPrice.toFixed(2)}</Text>
-              <Text style={[styles.lastCell, { textAlign: 'center' }]}>{(item.unitPrice * item.quantity).toFixed(2)}</Text>
+              <Text style={[styles.cell, { textAlign: 'center' }]}>${item.unitPrice.toFixed(2)}</Text>
+              <Text style={[styles.lastCell, { textAlign: 'center' }]}>${(item.unitPrice * item.quantity).toFixed(2)}</Text>
             </View>
           ))}
         </View>
@@ -206,7 +206,7 @@ const InvoicePDF = ({ invoiceData }) => {
 
           <View style={{ flexDirection: 'row', gap: 10 }}>
             <Text style={{ fontSize: 12, fontWeight: 'bold', color: '#000' }}>Total:</Text>
-            <Text style={{ fontSize: 12, color: '#000' }}>{parseFloat(total).toFixed(2)}</Text>
+            <Text style={{ fontSize: 12, color: '#000' }}>${parseFloat(total).toFixed(2)}</Text>
           </View>
         </View>
 
