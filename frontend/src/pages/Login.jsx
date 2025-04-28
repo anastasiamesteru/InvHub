@@ -3,16 +3,16 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { assets } from '../assets/assets';
 
-const Login = ({ onLoginSuccess, setIsAuthenticated  }) => {
+const Login = ({ onLoginSuccess, setIsAuthenticated }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState('');
-  const [loading, setLoading] = useState(false);  
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
 
-  
+
   const validateForm = () => {
     let newErrors = {};
     let hasError = false;
@@ -41,28 +41,33 @@ const Login = ({ onLoginSuccess, setIsAuthenticated  }) => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (!validateForm()) return;
-
+  
     setLoading(true);
     try {
       const response = await axios.post('http://localhost:4000/auth/login', {
         email,
         password,
       });
-
+  
       localStorage.setItem('token', response.data.token);
       setIsAuthenticated(true);
-      onLoginSuccess(response.data);
+      //onLoginSuccess(response.data);
       navigate('/dashboard');
     } catch (error) {
-      console.error('Login error:', error.response?.data?.message || error.message);
+      console.error('Login error:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message
+      });
+      console.error('Login error:', error.response?.data?.message || 'Something went wrong');
       setFormError(error.response?.data?.message || 'Login failed, please try again.');
     } finally {
       setLoading(false);
     }
-};
+  };
+  
 
-
-   return (
+  return (
     <div
       className="flex justify-center items-center min-h-screen bg-cover bg-center"
       style={{ backgroundImage: `url(${assets.Bg})` }}

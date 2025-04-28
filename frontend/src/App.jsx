@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
 import Invoice from './pages/Invoice';
 import Database from './pages/Database';
@@ -11,8 +11,8 @@ import Navbar from './components/Navbar';
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
-  //yeah idk 
   useEffect(() => {
     const token = localStorage.getItem('token');
     setIsAuthenticated(!!token);
@@ -24,10 +24,13 @@ const App = () => {
     navigate('/login');
   };
 
+  const hideNavbarPaths = ['/login', '/register'];
+  const shouldShowNavbar = isAuthenticated && !hideNavbarPaths.includes(location.pathname);
+
   return (
     <div className="flex flex-col min-h-screen w-full">
-      {/* Show Navbar only when authenticated */}
-      {isAuthenticated && <Navbar onLogout={handleLogout} />}
+      {/* Show Navbar only when authenticated and not on login/register */}
+      {shouldShowNavbar && <Navbar onLogout={handleLogout} />}
 
       <main className="flex-grow min-h-screen w-full">
         <Routes>
