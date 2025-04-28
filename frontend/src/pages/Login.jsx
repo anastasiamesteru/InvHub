@@ -49,10 +49,14 @@ const Login = ({ onLoginSuccess, setIsAuthenticated }) => {
         password,
       });
   
-      localStorage.setItem('token', response.data.token);
-      setIsAuthenticated(true);
-      //onLoginSuccess(response.data);
-      navigate('/dashboard');
+      const token = response.data.token; // Assuming the token is inside `data.token`
+      if (token) {
+        localStorage.setItem('authToken', token); // Store token only once
+        setIsAuthenticated(true);
+        navigate('/dashboard');
+      } else {
+        throw new Error('Token not found in response');
+      }
     } catch (error) {
       console.error('Login error:', {
         status: error.response?.status,

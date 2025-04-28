@@ -10,11 +10,21 @@ const Invoice = () => {
     const [invoices, setInvoices] = useState([]);
     const [selectedInvoice, setSelectedInvoice] = useState(null);
 
-
-
     const fetchInvoices = async () => {
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            console.error("No token found");
+            return;
+        }
+    
         try {
-            const response = await fetch('http://localhost:4000/routes/invoices/getall');
+            const response = await fetch('http://localhost:4000/routes/invoices/getall', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
             if (!response.ok) throw new Error('Failed to fetch invoices');
             const data = await response.json();
             setInvoices(data);
@@ -22,6 +32,7 @@ const Invoice = () => {
             console.error("Error fetching invoices:", error);
         }
     };
+    
 
     useEffect(() => {
         fetchInvoices();
@@ -29,18 +40,29 @@ const Invoice = () => {
 
 
     const deleteInvoice = async (id) => {
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            console.error("No token found");
+            return;
+        }
+    
         try {
-            await axios.delete(`http://localhost:4000/routes/invoices/${id}`);
-//console.log("Invoice deleted successfully");
-
+            await axios.delete(`http://localhost:4000/routes/invoices/${id}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    
+                },
+            });
+    
+            // Refresh the invoice list after deleting
             setInvoices(prevInvoices => prevInvoices.filter(invoice => invoice._id !== id));
-
             fetchInvoices();
         } catch (error) {
-            console.error("Error deleting:", error);
+            console.error("Error deleting invoice:", error);
         }
     };
     
+
     const openModal = () => { setIsModalOpen(true); };
     const closeModal = () => { setIsModalOpen(false); };
 
@@ -91,14 +113,14 @@ const Invoice = () => {
 
     const [currentPage, setCurrentPage] = useState(1);
     const invoicesPerPage = 8;
-    
+
     // Calculate the index range for the current page
     const indexOfLastInvoice = currentPage * invoicesPerPage;
     const indexOfFirstInvoice = indexOfLastInvoice - invoicesPerPage;
-    
+
     // Get the invoices to display for the current page
     const currentInvoices = filteredInvoices().slice(indexOfFirstInvoice, indexOfLastInvoice);
-    
+
     // Calculate total number of pages
     const totalPages = Math.ceil(filteredInvoices().length / invoicesPerPage);
 
@@ -111,33 +133,44 @@ const Invoice = () => {
 
     // Function to update the payment status
     const updatePaymentStatus = async (invoiceId, paymentStatus, paymentDate, timeStatus, total) => {
+        const token = localStorage.getItem('authToken'); // Get the token from localStorage
+        if (!token) {
+            console.error("No token found");
+            return;
+        }
+    
         try {
             // Sending the updated data to the backend
-            await axios.patch(`http://localhost:4000/routes/invoices/${invoiceId}`, {
+            const response = await axios.patch(`http://localhost:4000/routes/invoices/${invoiceId}`, {
                 paymentStatus,
                 paymentDate,
                 timeStatus,
                 total: total
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,  // Include the token
+                    'Content-Type': 'application/json'   // Specify content type
+                }
             });
-
+    
+            console.log("Payment status updated successfully:", response.data);
+            
             // Fetch invoices after the update
             fetchInvoices();
-           
-            
-            // Optional: Provide a success message to the user (user experience improvement)
         } catch (error) {
-            console.error('Error updating payment status:', error);
+            console.error('Error updating payment status:', error.response ? error.response.data : error.message);
         }
     };
+    
 
     const handlePaymentStatusChange = async (invoiceId, isChecked, invoice) => {
         const paymentStatus = isChecked ? 'Paid' : 'Unpaid';
         const currentDate = new Date();
         const dueDate = new Date(invoice.due_date);
-    
+
         currentDate.setHours(0, 0, 0, 0); // Set to midnight for date comparison
         dueDate.setHours(0, 0, 0, 0); // Set to midnight for date comparison
-    
+
         let paymentDate = null;
         if (isChecked) {
             // Only update payment date if it hasn't already been marked as 'Paid' today
@@ -147,39 +180,39 @@ const Invoice = () => {
                 paymentDate = invoice.payment_date; // Keep the same payment date if already 'Paid' today
             }
         }
-    
+
         let timeStatus = 'Pending';
         let penalty = 0;
         const baseTotal = parseFloat(invoice.total); // Ensure numeric
-    //    console.log('invoice.total type:', typeof invoice.total, 'value:', invoice.total);
-    
-    if (paymentStatus === 'Paid') {
-        const paymentDateObject = new Date(paymentDate);
-      
-        if (paymentDateObject <= dueDate) {
-          timeStatus = 'On Time';
-        } else {
-          timeStatus = 'Overdue';
-      
-          // Only calculate penalty if it wasn't already set
-          if (!invoice.payment_date || !invoice.penalty || invoice.penalty === 0) {
-            const daysOverdue = Math.floor((paymentDateObject - dueDate) / (1000 * 60 * 60 * 24));
-            if (daysOverdue > 0) {
-              penalty = calculatePenalty(paymentDateObject, dueDate, baseTotal);
+        //    console.log('invoice.total type:', typeof invoice.total, 'value:', invoice.total);
+
+        if (paymentStatus === 'Paid') {
+            const paymentDateObject = new Date(paymentDate);
+
+            if (paymentDateObject <= dueDate) {
+                timeStatus = 'On Time';
+            } else {
+                timeStatus = 'Overdue';
+
+                // Only calculate penalty if it wasn't already set
+                if (!invoice.payment_date || !invoice.penalty || invoice.penalty === 0) {
+                    const daysOverdue = Math.floor((paymentDateObject - dueDate) / (1000 * 60 * 60 * 24));
+                    if (daysOverdue > 0) {
+                        penalty = calculatePenalty(paymentDateObject, dueDate, baseTotal);
+                    }
+                } else {
+                    penalty = invoice.penalty; // reuse existing penalty
+                }
             }
-          } else {
-            penalty = invoice.penalty; // reuse existing penalty
-          }
         }
-      }
-    
+
         const total = parseFloat((baseTotal + penalty).toFixed(2));
-      //  console.log('New Total:', total);
-    
+        //  console.log('New Total:', total);
+
         // Update payment status, with paymentDate set if marked as "Paid"
         await updatePaymentStatus(invoiceId, paymentStatus, paymentDate, timeStatus, total);
     };
-    
+
 
     const handleViewPDF = (invoice) => {
         setSelectedInvoice(invoice);
@@ -311,7 +344,7 @@ const Invoice = () => {
                                         </span>
                                     </td>
 
-                                    <td className="px-3 py-2 text-center">${invoice.total}</td>
+                                    <td className="px-3 py-2 text-center">${invoice.total.toFixed(2)}</td>
 
                                     <td className="px-3 py-2 text-center">
                                         <input
@@ -412,39 +445,39 @@ const Invoice = () => {
 
 
 
- {/* Pagination Controls */}
- <div className="flex justify-center mt-4">
-      <button
-        className="px-4 py-2 mx-2 text-sm font-semibold text-white bg-purple-500 rounded-lg hover:bg-purple-700"
-        onClick={() => setCurrentPage(1)}
-        disabled={currentPage === 1}
-      >
-        First
-      </button>
-      <button
-        className="px-4 py-2 mx-2 text-sm font-semibold text-white bg-purple-500 rounded-lg hover:bg-purple-700"
-        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-        disabled={currentPage === 1}
-      >
-        Prev
-      </button>
-      <span className="px-4 py-2 mx-2 text-sm text-gray-600">{currentPage}</span>
-      <button
-        className="px-4 py-2 mx-2 text-sm font-semibold text-white bg-purple-500 rounded-lg hover:bg-purple-700"
-        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-        disabled={currentPage === totalPages}
-      >
-        Next
-      </button>
-      <button
-        className="px-4 py-2 mx-2 text-sm font-semibold text-white bg-purple-500 rounded-lg hover:bg-purple-700"
-        onClick={() => setCurrentPage(totalPages)}
-        disabled={currentPage === totalPages}
-      >
-        Last
-      </button>
-    </div>
-  </div>
+            {/* Pagination Controls */}
+            <div className="flex justify-center mt-4">
+                <button
+                    className="px-4 py-2 mx-2 text-sm font-semibold text-white bg-purple-500 rounded-lg hover:bg-purple-700"
+                    onClick={() => setCurrentPage(1)}
+                    disabled={currentPage === 1}
+                >
+                    First
+                </button>
+                <button
+                    className="px-4 py-2 mx-2 text-sm font-semibold text-white bg-purple-500 rounded-lg hover:bg-purple-700"
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                >
+                    Prev
+                </button>
+                <span className="px-4 py-2 mx-2 text-sm text-gray-600">{currentPage}</span>
+                <button
+                    className="px-4 py-2 mx-2 text-sm font-semibold text-white bg-purple-500 rounded-lg hover:bg-purple-700"
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                >
+                    Next
+                </button>
+                <button
+                    className="px-4 py-2 mx-2 text-sm font-semibold text-white bg-purple-500 rounded-lg hover:bg-purple-700"
+                    onClick={() => setCurrentPage(totalPages)}
+                    disabled={currentPage === totalPages}
+                >
+                    Last
+                </button>
+            </div>
+        </div>
     );
 };
 

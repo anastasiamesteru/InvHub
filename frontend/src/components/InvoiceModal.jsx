@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react"
 import { InvoiceModalValidation } from "../utils/InvoiceModalValidation.js";
 import axios from 'axios';
 
-const InvoiceModal = ({ isOpen, onClose, fetchInvoices}) => {
+const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
 
@@ -60,22 +60,22 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices}) => {
 
     useEffect(() => {
         if (isOpen) {
-          // Generate invoice number
-          const generatedInvoiceNumber = `INV-${Math.floor(Math.random() * 9000) + 1000}`;
-          
-          const totalItemsCost = invoiceData.items.reduce(
-            (total, item) => total + (item.unitPrice * item.quantity), 0
-          );
-          const validTax = !isNaN(invoiceData.tax) && invoiceData.tax >= 0 ? invoiceData.tax : 0;
-          const taxAmount = (totalItemsCost * validTax) / 100;
-    
-          setInvoiceData(prevData => ({
-            ...prevData,
-            invoiceNumber: generatedInvoiceNumber,
-            total: totalItemsCost + taxAmount,  
-          }));
+            // Generate invoice number
+            const generatedInvoiceNumber = `INV-${Math.floor(Math.random() * 9000) + 1000}`;
+
+            const totalItemsCost = invoiceData.items.reduce(
+                (total, item) => total + (item.unitPrice * item.quantity), 0
+            );
+            const validTax = !isNaN(invoiceData.tax) && invoiceData.tax >= 0 ? invoiceData.tax : 0;
+            const taxAmount = (totalItemsCost * validTax) / 100;
+
+            setInvoiceData(prevData => ({
+                ...prevData,
+                invoiceNumber: generatedInvoiceNumber,
+                total: totalItemsCost + taxAmount,
+            }));
         }
-      }, [isOpen, invoiceData.items, invoiceData.tax])
+    }, [isOpen, invoiceData.items, invoiceData.tax])
 
     const handleChange = (e, field) => {
         const { value } = e.target;
@@ -87,39 +87,46 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices}) => {
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-    
-        // Create the payload, including the generated invoice number
+
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            console.error("No token found");
+            alert("Authentication token missing. Please log in again.");
+            return;
+        }
+
+        // Create the payload
         const payload = {
-          invoiceNumber: invoiceData.invoiceNumber,  // This will have the generated number
-          clientName: invoiceData.clientName,
-          clientEmail: invoiceData.clientEmail,
-          clientType: invoiceData.clientType,
-          clientPhoneNo: invoiceData.clientPhoneNo,
-          clientAddress: invoiceData.clientAddress,
-          clientCifcnp: invoiceData.clientCifcnp,
-          vendorName: invoiceData.vendorName,
-          vendorEmail: invoiceData.vendorEmail,
-          vendorType: invoiceData.vendorType,
-          vendorPhoneNo: invoiceData.vendorPhoneNo,
-          vendorAddress: invoiceData.vendorAddress,
-          vendorCifcnp: invoiceData.vendorCifcnp,
-          issue_date: invoiceData.issue_date,
-          due_date: invoiceData.due_date,
-          items: invoiceData.items,
-          tax: invoiceData.tax,
-          total: invoiceData.total,
+            invoiceNumber: invoiceData.invoiceNumber,
+            clientName: invoiceData.clientName,
+            clientEmail: invoiceData.clientEmail,
+            clientType: invoiceData.clientType,
+            clientPhoneNo: invoiceData.clientPhoneNo,
+            clientAddress: invoiceData.clientAddress,
+            clientCifcnp: invoiceData.clientCifcnp,
+            vendorName: invoiceData.vendorName,
+            vendorEmail: invoiceData.vendorEmail,
+            vendorType: invoiceData.vendorType,
+            vendorPhoneNo: invoiceData.vendorPhoneNo,
+            vendorAddress: invoiceData.vendorAddress,
+            vendorCifcnp: invoiceData.vendorCifcnp,
+            issue_date: invoiceData.issue_date,
+            due_date: invoiceData.due_date,
+            items: invoiceData.items,
+            tax: invoiceData.tax,
+            total: invoiceData.total,
         };
-    
-        // Submit the request with the payload
+
         try {
             const response = await axios.post('http://localhost:4000/routes/invoices/create', payload, {
                 headers: {
+                    'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
                 },
             });
+
             console.log('Invoice response:', response);
             await fetchInvoices();
-
             onClose();
         } catch (error) {
             console.error('Error posting item data:', error);
@@ -134,18 +141,18 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices}) => {
         }
     };
 
-const formatDate = (date) => {
-    if (!date) return 'Invalid Date';
-    const parsedDate = new Date(date);
-    if (isNaN(parsedDate)) return 'Invalid Date';
+    const formatDate = (date) => {
+        if (!date) return 'Invalid Date';
+        const parsedDate = new Date(date);
+        if (isNaN(parsedDate)) return 'Invalid Date';
 
-    const day = String(parsedDate.getDate()).padStart(2, '0');
-    const month = String(parsedDate.getMonth() + 1).padStart(2, '0');
-    const year = parsedDate.getFullYear();
+        const day = String(parsedDate.getDate()).padStart(2, '0');
+        const month = String(parsedDate.getMonth() + 1).padStart(2, '0');
+        const year = parsedDate.getFullYear();
 
-    return `${day}/${month}/${year}`;
-};
-   //console.log("Invoice data: ", invoiceData);
+        return `${day}/${month}/${year}`;
+    };
+    //console.log("Invoice data: ", invoiceData);
 
     if (!isOpen) return null;
     return (
@@ -277,6 +284,10 @@ const formatDate = (date) => {
                                 {errors.clientCifcnp && <p className="text-red-500 text-xs">{errors.clientCifcnp}</p>}
 
                             </div>
+                            <div className="my-2 flex justify-center">
+                                <button className="mt-4 px-4 py-2 font-semibold bg-purple-500 text-white rounded-md hover:bg-purple-600 disabled:bg-gray-400">Select client from database</button>
+                            </div>
+
 
                         </div>
 
@@ -365,12 +376,16 @@ const formatDate = (date) => {
                                 {errors.vendorCifcnp && <p className="text-red-500 text-xs">{errors.vendorCifcnp}</p>}
 
                             </div>
+                            <div className="my-2 flex justify-center">
+                                <button className="mt-4 px-4 py-2 font-semibold bg-purple-500 text-white rounded-md hover:bg-purple-600 disabled:bg-gray-400">Select vendor from database</button>
+                            </div>
+
                         </div>
 
 
                     </div>
                     <div className="mt-6 border-b-2 border-gray-400 pb-4">
-                        <table className="w-full border-collapse   border border-gray-300">
+                        <table className="w-full border-collapse border border-gray-300">
                             {/* Table Header */}
                             <thead>
                                 <tr className="bg-gray-200">
@@ -379,7 +394,6 @@ const formatDate = (date) => {
                                     <th className="border border-gray-300 px-4 py-2 font-small text-center">Unit Price</th>
                                     <th className="border border-gray-300 px-4 py-2 font-small text-center">Line Total</th>
                                     <th className="border border-gray-300 px-4 py-2 font-large text-center"></th>
-
                                 </tr>
                             </thead>
 
@@ -394,7 +408,7 @@ const formatDate = (date) => {
                                                 placeholder="Product/Service"
                                                 className="w-full h-full rounded-md border border-gray-300 bg-transparent text-gray-700 text-sm px-2 py-1 focus:outline-none focus:border-gray-400"
                                                 value={item.itemName}
-                                                onChange={(e) => handleItemChange(e, 'itemName', index)} // Using handleItemChange for itemName
+                                                onChange={(e) => handleItemChange(e, 'itemName', index)}
                                             />
                                         </td>
 
@@ -406,7 +420,7 @@ const formatDate = (date) => {
                                                 placeholder="qty"
                                                 className="w-20 h-full rounded-md border border-gray-300 bg-transparent text-gray-700 text-sm px-2 py-1 focus:outline-none focus:border-gray-400"
                                                 value={item.quantity}
-                                                onChange={(e) => handleItemChange(e, 'quantity', index)} // Using handleItemChange for quantity
+                                                onChange={(e) => handleItemChange(e, 'quantity', index)}
                                             />
                                         </td>
 
@@ -418,17 +432,14 @@ const formatDate = (date) => {
                                                 placeholder="price"
                                                 className="w-20 h-full rounded-md border border-gray-300 bg-transparent text-gray-700 text-sm px-2 py-1 focus:outline-none focus:border-gray-400"
                                                 value={item.unitPrice}
-                                                onChange={(e) => handleItemChange(e, 'unitPrice', index)} // Using handleItemChange for unitPrice
+                                                onChange={(e) => handleItemChange(e, 'unitPrice', index)}
                                             />
                                         </td>
 
                                         {/* Total Price */}
                                         <td className="border border-gray-300 px-2 py-2 text-center">
                                             <span>
-                                                {
-                                                    // Ensure both quantity and unitPrice are numbers, then calculate the total and format it to 2 decimal places
-                                                    (Number(item.quantity) * Number(item.unitPrice)).toFixed(2)
-                                                }
+                                                {(Number(item.quantity) * Number(item.unitPrice)).toFixed(2)}
                                             </span>
                                         </td>
 
@@ -440,15 +451,26 @@ const formatDate = (date) => {
                                                 </svg>
                                             </button>
                                         </td>
+                                        <td>
+
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
-
                         </table>
 
                         {/* Add new line button */}
                         <button type="button" className="mt-4 px-4 py-2 font-semibold bg-purple-500 hover:bg-purple-600 text-white rounded-md" onClick={addItem}>+ Add new line</button>
+
+                        {/* Button to Pick Items from DB */}
+                        <button
+                            type="button"
+                            className="mt-4 px-4 py-2 font-semibold bg-blue-500 hover:bg-blue-600 text-white rounded-md"
+                        >
+                            + Pick Items from DB
+                        </button>
                     </div>
+
 
                     <div className="w-full mx-auto bg-white flex flex-col items-end mt-4">
 

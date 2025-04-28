@@ -47,19 +47,47 @@ const Database = () => {
     }, [activeTab]);
 
     const fetchClients = async () => {
+        const token = localStorage.getItem('authToken'); // Get the token from localStorage
+        if (!token) {
+            console.error("No token found");
+            return;
+        }
+    
         try {
-            const response = await fetch('http://localhost:4000/routes/clients/getall');
+            const response = await fetch('http://localhost:4000/routes/clients/getall', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`, // Include Bearer token in the request header
+                    'Content-Type': 'application/json',
+                },
+            });
+    
             if (!response.ok) throw new Error('Failed to fetch clients');
             const data = await response.json();
             setClients(data);
         } catch (error) {
+            console.error("Server error:", errorData);
+
             console.error("Error fetching clients:", error);
         }
     };
-
+    
     const fetchVendors = async () => {
+        const token = localStorage.getItem('authToken'); // Get the token from localStorage
+        if (!token) {
+            console.error("No token found");
+            return;
+        }
+    
         try {
-            const response = await fetch('http://localhost:4000/routes/vendors/getall');
+            const response = await fetch('http://localhost:4000/routes/vendors/getall', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`, // Include Bearer token in the request header
+                    'Content-Type': 'application/json',
+                },
+            });
+    
             if (!response.ok) throw new Error('Failed to fetch vendors');
             const data = await response.json();
             setVendors(data);
@@ -67,10 +95,23 @@ const Database = () => {
             console.error("Error fetching vendors:", error);
         }
     };
-
+    
     const fetchItems = async () => {
+        const token = localStorage.getItem('authToken'); // Get the token from localStorage
+        if (!token) {
+            console.error("No token found");
+            return;
+        }
+    
         try {
-            const response = await fetch('http://localhost:4000/routes/items/getall');
+            const response = await fetch('http://localhost:4000/routes/items/getall', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`, // Include Bearer token in the request header
+                    'Content-Type': 'application/json',
+                },
+            });
+    
             if (!response.ok) throw new Error('Failed to fetch items');
             const data = await response.json();
             setItems(data);
@@ -78,19 +119,28 @@ const Database = () => {
             console.error("Error fetching items:", error);
         }
     };
-
+    
     const handleDelete = async (id) => {
-
+        const token = localStorage.getItem('authToken'); // Get the token from localStorage
+        if (!token) {
+            console.error("No token found");
+            return;
+        }
+    
         let deleteEndpoint = "";
-
+    
         if (activeTab === "clients") deleteEndpoint = `/routes/clients/${id}`;
         else if (activeTab === "vendors") deleteEndpoint = `/routes/vendors/${id}`;
         else if (activeTab === "items") deleteEndpoint = `/routes/items/${id}`;
-
+    
         try {
-            await axios.delete(`http://localhost:4000${deleteEndpoint}`);
-
-            // Refresh the data
+            await axios.delete(`http://localhost:4000${deleteEndpoint}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`, // Include Bearer token in the request header
+                },
+            });
+    
+            // Refresh the data after deleting
             if (activeTab === "clients") fetchClients();
             else if (activeTab === "vendors") fetchVendors();
             else if (activeTab === "items") fetchItems();
@@ -98,7 +148,7 @@ const Database = () => {
             console.error("Error deleting:", error);
         }
     };
-
+    
 
     const filteredData = () => {
         const query = searchQuery.toLowerCase();
@@ -141,7 +191,7 @@ const Database = () => {
         }
     };
 
-    const [currentPage, setCurrentPage] = useState(1);  
+    const [currentPage, setCurrentPage] = useState(2);  
 
     const thingsPerPage = 8;
     //console.log('Current Page:', currentPage);
@@ -154,10 +204,13 @@ const Database = () => {
     const totalPages = Math.ceil(filtereditems.length / thingsPerPage);
     
     useEffect(() => {
-        if (currentPage > totalPages) {
-            setCurrentPage(totalPages); 
+        if (currentPage > totalPages && totalPages > 0) {
+            setCurrentPage(totalPages);
+        } else if (currentPage < 1 && totalPages > 0) {
+            setCurrentPage(1);
         }
-    }, [filtereditems, currentPage, totalPages]);
+    }, [filtereditems, totalPages]);
+    
     
     const current = filtereditems.slice(indexOfFirst, indexOfLast); 
     

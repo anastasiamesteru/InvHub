@@ -17,13 +17,28 @@ const Dashboard = () => {
     });
 
     const fetchInvoices = async () => {
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            console.error("No token found");
+            return;
+        }
+
         try {
-            const response = await axios.get('http://localhost:4000/routes/invoices/getall');
-            setInvoices(response.data);
+            const response = await fetch('http://localhost:4000/routes/invoices/getall', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+            if (!response.ok) throw new Error('Failed to fetch invoices');
+            const data = await response.json();
+            setInvoices(data);
         } catch (error) {
             console.error("Error fetching invoices:", error);
         }
     };
+
 
     useEffect(() => {
         fetchInvoices();
@@ -153,7 +168,7 @@ const Dashboard = () => {
     const COLORS = ['#eab308', '#9333ea']; // Dark Slate + Soft Stone
 
     return (
-        <div className="p-6 space-y-10 min-h-screen bg-violet-50">
+        <div className="p-6 space-y-10 min-h-screen bg-gradient-to-r from-violet-50 via-violet-100 to-violet-200">
             {/* Header */}
             <div className="flex flex-col lg:flex-row items-center gap-6">
                 <div className="flex-1 text-center lg:text-left">
@@ -169,53 +184,48 @@ const Dashboard = () => {
                 {/* Summary Cards */}
                 <div className="bg-white p-6 rounded-lg shadow-md w-full lg:w-1/3 space-y-6">
                     <div className="bg-gray-100 p-4 rounded-lg shadow-md h-28 flex flex-col justify-center">
-                        <h3 className="text-indigo-800 text-xl font-bold">Total Collected</h3>
-                        <p className="text-2xl font-bold text-center text-slate-800">${totalAmount.toFixed(2)}</p>
+                        <h3 className="text-indigo-800 text-lg font-semibold">Total Collected</h3>
+                        <p className="text-xl font-semibold text-center text-slate-800">${totalAmount.toFixed(2)}</p>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         <div className="bg-gray-200 p-4 rounded-lg shadow-md">
-                            <h3 className="text-indigo-800 text-base font-semibold">Total Outstanding</h3>
-                            <p className="text-2xl font-bold text-center text-slate-800">${outstandingAmount.toFixed(2)}</p>
+                            <h3 className="text-indigo-800 text-sm font-medium">Total Outstanding</h3>
+                            <p className="text-xl font-semibold text-center text-slate-800">${outstandingAmount.toFixed(2)}</p>
                         </div>
                         <div className="bg-gray-200 p-4 rounded-lg shadow-md">
-                            <h3 className="text-indigo-800 text-base font-semibold">Total Overdue</h3>
-                            <p className="text-2xl font-bold text-center text-slate-800">${overdueAmount.toFixed(2)}</p>
+                            <h3 className="text-indigo-800 text-sm font-medium">Total Overdue</h3>
+                            <p className="text-xl font-semibold text-center text-slate-800">${overdueAmount.toFixed(2)}</p>
                         </div>
                     </div>
 
                     <div className="bg-gray-200 p-4 rounded-lg shadow-md">
-                        <h3 className="text-indigo-800 text-base font-semibold">Total Invoices</h3>
-                        <p className="text-2xl font-bold text-center text-slate-800">{statusCounts.paid + statusCounts.unpaid}</p>
+                        <h3 className="text-indigo-800 text-sm font-medium">Total Invoices</h3>
+                        <p className="text-xl font-semibold text-center text-slate-800">{statusCounts.paid + statusCounts.unpaid}</p>
                     </div>
                 </div>
 
-                {/* Line Chart */}
-                <div className="p-6 rounded-lg w-full lg:w-4/5">
-                    <h3 className="text-xl font-semibold text-gray-800">Invoice Performance</h3>
-                    <div className="mt-4 h-80">
-                        <ResponsiveContainer width="100%" height={300}>
-                            <LineChart data={monthlyData.lineChartData} margin={{ top: 10, right: 30, left: 0, bottom: 10 }}>
+                {/* Line and Pie Charts */}
+                <div className="flex flex-col lg:flex-row gap-6">
 
-                                <XAxis dataKey="month" tickFormatter={(value) => value.split(' ')[0]} />
-                                <YAxis allowDecimals={true} />
-                                <Line type="monotone" dataKey="outstandingAmount" stroke="#e11d48" strokeWidth={3} />
-                                <Line type="monotone" dataKey="overdueAmount" stroke="#10b981" strokeWidth={3} />
-                                <Line type="monotone" dataKey="totalAmount" stroke="#f59e0b" strokeWidth={3} />
-
-                            </LineChart>
-                        </ResponsiveContainer>
+                    {/* Line Chart */}
+                    <div className="p-6 rounded-lg w-full lg:w-1/2">
+                        <h3 className="text-xl font-semibold text-gray-800">Invoice Performance</h3>
+                        <div className="mt-4 h-80">
+                            <ResponsiveContainer width="100%" height={300}>
+                                <LineChart data={monthlyData.lineChartData} margin={{ top: 10, right: 30, left: 0, bottom: 10 }}>
+                                    <XAxis dataKey="month" tickFormatter={(value) => value.split(' ')[0]} />
+                                    <YAxis allowDecimals={true} />
+                                    <Line type="monotone" dataKey="outstandingAmount" stroke="#e11d48" strokeWidth={3} />
+                                    <Line type="monotone" dataKey="overdueAmount" stroke="#10b981" strokeWidth={3} />
+                                    <Line type="monotone" dataKey="totalAmount" stroke="#f59e0b" strokeWidth={3} />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </div>
                     </div>
-                </div>
-            </div>
 
-            {/* Pie Chart */}
-            <div className="bg-white p-6 rounded-lg shadow-md">
-                <h3 className="text-xl font-semibold text-gray-800 mb-4">Payment Status</h3>
-
-                <div className="flex grid grid-cols-3 gap-6">
-                    {/* First Pie Chart takes 1/3 width */}
-                    <div className="col-span-1">
+                    {/* Pie Chart */}
+                    <div className="w-full lg:w-1/2">
                         <ResponsiveContainer width="100%" height={300}>
                             <PieChart>
                                 <Pie
@@ -228,7 +238,7 @@ const Dashboard = () => {
                                     dataKey="value"
                                     label={({ name, value, percent }) =>
                                         `${name}: ${(percent * 100).toFixed(0)}%`
-                                    }
+                                    }   
                                 >
                                     {monthlyData.pieChartData.map((entry, index) => (
                                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -239,24 +249,11 @@ const Dashboard = () => {
                         </ResponsiveContainer>
                     </div>
 
-                    {/* Second Bar Chart takes 2/3 width */}
-                    <div className="col-span-2">
-                        <ResponsiveContainer width="100%" height={300}>
-                            <BarChart data={Object.values(monthlyData.barChartData)}>
-                                <XAxis dataKey="month" />
-                                <YAxis />
-                                <Tooltip />
-                                <Legend />
-
-                                <Bar dataKey="Paid" fill="#16a34a" />
-                                <Bar dataKey="Unpaid" fill="#9f1239" />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
                 </div>
-            </div>
 
+            </div>
         </div>
+
     );
 };
 

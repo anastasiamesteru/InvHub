@@ -70,18 +70,28 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
     };
 
     const fetchInvoices = async () => {
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            console.error("No token found");
+            return;
+        }
+    
         try {
-            const response = await fetch('http://localhost:4000/routes/invoices/getall');
+            const response = await fetch('http://localhost:4000/routes/invoices/getall', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
             if (!response.ok) throw new Error('Failed to fetch invoices');
             const data = await response.json();
             setInvoices(data);
         } catch (error) {
             console.error("Error fetching invoices:", error);
-        } finally {
-            setLoading(false);
         }
     };
-
+    
     useEffect(() => {
         fetchInvoices();
     }, []);
@@ -361,11 +371,11 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-
+    
         setLoading(true);
-
+    
         const updatedReportData = computeAndUpdateIndicators(reportData);
-
+    
         const payload = {
             reportNumber: updatedReportData.reportNumber,
             title: updatedReportData.title,
@@ -374,13 +384,22 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
             indicators: updatedReportData.indicators,
             selectedCheckboxes: updatedReportData.selectedCheckboxes
         };
-
+    
+        const token = localStorage.getItem('authToken'); // Get the token from localStorage
+        if (!token) {
+            console.error("No token found");
+            setLoading(false);
+            return;
+        }
+    
         try {
             const response = await axios.post('http://localhost:4000/routes/reports/create', payload, {
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,  // Add the Authorization header with the token
                 },
             });
+    
             console.log('Report response:', response);
             await fetchReports();
             onClose();
@@ -396,7 +415,7 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
             setLoading(false);
         }
     };
-
+    
     if (!isOpen) return null;
 
     return (

@@ -14,8 +14,20 @@ const Report = () => {
     const [sortOrder, setSortOrder] = useState('asc');
 
     const fetchReports = async () => {
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            console.error("No token found");
+            return;
+        }
+    
         try {
-            const response = await fetch('http://localhost:4000/routes/reports/getall');
+            const response = await fetch('http://localhost:4000/routes/reports/getall', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
             if (!response.ok) throw new Error('Failed to fetch reports');
             const data = await response.json();
             setReports(data);
@@ -23,6 +35,7 @@ const Report = () => {
             console.error("Error fetching reports:", error);
         }
     };
+    
 
     useEffect(() => {
         fetchReports();
@@ -30,18 +43,28 @@ const Report = () => {
 
 
     const deleteReport = async (id) => {
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            console.error("No token found");
+            return;
+        }
+    
         try {
-            await axios.delete(`http://localhost:4000/routes/reports/${id}`);
-            console.log("Report deleted successfully");
-
+            await axios.delete(`http://localhost:4000/routes/reports/${id}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    
+                },
+            });
+    
+            // Refresh the invoice list after deleting
             setReports(prevReports => prevReports.filter(report => report._id !== id));
-
             fetchReports();
         } catch (error) {
-            console.error("Error deleting:", error);
+            console.error("Error deleting invoice:", error);
         }
     };
-
+    
     const filteredReports = () => {
         const query = searchQuery?.toLowerCase() || '';
         let data = reports ?? []; // Ensure data is correctly initialized

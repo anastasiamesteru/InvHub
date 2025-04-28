@@ -1,6 +1,8 @@
 import mongoose from 'mongoose';
 
 const reportSchema = new mongoose.Schema({
+    userEmail: {type: String, required: true, trim: true},
+
     reportNumber: String,
     title: String,
     startDate: Date,

@@ -58,50 +58,19 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
 
     const closeModal = () => setIsModalOpen(false);
 
-    useEffect(() => {
-        if (editingEntity) {
-            if (activeTab === 'client') {
-                setClientData({
-                    name: editingEntity.name || '',
-                    phone: editingEntity.phone || '',
-                    address: editingEntity.address || '',
-                    email: editingEntity.email || '',
-                    cifCnp: editingEntity.cifCnp || '',
-                });
-                setClientType(editingEntity.type || 'company');
-            } else if (activeTab === 'vendor') {
-                setVendorData({
-                    name: editingEntity.name || '',
-                    phone: editingEntity.phone || '',
-                    address: editingEntity.address || '',
-                    email: editingEntity.email || '',
-                    cifCnp: editingEntity.cifCnp || '',
-                });
-                setVendorType(editingEntity.type || 'company');
-            } else if (activeTab === 'item') {
-                setItemData({
-                    name: editingEntity.name || '',
-                    UM: editingEntity.UM || '',
-                    price: editingEntity.price || '',
-                    description: editingEntity.description || '',
-                });
-                setItemType(editingEntity.type || 'product');
-            }
-        }
-    }, [editingEntity, activeTab]);
-
+ 
 
     const handleSubmitClient = async (event) => {
         event.preventDefault();
-
+    
         const validationErrors = validateClientForm(clientData);
         if (validationErrors) {
             setErrors(validationErrors);
             return;
         }
-
+    
         setLoading(true);
-
+    
         const payload = {
             name: clientData.name,
             email: clientData.email,
@@ -110,20 +79,22 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
             address: clientData.address,
             cifcnp: clientData.cifCnp,
         };
-
+    
+        const token = localStorage.getItem('authToken'); // Get the token from localStorage
+        if (!token) {
+            alert("No token found");
+            setLoading(false);
+            return;
+        }
+    
         try {
-            let response;
-            if (editingEntity) {
-                response = await axios.put(`http://localhost:4000/routes/clients/${id}`, payload, {
-                    headers: { 'Content-Type': 'application/json' },
-                });
-            } else {
-                // Create new client
-                response = await axios.post('http://localhost:4000/routes/clients/create', payload, {
-                    headers: { 'Content-Type': 'application/json' },
-                });
-            }
-
+            const response = await axios.post('http://localhost:4000/routes/clients/create', payload, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,  // Add the Authorization header with the token
+                },
+            });
+    
             await fetchClients();
             closeModal();
         } catch (error) {
@@ -132,19 +103,18 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
             setLoading(false);
         }
     };
-
-
+    
     const handleSubmitVendor = async (event) => {
         event.preventDefault();
-
-    const validationErrors = validateVendorForm(vendorData);
+    
+        const validationErrors = validateVendorForm(vendorData);
         if (validationErrors) {
             setErrors(validationErrors);
             return;
         }
-
+    
         setLoading(true);
-
+    
         const payload = {
             name: vendorData.name,
             email: vendorData.email,
@@ -153,17 +123,24 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
             address: vendorData.address,
             cifcnp: vendorData.cifCnp,
         };
-
+    
+        const token = localStorage.getItem('authToken'); // Get the token from localStorage
+        if (!token) {
+            alert("No token found");
+            setLoading(false);
+            return;
+        }
+    
         try {
-            // Send data to the server
             const response = await axios.post('http://localhost:4000/routes/vendors/create', payload, {
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,  // Add the Authorization header with the token
                 },
             });
-
+    
+    
             await fetchVendors();
-
             closeModal();
         } catch (error) {
             if (error.response) {
@@ -175,19 +152,18 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
             setLoading(false);
         }
     };
-
-
+    
     const handleSubmitItem = async (event) => {
         event.preventDefault();
-
+    
         const validationErrors = validateItemForm(itemData);
         if (validationErrors) {
             setErrors(validationErrors);
             return;
         }
-
+    
         setLoading(true);
-
+    
         const payload = {
             name: itemData.name,
             UM: itemData.UM,
@@ -195,16 +171,25 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
             description: itemData.description,
             type: itemType,
         };
-
+    
+        const token = localStorage.getItem('authToken'); // Get the token from localStorage
+        if (!token) {
+            alert("No token found");
+            setLoading(false);
+            return;
+        }
+    
         try {
             const response = await axios.post('http://localhost:4000/routes/items/create', payload, {
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,  // Add the Authorization header with the token
                 },
             });
+    
             console.log('Item response:', response);
             await fetchItems();
-
+    
             closeModal();
         } catch (error) {
             console.error('Error posting item data:', error);
@@ -218,7 +203,7 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
             setLoading(false);
         }
     };
-
+    
 
     const handleUpdateClient = async (event) => {
         event.preventDefault();

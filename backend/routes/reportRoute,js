@@ -1,17 +1,21 @@
 import express from 'express';
 import Report from '../models/report.js';
+import { verifyToken } from '../middleware/authMiddleware.js';
 
 const reportRoute = express.Router();
 
 //Create a new report
-reportRoute.post("/create", async (req, res) => {
+reportRoute.post("/create",verifyToken, async (req, res) => {
     try {
-        const report = new Report(req.body);
+        const report = new Report({
+            ...req.body,
+            userEmail: req.user.email,
+        });
 
         await report.save();
         res.status(201).json(report);
     } catch (error) {
-        console.error('Error:', error); 
+        console.error('Error:', error);
 
         return res.status(400).json({ message: error.message || 'Something went wrong while creating the report.' });
     }
@@ -19,9 +23,9 @@ reportRoute.post("/create", async (req, res) => {
 
 
 //Get all reports
-reportRoute.get("/getall", async (req, res) => {
+reportRoute.get("/getall", verifyToken,async (req, res) => {
     try {
-        const report = await Report.find();
+        const report = await Report.find({ userEmail: req.user.email });
         res.status(200).json(report);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -30,10 +34,14 @@ reportRoute.get("/getall", async (req, res) => {
 
 
 // Delete a report by ID
-reportRoute.delete('/:id', async (req, res) => {
+reportRoute.delete('/:id', verifyToken, async (req, res) => {
     try {
-        const deletedReport = await Report.findByIdAndDelete(req.params.id);
-
+        const id = req.params.id.trim();
+        const deletedReport = await Report.findOneAndDelete(
+            { _id: id, userEmail: req.user.email },
+            req.body,
+            { new: true, runValidators: true }
+        );
         if (!deletedReport) {
             return res.status(404).json({ message: 'Report not found' });
         }
