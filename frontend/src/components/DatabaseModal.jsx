@@ -52,6 +52,34 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
         }
     };
 
+    useEffect(() => {
+        // Reset form data when the tab changes
+        if (activeTab === 'clients') {
+            setClientData({
+                name: '',
+                phone: '',
+                address: '',
+                email: '',
+                cifCnp: '',
+            });
+        } else if (activeTab === 'vendors') {
+            setVendorData({
+                name: '',
+                phone: '',
+                address: '',
+                email: '',
+                cifCnp: '',
+            });
+        } else if (activeTab === 'items') {
+            setItemData({
+                name: '',
+                UM: '',
+                price: '',
+                description: '',
+            });
+        }
+    }, [activeTab]);
+    
     const handleClientTypeChange = (event) => setClientType(event.target.value);
     const handleVendorTypeChange = (event) => setVendorType(event.target.value);
     const handleItemTypeChange = (event) => setItemType(event.target.value);
@@ -68,7 +96,8 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
             setErrors(validationErrors);
             return;
         }
-    
+        console.log("Validation Errors:", validationErrors);
+
         setLoading(true);
     
         const payload = {
@@ -103,10 +132,11 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
             setLoading(false);
         }
     };
-    
+
     const handleSubmitVendor = async (event) => {
         event.preventDefault();
-    
+        console.log("Vendor Data Submitted:", vendorData);
+        
         const validationErrors = validateVendorForm(vendorData);
         if (validationErrors) {
             setErrors(validationErrors);
@@ -124,7 +154,7 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
             cifcnp: vendorData.cifCnp,
         };
     
-        const token = localStorage.getItem('authToken'); // Get the token from localStorage
+        const token = localStorage.getItem('authToken');
         if (!token) {
             alert("No token found");
             setLoading(false);
@@ -135,19 +165,16 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
             const response = await axios.post('http://localhost:4000/routes/vendors/create', payload, {
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,  // Add the Authorization header with the token
+                    'Authorization': `Bearer ${token}`,
                 },
             });
     
-    
+            console.log("Vendor Response:", response);  // Log the server response
             await fetchVendors();
             closeModal();
         } catch (error) {
-            if (error.response) {
-                alert(`Error: ${error.response?.data?.message || 'An error occurred'}`);
-            } else {
-                alert(`Error: ${error.message}`);
-            }
+            console.error("Error posting vendor data:", error);
+            alert(`Error: ${error.message}`);
         } finally {
             setLoading(false);
         }
@@ -155,6 +182,7 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
     
     const handleSubmitItem = async (event) => {
         event.preventDefault();
+        console.log("Item Data Submitted:", itemData);
     
         const validationErrors = validateItemForm(itemData);
         if (validationErrors) {
@@ -171,8 +199,9 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
             description: itemData.description,
             type: itemType,
         };
+        console.log("Payload for Item:", payload);  // Log the payload
     
-        const token = localStorage.getItem('authToken'); // Get the token from localStorage
+        const token = localStorage.getItem('authToken');
         if (!token) {
             alert("No token found");
             setLoading(false);
@@ -183,22 +212,16 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
             const response = await axios.post('http://localhost:4000/routes/items/create', payload, {
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,  // Add the Authorization header with the token
+                    'Authorization': `Bearer ${token}`,
                 },
             });
     
-            console.log('Item response:', response);
+            console.log("Item Response:", response);  // Log the server response
             await fetchItems();
-    
             closeModal();
         } catch (error) {
-            console.error('Error posting item data:', error);
-            if (error.response) {
-                console.error('Error response data:', error.response.data);
-                alert(`Error: ${error.response?.data?.message || error.message}`);
-            } else {
-                alert(`Error: ${error.message}`);
-            }
+            console.error("Error posting item data:", error);
+            alert(`Error: ${error.message}`);
         } finally {
             setLoading(false);
         }
@@ -301,6 +324,8 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
                     </button>
                 </div>
                 <form onSubmit={activeTab === 'clients' ? handleSubmitClient : activeTab === 'vendors' ? handleSubmitVendor : handleSubmitItem} className="mt-4">
+                {console.log("Current submit handler:", activeTab === 'clients' ? 'handleSubmitClient' : activeTab === 'vendors' ? 'handleSubmitVendor' : 'handleSubmitItem')}
+
                     {activeTab === 'clients' && (
                         <>
                             <label className="block text-sm font-medium text-gray-700 mt-2">Name</label>

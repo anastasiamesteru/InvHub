@@ -1,10 +1,20 @@
 import React, { useState, useEffect } from "react"
 import { InvoiceModalValidation } from "../utils/InvoiceModalValidation.js";
 import axios from 'axios';
+import ClientsModal from "./ClientsModal.jsx";
+import VendorsModal from "./VendorsModal.jsx";
 
 const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
+
+    const [showClientsModal, setShowClientsModal] = useState(false);
+    const [selectedClient, setSelectedClient] = useState(null);
+
+    const [showVendorsModal, setShowVendorsModal] = useState(false);
+    const [selectedVendor, setVendorClient] = useState(null);
+
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const [invoiceData, setInvoiceData] = useState({
         invoiceNumber: '',
@@ -154,6 +164,60 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
     };
     //console.log("Invoice data: ", invoiceData);
 
+    const onClientSelect = (selectedClient) => {
+        setInvoiceData((prevData) => ({
+          ...prevData,
+          clientName: selectedClient.name,
+          clientAddress: selectedClient.address,
+          clientPhoneNo: selectedClient.phone,
+          clientEmail: selectedClient.email,
+          clientType: selectedClient.type, // 'company' or 'individual'
+          clientCifcnp: selectedClient.cifcnp,
+        }));
+      
+        setShowClientsModal(false); // Close modal after selection
+      };
+
+      const onVendorSelect = (selectedVendor) => {
+        setInvoiceData((prevData) => ({
+          ...prevData,
+          vendorName: selectedVendor.name,
+          vendorAddress: selectedVendor.address,
+          vendorPhoneNo: selectedVendor.phone,
+          vendorEmail: selectedVendor.email,
+          vendorType: selectedVendor.type, // 'company' or 'individual'
+          vendorCifcnp: selectedVendor.cifcnp,
+        }));
+      
+        setShowVendorsModal(false); // Close modal after selection
+      };
+      
+
+      useEffect(() => {
+        if (selectedClient) {
+          setInvoiceData(prev => ({
+            ...prev,
+            clientName: selectedClient.name || '',
+            clientPhone: selectedClient.phone || '',
+            clientAddress: selectedClient.address || '',
+            clientEmail: selectedClient.email || '',
+            clientType: selectedClient.type || '',
+            clientCifCnp: selectedClient.cifcnp || '',
+          }));
+        }
+        if (selectedVendor) {
+            setInvoiceData(prev => ({
+              ...prev,
+              vendorName: selectedVendor.name || '',
+              vendorPhoneNo: selectedVendor.phone || '',
+              vendorAddress: selectedVendor.address || '',
+              vendorEmail: selectedVendor.email || '',
+              vendorType: selectedVendor.type || '',
+              vendorCifCnp: selectedVendor.cifcnp || '',
+            }));
+          }
+      }, [selectedClient, selectedVendor]);
+
     if (!isOpen) return null;
     return (
         <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50">
@@ -285,7 +349,12 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
 
                             </div>
                             <div className="my-2 flex justify-center">
-                                <button className="mt-4 px-4 py-2 font-semibold bg-purple-500 text-white rounded-md hover:bg-purple-600 disabled:bg-gray-400">Select client from database</button>
+                                <button className="mt-4 px-4 py-2 font-semibold bg-purple-500 text-white rounded-md hover:bg-purple-600 disabled:bg-gray-400" onClick={() => setShowClientsModal(true)}>Select client from database</button>
+                                <ClientsModal
+                                    show={showClientsModal}
+                                    onClientSelect={onClientSelect}
+                                    onClose={() => setShowClientsModal(false)}
+                                />
                             </div>
 
 
@@ -377,7 +446,12 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
 
                             </div>
                             <div className="my-2 flex justify-center">
-                                <button className="mt-4 px-4 py-2 font-semibold bg-purple-500 text-white rounded-md hover:bg-purple-600 disabled:bg-gray-400">Select vendor from database</button>
+                                <button className="mt-4 px-4 py-2 font-semibold bg-purple-500 text-white rounded-md hover:bg-purple-600 disabled:bg-gray-400" onClick={() => setShowVendorsModal(true)}>Select vendor from database</button>
+                                <VendorsModal
+                                    show={showVendorsModal}
+                                    onClientSelect={onVendorSelect}
+                                    onClose={() => setShowVendorsModal(false)}
+                                />
                             </div>
 
                         </div>
