@@ -135,16 +135,16 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
 
     const handleSubmitVendor = async (event) => {
         event.preventDefault();
-        console.log("Vendor Data Submitted:", vendorData);
-        
+    
         const validationErrors = validateVendorForm(vendorData);
-        if (validationErrors) {
+        if (validationErrors && Object.keys(validationErrors).length > 0) {
             setErrors(validationErrors);
             return;
         }
-    
+        console.log("Validation Errors:", validationErrors);
+
         setLoading(true);
-    
+      
         const payload = {
             name: vendorData.name,
             email: vendorData.email,
@@ -154,7 +154,7 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
             cifcnp: vendorData.cifCnp,
         };
     
-        const token = localStorage.getItem('authToken');
+        const token = localStorage.getItem('authToken'); // Get the token from localStorage
         if (!token) {
             alert("No token found");
             setLoading(false);
@@ -165,31 +165,30 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
             const response = await axios.post('http://localhost:4000/routes/vendors/create', payload, {
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
+                    'Authorization': `Bearer ${token}`,  // Add the Authorization header with the token
                 },
             });
     
-            console.log("Vendor Response:", response);  // Log the server response
             await fetchVendors();
             closeModal();
         } catch (error) {
-            console.error("Error posting vendor data:", error);
+            console.error("Client POST Error:", error.response || error);
+
             alert(`Error: ${error.message}`);
         } finally {
             setLoading(false);
         }
     };
-    
     const handleSubmitItem = async (event) => {
         event.preventDefault();
         console.log("Item Data Submitted:", itemData);
     
         const validationErrors = validateItemForm(itemData);
-        if (validationErrors) {
+        if (validationErrors && Object.keys(validationErrors).length > 0) {
             setErrors(validationErrors);
             return;
         }
-    
+        console.log("Validation Errors:", validationErrors);
         setLoading(true);
     
         const payload = {
@@ -227,92 +226,7 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
         }
     };
     
-
-    const handleUpdateClient = async (event) => {
-        event.preventDefault();
-
-        if (!validateClientForm()) return;
-
-        setLoading(true);
-
-        const payload = {
-            name: clientData.name,
-            email: clientData.email,
-            type: clientType,
-            phone: clientData.phone,
-            address: clientData.address,
-            cifcnp: clientData.cifCnp,
-        };
-
-        try {
-            const response = await axios.put(`http://localhost:4000/routes/clients/${entityToEdit.id}`, payload, {
-                headers: { 'Content-Type': 'application/json' },
-            });
-            await fetchClients();
-            closeModal();
-        } catch (error) {
-            alert(`Error: ${error.response?.data?.message || 'An error occurred'}`);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleUpdateVendor = async (event) => {
-        event.preventDefault();
-
-        if (!validateVendorForm()) return;
-
-        setLoading(true);
-
-        const payload = {
-            name: vendorData.name,
-            email: vendorData.email,
-            type: vendorType,
-            phone: vendorData.phone,
-            address: vendorData.address,
-            cifcnp: vendorData.cifCnp,
-        };
-
-        try {
-            const response = await axios.put(`http://localhost:4000/routes/vendors/${entityToEdit.id}`, payload, {
-                headers: { 'Content-Type': 'application/json' },
-            });
-            await fetchVendors();
-            closeModal();
-        } catch (error) {
-            alert(`Error: ${error.response?.data?.message || 'An error occurred'}`);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleUpdateItem = async (event) => {
-        event.preventDefault();
-
-        if (!validateItemForm()) return;
-
-        setLoading(true);
-
-        const payload = {
-            name: itemData.name,
-            UM: itemData.UM,
-            price: itemData.price,
-            description: itemData.description,
-        };
-
-        try {
-            const response = await axios.put(`http://localhost:4000/routes/items/${entityToEdit.id}`, payload, {
-                headers: { 'Content-Type': 'application/json' },
-            });
-            await fetchItems();
-            closeModal();
-        } catch (error) {
-            alert(`Error: ${error.response?.data?.message || 'An error occurred'}`);
-        } finally {
-            setLoading(false);
-        }
-    };
-
+         
 
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">

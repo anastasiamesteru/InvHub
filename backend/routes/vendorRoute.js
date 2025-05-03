@@ -4,13 +4,13 @@ import { verifyToken } from '../middleware/authMiddleware.js';
 
 const vendorRoute = express.Router();
 
-vendorRoute.post("/create", verifyToken, async (req, res) => {
+//Create a new vendor
+vendorRoute.post("/create",verifyToken,  async (req, res) => {
     try {
         const vendor = new Vendor({
             ...req.body,
             userEmail: req.user.email,
         });
-
         await vendor.save();
         res.status(201).json(vendor);
     } catch (error) {
@@ -19,6 +19,7 @@ vendorRoute.post("/create", verifyToken, async (req, res) => {
         return res.status(400).json({ message: error.message || 'Something went wrong while creating the vendor.' });
     }
 });
+
 
 // Get all vendors
 vendorRoute.get('/getall', verifyToken, async (req, res) => {

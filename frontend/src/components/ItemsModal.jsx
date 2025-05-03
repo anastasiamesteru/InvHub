@@ -1,22 +1,22 @@
 import { useState, useEffect } from "react";
 
-const VendorsModal = ({ show, onClose, onVendorSelect }) => {
-  const [vendors, setVendors] = useState([]);
+const ItemsModal = ({ show, onClose, onItemsSelect }) => {
+  const [items, setItems] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedVendor, setSelectedVendor] = useState(null);
+  const [selectedItems, setSelectedItems] = useState([]);
   const [sortColumn, setSortColumn] = useState(null);
   const [sortOrder, setSortOrder] = useState('asc');
   const [currentPage, setCurrentPage] = useState(1);
-  const vendorsPerPage = 8;
+  const itemsPerPage = 8;
 
   useEffect(() => {
     if (show) {
-      const fetchVendors = async () => {
+      const fetchItems = async () => {
         const token = localStorage.getItem('authToken');
         if (!token) return console.error("No token found");
 
         try {
-          const response = await fetch('http://localhost:4000/routes/vendors/getall', {
+          const response = await fetch('http://localhost:4000/routes/items/getall', {
             headers: {
               'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json',
@@ -25,25 +25,36 @@ const VendorsModal = ({ show, onClose, onVendorSelect }) => {
 
           if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.message || 'Failed to fetch vendors');
+            throw new Error(errorData.message || 'Failed to fetch items');
           }
 
           const data = await response.json();
-          setVendors(data);
+          setItems(data);
         } catch (error) {
-          console.error("Error fetching vendors:", error.message);
+          console.error("Error fetching items:", error.message);
         }
       };
 
-      fetchVendors();
+      fetchItems();
     }
   }, [show]);
 
-  const filteredVendors = () => {
+  const toggleItemSelection = (item) => {
+    setSelectedItems((prev) => {
+      const alreadySelected = prev.find((i) => i._id === item._id);
+      if (alreadySelected) {
+        return prev.filter((i) => i._id !== item._id);
+      } else {
+        return [...prev, item];
+      }
+    });
+  };
+
+  const filteredItems = () => {
     const query = searchQuery.toLowerCase();
-    const sortedFiltered = vendors
-      .filter(vendor =>
-        Object.values(vendor).some(val =>
+    const sortedFiltered = items
+      .filter(item =>
+        Object.values(item).some(val =>
           val?.toString().toLowerCase().includes(query)
         )
       )
@@ -56,27 +67,21 @@ const VendorsModal = ({ show, onClose, onVendorSelect }) => {
           : valB.localeCompare(valA);
       });
 
-    const startIndex = (currentPage - 1) * vendorsPerPage;
-    return sortedFiltered.slice(startIndex, startIndex + vendorsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return sortedFiltered.slice(startIndex, startIndex + itemsPerPage);
   };
 
   const totalPages = Math.ceil(
-    vendors.filter(vendor =>
-      Object.values(vendor).some(val =>
+    items.filter(item =>
+      Object.values(item).some(val =>
         val?.toString().toLowerCase().includes(searchQuery.toLowerCase())
       )
-    ).length / vendorsPerPage
+    ).length / itemsPerPage
   );
 
-  const toggleVendorSelection = (vendor) => {
-    setSelectedVendor((prev) =>
-      prev && prev._id === vendor._id ? null : vendor
-    );
-  };
-
   const handleConfirmSelection = () => {
-    if (selectedVendor) {
-      onVendorSelect(selectedVendor);
+    if (selectedItems.length > 0) {
+      onItemsSelect(selectedItems);
       onClose();
     }
   };
@@ -87,14 +92,14 @@ const VendorsModal = ({ show, onClose, onVendorSelect }) => {
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
       <div className="bg-white w-full max-w-5xl h-[600px] rounded-lg shadow-lg p-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Select a Vendor</h2>
+          <h2 className="text-xl font-semibold">Select Items</h2>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700">✕</button>
         </div>
 
         <div className="flex items-center bg-gray-100 p-2 rounded-md mb-4">
           <input
             type="text"
-            placeholder="🔎︎ Search for a vendor..."
+            placeholder="🔎︎ Search for items..."
             className="flex-1 p-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
             value={searchQuery}
             onChange={(e) => {
@@ -108,7 +113,7 @@ const VendorsModal = ({ show, onClose, onVendorSelect }) => {
           <table className="w-full text-sm table-auto border-collapse">
             <thead>
               <tr className="bg-gray-200 text-center">
-                {['name', 'phone', 'address', 'email', 'type', 'cifcnp'].map((key) => (
+                {['name', 'type', 'measurement', 'price'].map((key) => (
                   <th
                     key={key}
                     className="px-3 py-2 cursor-pointer"
@@ -129,31 +134,29 @@ const VendorsModal = ({ show, onClose, onVendorSelect }) => {
               </tr>
             </thead>
             <tbody>
-              {filteredVendors().map((vendor) => (
-                <tr key={vendor._id} className="text-center border-t hover:bg-gray-50">
-                  <td className="px-3 py-2">{vendor.name}</td>
-                  <td className="px-3 py-2">{vendor.phone}</td>
-                  <td className="px-3 py-2">{vendor.address}</td>
-                  <td className="px-3 py-2">{vendor.email}</td>
+              {filteredItems().map((item) => (
+                <tr key={item._id} className="text-center border-t hover:bg-gray-50">
+                  <td className="px-3 py-2">{item.name}</td>
                   <td className="px-3 py-2">
-                    <span className={`px-2 py-1 text-xs rounded font-medium ${vendor.type === 'individual' ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-100 text-blue-800'}`}>
-                      {vendor.type}
+                    <span className={`px-2 py-1 text-xs rounded font-medium ${item.type === 'service' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
+                      {item.type}
                     </span>
                   </td>
-                  <td className="px-3 py-2">{vendor.cifcnp || 'N/A'}</td>
+                  <td className="px-3 py-2">{item.measurement}</td>
+                  <td className="px-3 py-2">{item.price}</td>
                   <td className="px-3 py-2">
                     <input
                       type="checkbox"
-                      checked={selectedVendor?._id === vendor._id}
-                      onChange={() => toggleVendorSelection(vendor)}
+                      checked={!!selectedItems.find((i) => i._id === item._id)}
+                      onChange={() => toggleItemSelection(item)}
                       className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                     />
                   </td>
                 </tr>
               ))}
-              {filteredVendors().length === 0 && (
+              {filteredItems().length === 0 && (
                 <tr>
-                  <td colSpan="7" className="text-center py-4 text-gray-500">No vendors found.</td>
+                  <td colSpan="5" className="text-center py-4 text-gray-500">No items found.</td>
                 </tr>
               )}
             </tbody>
@@ -161,14 +164,15 @@ const VendorsModal = ({ show, onClose, onVendorSelect }) => {
         </div>
 
         <div className="flex justify-end gap-3 mt-4 justify-center">
-        <button  type="button"
+          <button
+            type="button"
             onClick={handleConfirmSelection}
-            disabled={!selectedVendor}
-            className={`px-4 py-2 rounded text-white ${
-              selectedVendor ? 'mt-4 px-4 py-2 font-semibold bg-purple-500 text-white rounded-md hover:bg-purple-600' : 'mt-4 px-4 py-2 font-semibold bg-gray-400 cursor-not-allowed'
+            disabled={selectedItems.length === 0}
+            className={`px-4 py-2 font-semibold rounded-md text-white ${
+              selectedItems.length > 0 ? 'bg-purple-500 hover:bg-purple-600' : 'bg-gray-400 cursor-not-allowed'
             }`}
           >
-            Select Vendor
+            Add Selected Items
           </button>
         </div>
 
@@ -188,8 +192,8 @@ const VendorsModal = ({ show, onClose, onVendorSelect }) => {
                 onClick={() => setCurrentPage(index + 1)}
                 className={`px-3 py-1 rounded ${
                   currentPage === index + 1
-                    ? 'px-4 py-2 mx-2 text-sm font-semibold text-white bg-purple-500 rounded-lg hover:bg-purple-700'
-                    : 'px-4 py-2 mx-2 text-sm font-semibold text-white bg-purple-500 rounded-lg hover:bg-purple-700'
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-purple-300 text-white hover:bg-purple-500'
                 }`}
               >
                 {index + 1}
@@ -210,4 +214,4 @@ const VendorsModal = ({ show, onClose, onVendorSelect }) => {
   );
 };
 
-export default VendorsModal;
+export default ItemsModal;
