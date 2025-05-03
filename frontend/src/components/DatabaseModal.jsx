@@ -23,7 +23,7 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
 
     const [itemData, setItemData] = useState({
         name: '',
-        UM: '',
+        um: '',
         price: '',
         description: '',
     });
@@ -73,7 +73,7 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
         } else if (activeTab === 'items') {
             setItemData({
                 name: '',
-                UM: '',
+                um: '',
                 price: '',
                 description: '',
             });
@@ -193,7 +193,7 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
     
         const payload = {
             name: itemData.name,
-            UM: itemData.UM,
+            um: itemData.um,
             price: itemData.price,
             description: itemData.description,
             type: itemType,
@@ -430,13 +430,13 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
                             <label className="block text-sm font-medium text-gray-700 mt-2">Unit of Measurement</label>
                             <input
                                 type="text"
-                                name="UM"
+                                name="um"
                                 className="mt-1 p-2 w-full border border-gray-300 rounded-md"
-                                value={itemData.UM}
+                                value={itemData.um}
                                 onChange={(e) => handleChange(e, 'item')}
                                 placeholder="Enter unit of measurement"
                             />
-                            {errors.UM && <p className="text-red-500 text-xs">{errors.UM}</p>}
+                            {errors.um && <p className="text-red-500 text-xs">{errors.um}</p>}
 
                         </>
 

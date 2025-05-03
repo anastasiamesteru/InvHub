@@ -8,6 +8,9 @@ import {
 
 const Dashboard = () => {
     const [invoices, setInvoices] = useState([]);
+    const [clients, setClients] = useState([]);
+    const [vendors, setVendors] = useState([]);
+    const [items, setItems] = useState([]);
     const [statusCounts, setStatusCounts] = useState({
         onTime: 0,
         overdue: 0,
@@ -38,11 +41,126 @@ const Dashboard = () => {
             console.error("Error fetching invoices:", error);
         }
     };
+    const fetchClients = async () => {
+        const token = localStorage.getItem('authToken'); // Get the token from localStorage
+        if (!token) {
+            console.error("No token found");
+            return;
+        }
+
+        try {
+            const response = await fetch('http://localhost:4000/routes/clients/getall', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`, // Include Bearer token in the request header
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (!response.ok) throw new Error('Failed to fetch clients');
+            const data = await response.json();
+            setClients(data);
+        } catch (error) {
+            console.error("Server error:", errorData);
+
+            console.error("Error fetching clients:", error);
+        }
+    };
+
+    const fetchVendors = async () => {
+        const token = localStorage.getItem('authToken'); // Get the token from localStorage
+        if (!token) {
+            console.error("No token found");
+            return;
+        }
+
+        try {
+            const response = await fetch('http://localhost:4000/routes/vendors/getall', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`, // Include Bearer token in the request header
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (!response.ok) throw new Error('Failed to fetch vendors');
+            const data = await response.json();
+            setVendors(data);
+        } catch (error) {
+            console.error("Error fetching vendors:", error);
+        }
+    };
+
+    const fetchItems = async () => {
+        const token = localStorage.getItem('authToken'); // Get the token from localStorage
+        if (!token) {
+            console.error("No token found");
+            return;
+        }
+
+        try {
+            const response = await fetch('http://localhost:4000/routes/items/getall', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`, // Include Bearer token in the request header
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (!response.ok) throw new Error('Failed to fetch items');
+            const data = await response.json();
+            setItems(data);
+        } catch (error) {
+            console.error("Error fetching items:", error);
+        }
+    };
 
 
     useEffect(() => {
         fetchInvoices();
+        fetchClients();
+        fetchVendors();
+        fetchItems();
     }, []);
+
+
+    const calculateCounts = () => {
+        const clientCounts = { company: 0, individual: 0 };
+        const vendorCounts = { company: 0, individual: 0 };
+        const itemCounts = { product: 0, service: 0 };
+
+        // Count clients by type
+        clients.forEach(client => {
+            if (client.type === 'company') {
+                clientCounts.company++;
+            } else if (client.type === 'individual') {
+                clientCounts.individual++;
+            }
+        });
+
+        // Count vendors by type
+        vendors.forEach(vendor => {
+            if (vendor.type === 'company') {
+                vendorCounts.company++;
+            } else if (vendor.type === 'individual') {
+                vendorCounts.individual++;
+            }
+        });
+
+        // Count items by type
+        items.forEach(item => {
+            if (item.type === 'product') {
+                itemCounts.product++;
+            } else if (item.type === 'service') {
+                itemCounts.service++;
+            }
+        });
+
+        return { clientCounts, vendorCounts, itemCounts };
+    };
+
+    const { clientCounts, vendorCounts, itemCounts } = useMemo(calculateCounts, [clients, vendors, items]);
+
 
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const now = new Date();
@@ -168,27 +286,18 @@ const Dashboard = () => {
     const COLORS = ['#eab308', '#9333ea']; // Dark Slate + Soft Stone
 
     return (
-        <div className="p-6 space-y-10 min-h-screen bg-gradient-to-r from-violet-50 via-violet-100 to-violet-200">
-            {/* Header */}
-            <div className="flex flex-col lg:flex-row items-center gap-6">
-                <div className="flex-1 text-center lg:text-left">
-                    <h1 className="text-2xl font-semibold text-gray-800">Welcome back!</h1>
-                    <p className="text-gray-600 mt-2">
-                        Here's a quick overview of your invoice performance this month.
-                    </p>
-                </div>
-            </div>
+        <div className="p-4 space-y-6 min-h-screen bg-gradient-to-r from-violet-100 via-violet-200 to-violet-300">
 
             {/* Summary and Graph */}
             <div className="flex flex-col lg:flex-row gap-6">
                 {/* Summary Cards */}
-                <div className="bg-white p-6 rounded-lg shadow-md w-full lg:w-1/3 space-y-6">
-                    <div className="bg-gray-100 p-4 rounded-lg shadow-md h-28 flex flex-col justify-center">
+                <div className="bg-white p-4 rounded-lg shadow-md w-full lg:w-1/3 space-y-4">
+                    <div className="bg-gray-100 p-4 rounded-lg shadow-md h-20 flex flex-col justify-center">
                         <h3 className="text-indigo-800 text-lg font-semibold">Total Collected</h3>
                         <p className="text-xl font-semibold text-center text-slate-800">${totalAmount.toFixed(2)}</p>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="bg-gray-200 p-4 rounded-lg shadow-md">
                             <h3 className="text-indigo-800 text-sm font-medium">Total Outstanding</h3>
                             <p className="text-xl font-semibold text-center text-slate-800">${outstandingAmount.toFixed(2)}</p>
@@ -206,53 +315,111 @@ const Dashboard = () => {
                 </div>
 
                 {/* Line and Pie Charts */}
-                <div className="flex flex-col lg:flex-row gap-6">
-
+                <div className="flex flex-col lg:flex-row gap-6 w-full lg:w-2/3">
                     {/* Line Chart */}
-                    <div className="p-6 rounded-lg w-full lg:w-1/2">
+                    <div className="p-4 rounded-lg bg-white shadow-lg w-full">
                         <h3 className="text-xl font-semibold text-gray-800">Invoice Performance</h3>
-                        <div className="mt-4 h-80">
-                            <ResponsiveContainer width="100%" height={300}>
+                        <div className="mt-4 h-64 bg-white border rounded-md">
+                            <ResponsiveContainer width="100%" height="100%">
                                 <LineChart data={monthlyData.lineChartData} margin={{ top: 10, right: 30, left: 0, bottom: 10 }}>
                                     <XAxis dataKey="month" tickFormatter={(value) => value.split(' ')[0]} />
                                     <YAxis allowDecimals={true} />
-                                    <Line type="monotone" dataKey="outstandingAmount" stroke="#e11d48" strokeWidth={3} />
-                                    <Line type="monotone" dataKey="overdueAmount" stroke="#10b981" strokeWidth={3} />
-                                    <Line type="monotone" dataKey="totalAmount" stroke="#f59e0b" strokeWidth={3} />
+                                    <Line type="monotone" dataKey="outstandingAmount" stroke="#e11d48" strokeWidth={2} />
+                                    <Line type="monotone" dataKey="overdueAmount" stroke="#10b981" strokeWidth={2} />
+                                    <Line type="monotone" dataKey="totalAmount" stroke="#f59e0b" strokeWidth={2} />
                                 </LineChart>
                             </ResponsiveContainer>
                         </div>
                     </div>
+                </div>
+            </div>
 
-                    {/* Pie Chart */}
-                    <div className="w-full lg:w-1/2">
-                        <ResponsiveContainer width="100%" height={300}>
-                            <PieChart>
-                                <Pie
-                                    data={monthlyData.pieChartData}
-                                    cx="50%"
-                                    cy="50%"
-                                    labelLine={false}
-                                    outerRadius={100}
-                                    fill="#8884d8"
-                                    dataKey="value"
-                                    label={({ name, value, percent }) =>
-                                        `${name}: ${(percent * 100).toFixed(0)}%`
-                                    }   
-                                >
-                                    {monthlyData.pieChartData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                    ))}
-                                </Pie>
-                                <Tooltip />
-                            </PieChart>
-                        </ResponsiveContainer>
+            {/* New Section */}
+            <div className="p-4 rounded-lg mt-6">
+                {/* Clients and Vendors */}
+                <div className="flex-1 grid grid-cols-4 gap-2">
+                    <div className="bg-white rounded-lg shadow p-2 flex flex-col justify-center items-center">
+                        {/* Clients (Company) Icon */}
+                        <div className="bg-indigo-800 rounded-full h-12 w-12 flex items-center justify-center mx-auto">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="white" class="size-6">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M12.75 21h7.5V10.75M2.25 21h1.5m18 0h-18M2.25 9l4.5-1.636M18.75 3l-1.5.545m0 6.205 3 1m1.5.5-1.5-.5M6.75 7.364V3h-3v18m3-13.636 10.5-3.819" />
+                            </svg>
+
+                        </div>
+                        <h3 className="text-xs text-indigo-800 mt-2 text-center">Clients (Company)</h3>
+                        <p className="text-center text-lg font-bold text-slate-800">{clientCounts.company}</p>
                     </div>
 
+                    <div className="bg-white rounded-lg shadow p-2 flex flex-col justify-center items-center">
+                        {/* Clients (Individual) Icon */}
+                        <div className="bg-indigo-800 rounded-full h-12 w-12 flex items-center justify-center mx-auto">
+                            <svg className="h-8 w-8 text-white mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="white" class="size-6">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 14c3.86 0 7 2.69 7 6v2H5v-2c0-3.31 3.13-6 7-6zM12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4z" />
+                            </svg>
+                        </div>
+                        <h3 className="text-xs text-indigo-800 mt-2 text-center">Clients (Individual)</h3>
+                        <p className="text-center text-lg font-bold text-slate-800">{clientCounts.individual}</p>
+                    </div>
+
+                    <div className="bg-white rounded-lg shadow p-2 flex flex-col justify-center items-center">
+                        {/* Vendors (Company) Icon */}
+                        <div className="bg-indigo-800 rounded-full h-12 w-12 flex items-center justify-center mx-auto">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="white" class="size-6">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M12.75 21h7.5V10.75M2.25 21h1.5m18 0h-18M2.25 9l4.5-1.636M18.75 3l-1.5.545m0 6.205 3 1m1.5.5-1.5-.5M6.75 7.364V3h-3v18m3-13.636 10.5-3.819" />
+                            </svg>
+
+                        </div>
+                        <h3 className="text-xs text-indigo-800 mt-2 text-center">Vendors (Company)</h3>
+                        <p className="text-center text-lg font-bold text-slate-800">{vendorCounts.company}</p>
+                    </div>
+
+                    <div className="bg-white rounded-lg shadow p-2 flex flex-col justify-center items-center">
+                        {/* Vendors (Individual) Icon */}
+                        <div className="bg-indigo-800 rounded-full h-12 w-12 flex items-center justify-center mx-auto">
+                            <svg className="h-8 w-8 text-white mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="white" class="size-6">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 14c3.86 0 7 2.69 7 6v2H5v-2c0-3.31 3.13-6 7-6zM12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4z" />
+                            </svg>
+                        </div>
+                        <h3 className="text-xs text-indigo-800 mt-2 text-center">Vendors (Individual)</h3>
+                        <p className="text-center text-lg font-bold text-slate-800">{vendorCounts.individual}</p>
+                    </div>
                 </div>
 
+                {/* Item Count */}
+                <div className="flex-1 grid grid-cols-2 gap-2 mt-4">
+                    <div className="bg-white rounded-lg shadow p-2 flex flex-col justify-center items-center">
+                        {/* Items (Product) Icon */}
+                        <div className="bg-indigo-800 rounded-full h-12 w-12 flex items-center justify-center mx-auto">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="white" class="size-6">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+                            </svg>
+
+
+                        </div>
+                        <h3 className="text-xs text-indigo-800 mt-2 text-center">Items (Product)</h3>
+                        <p className="text-center text-lg font-bold text-slate-800">{itemCounts.product}</p>
+                    </div>
+
+                    <div className="bg-white rounded-lg shadow p-2 flex flex-col justify-center items-center">
+                        {/* Items (Service) Icon */}
+                        <div className="bg-indigo-800 rounded-full h-12 w-12 flex items-center justify-center mx-auto">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="white" class="size-6">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 0 0 .75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 0 0-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0 1 12 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 0 1-.673-.38m0 0A2.18 2.18 0 0 1 3 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 0 1 3.413-.387m7.5 0V5.25A2.25 2.25 0 0 0 13.5 3h-3a2.25 2.25 0 0 0-2.25 2.25v.894m7.5 0a48.667 48.667 0 0 0-7.5 0M12 12.75h.008v.008H12v-.008Z" />
+                            </svg>
+
+
+                        </div>
+                        <h3 className="text-xs text-indigo-800 mt-2 text-center">Items (Service)</h3>
+                        <p className="text-center text-lg font-bold text-slate-800">{itemCounts.service}</p>
+                    </div>
+                </div>
             </div>
+
+
+
+
         </div>
+
 
     );
 };

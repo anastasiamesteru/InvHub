@@ -4,9 +4,9 @@ export const InvoiceModalValidation = (data) => {
     const errors = {};
 
     const {
-        issue_date, due_date, clientName, clientAddress, clientPhoneNo,
+        issue_date, due_date, clientName, clientAddress, clientPhoneNo,clientEmail,
          clientCifcnp, clientType, vendorName, vendorAddress,
-        vendorPhoneNo,  vendorCifcnp, vendorType,
+        vendorPhoneNo, vendorEmail, vendorCifcnp, vendorType,
         itemName, quantity, price
     } = data;
 
@@ -20,6 +20,8 @@ export const InvoiceModalValidation = (data) => {
     if (!safeTrim(clientName)) errors.clientName = "Client name is required.";
     if (!safeTrim(clientAddress)) errors.clientAddress = "Client address is required.";
     if (!safeTrim(clientPhoneNo) || !/^\d{10}$/.test(clientPhoneNo)) errors.clientPhoneNo = "Valid phone number (10 digits) is required.";
+    if (!safeTrim(clientEmail)) errors.clientEmail = "Client email is required.";
+
     if (!safeTrim(clientCifcnp)) {
         errors.clientCifcnp = clientType === "company" ? "CIF is required." : "CNP is required.";
     } else if (clientType === "company" && !/^\d{8,9}$/.test(clientCifcnp)) {
@@ -32,7 +34,8 @@ export const InvoiceModalValidation = (data) => {
     if (!safeTrim(vendorName)) errors.vendorName = "Vendor name is required.";
     if (!safeTrim(vendorAddress)) errors.vendorAddress = "Vendor address is required.";
     if (!safeTrim(vendorPhoneNo) || !/^\d{10}$/.test(vendorPhoneNo)) errors.vendorPhoneNo = "Valid phone number (10 digits) is required.";
-   
+    if (!safeTrim(vendorEmail)) errors.vendorEmail = "Vendor email is required.";
+
     if (!safeTrim(vendorCifcnp)) {
         errors.vendorCifcnp = vendorType === "company" ? "CIF is required." : "CNP is required.";
     } else if (vendorType === "company" && !/^\d{8,9}$/.test(vendorCifcnp)) {

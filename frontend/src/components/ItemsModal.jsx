@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-const ItemsModal = ({ show, onClose, onItemsSelect }) => {
+const ItemsModal = ({ show, onClose, onItemSelect }) => {
   const [items, setItems] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedItems, setSelectedItems] = useState([]);
@@ -81,7 +81,7 @@ const ItemsModal = ({ show, onClose, onItemsSelect }) => {
 
   const handleConfirmSelection = () => {
     if (selectedItems.length > 0) {
-      onItemsSelect(selectedItems);
+      onItemSelect(selectedItems);
       onClose();
     }
   };

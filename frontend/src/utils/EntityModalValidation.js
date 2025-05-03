@@ -43,10 +43,10 @@ export const validateVendorForm = (data) => {
 
 export const validateItemForm = (data) => {
     const errors = {};
-    const { name, UM, price, description } = data;
+    const { name, um, price, description } = data;
 
     if (!name.trim()) errors.name = "Item name is required.";
-    if (!UM.trim()) errors.UM = "Unit of measurement is required.";
+    if (!um.trim()) errors.um = "Unit of measurement is required.";
     if (!price.trim() || isNaN(price) || parseFloat(price) <= 0) errors.price = "Valid price (greater than 0) is required.";
     if (!description.trim()) errors.description = "Description is required.";
 
