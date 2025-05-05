@@ -178,6 +178,7 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
     //console.log("Invoice data: ", invoiceData);
 
     const onClientSelect = (selectedClient) => {
+        setErrors({});
         setInvoiceData((prevData) => ({
             ...prevData,
             clientName: selectedClient.name,
@@ -192,6 +193,7 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
     };
 
     const onVendorSelect = (selectedVendor) => {
+        setErrors({});
         setInvoiceData((prevData) => ({
             ...prevData,
             vendorName: selectedVendor.name,
@@ -239,7 +241,7 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                     </button>
                 </div>
 
-                <form className="mt-4" onSubmit={handleSubmit}>
+                <form id="invoice-form" className="mt-4" onSubmit={handleSubmit}>
                     <div className="flex flex-col border-b-2 border-gray-400 pt-4 pb-4">
                         <div className="flex justify-between">
                             <div className="w-1/2 pr-2 flex flex-col items-center">

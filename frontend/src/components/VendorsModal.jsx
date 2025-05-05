@@ -161,12 +161,14 @@ const VendorsModal = ({ show, onClose, onVendorSelect }) => {
         </div>
 
         <div className="flex justify-end gap-3 mt-4 justify-center">
-        <button  type="button"
-            onClick={handleConfirmSelection}
-            disabled={!selectedVendor}
-            className={`px-4 py-2 rounded text-white ${
-              selectedVendor ? 'mt-4 px-4 py-2 font-semibold bg-purple-500 text-white rounded-md hover:bg-purple-600' : 'mt-4 px-4 py-2 font-semibold bg-gray-400 cursor-not-allowed'
-            }`}
+          <button type="button"
+            onClick={(e) => {
+              e.preventDefault(); // prevent any accidental form submission
+              e.stopPropagation(); // prevent bubbling
+              handleConfirmSelection(); // your actual handler
+            }} disabled={!selectedVendor}
+            className={`px-4 py-2 rounded text-white ${selectedVendor ? 'mt-4 px-4 py-2 font-semibold bg-purple-500 text-white rounded-md hover:bg-purple-600' : 'mt-4 px-4 py-2 font-semibold bg-gray-400 cursor-not-allowed'
+              }`}
           >
             Select Vendor
           </button>
@@ -186,11 +188,10 @@ const VendorsModal = ({ show, onClose, onVendorSelect }) => {
               <button
                 key={index}
                 onClick={() => setCurrentPage(index + 1)}
-                className={`px-3 py-1 rounded ${
-                  currentPage === index + 1
+                className={`px-3 py-1 rounded ${currentPage === index + 1
                     ? 'px-4 py-2 mx-2 text-sm font-semibold text-white bg-purple-500 rounded-lg hover:bg-purple-700'
                     : 'px-4 py-2 mx-2 text-sm font-semibold text-white bg-purple-500 rounded-lg hover:bg-purple-700'
-                }`}
+                  }`}
               >
                 {index + 1}
               </button>

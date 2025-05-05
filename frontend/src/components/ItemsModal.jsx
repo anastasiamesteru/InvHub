@@ -110,57 +110,60 @@ const ItemsModal = ({ show, onClose, onItemSelect }) => {
         </div>
 
         <div className="max-h-72 overflow-y-auto border rounded-md">
-          <table className="w-full text-sm table-auto border-collapse">
-            <thead>
-              <tr className="bg-gray-200 text-center">
-                {['name', 'type', 'measurement', 'price'].map((key) => (
-                  <th
-                    key={key}
-                    className="px-3 py-2 cursor-pointer"
-                    onClick={() => {
-                      if (sortColumn === key) {
-                        setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-                      } else {
-                        setSortColumn(key);
-                        setSortOrder('asc');
-                      }
-                    }}
-                  >
-                    {key.charAt(0).toUpperCase() + key.slice(1)}
-                    {sortColumn === key ? (sortOrder === 'asc' ? ' ▲' : ' ▼') : ''}
-                  </th>
-                ))}
-                <th className="px-3 py-2">Select</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredItems().map((item) => (
-                <tr key={item._id} className="text-center border-t hover:bg-gray-50">
-                  <td className="px-3 py-2">{item.name}</td>
-                  <td className="px-3 py-2">
-                    <span className={`px-2 py-1 text-xs rounded font-medium ${item.type === 'service' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
-                      {item.type}
-                    </span>
-                  </td>
-                  <td className="px-3 py-2">{item.measurement}</td>
-                  <td className="px-3 py-2">{item.price}</td>
-                  <td className="px-3 py-2">
-                    <input
-                      type="checkbox"
-                      checked={!!selectedItems.find((i) => i._id === item._id)}
-                      onChange={() => toggleItemSelection(item)}
-                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                    />
-                  </td>
-                </tr>
-              ))}
-              {filteredItems().length === 0 && (
-                <tr>
-                  <td colSpan="5" className="text-center py-4 text-gray-500">No items found.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+        <table className="w-full text-sm table-auto border-collapse">
+        <thead>
+  <tr className="bg-gray-200 text-center">
+    {['name', 'type', 'price', 'um'].map((key) => (
+      <th
+        key={key}
+        className="px-3 py-2 cursor-pointer"
+        onClick={() => {
+          if (sortColumn === key) {
+            setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+          } else {
+            setSortColumn(key);
+            setSortOrder('asc');
+          }
+        }}
+      >
+        {key === 'um' ? 'U.M.' : key.charAt(0).toUpperCase() + key.slice(1)}
+        {sortColumn === key ? (sortOrder === 'asc' ? ' ▲' : ' ▼') : ''}
+      </th>
+    ))}
+    <th className="px-3 py-2">Select</th>
+  </tr>
+</thead>
+
+  <tbody>
+    {filteredItems().map((item) => (
+      <tr key={item._id} className="text-center border-t hover:bg-gray-50">
+        <td className="px-3 py-2">{item.name}</td>
+        <td className="px-3 py-2">
+          <span className={`px-2 py-1 text-xs rounded font-medium ${item.type === 'product' ? 'bg-orange-100 text-orange-800' : 'bg-purple-100 text-purple-800'}`}>
+     
+            {item.type}
+          </span>
+        </td>
+        <td className="px-3 py-2">{item.price}</td>
+        <td className="px-3 py-2">{item.um}</td> {/* Now properly aligned */}
+        <td className="px-3 py-2">
+          <input
+            type="checkbox"
+            checked={!!selectedItems.find((i) => i._id === item._id)}
+            onChange={() => toggleItemSelection(item)}
+            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+          />
+        </td>
+      </tr>
+    ))}
+    {filteredItems().length === 0 && (
+      <tr>
+        <td colSpan="6" className="text-center py-4 text-gray-500">No items found.</td>
+      </tr>
+    )}
+  </tbody>
+</table>
+
         </div>
 
         <div className="flex justify-end gap-3 mt-4 justify-center">

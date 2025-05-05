@@ -161,8 +161,12 @@ const ClientsModal = ({ show, onClose, onClientSelect }) => {
         </div>
 
         <div className="flex justify-end gap-3 mt-4 justify-center">
-          <button  type="button"
-            onClick={handleConfirmSelection}
+          <button type="button"
+              onClick={(e) => {
+                e.preventDefault(); // prevent any accidental form submission
+                e.stopPropagation(); // prevent bubbling
+                handleConfirmSelection(); // your actual handler
+              }}
             disabled={!selectedClient}
             className={`px-4 py-2 rounded text-white ${
               selectedClient ? 'mt-4 px-4 py-2 font-semibold bg-purple-500 text-white rounded-md hover:bg-purple-600' : 'mt-4 px-4 py-2 font-semibold bg-gray-400 cursor-not-allowed'
