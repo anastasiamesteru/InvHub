@@ -10,6 +10,7 @@ const Database = () => {
     const [vendors, setVendors] = useState([]);
     const [items, setItems] = useState([]);
     const [editingEntity, setEditingEntity] = useState(null); 
+    const [loading, setLoading] = useState(false);
 
 
 
@@ -21,24 +22,7 @@ const Database = () => {
 
     const handleButtonClick = (category) => setActiveTab(category);
 
-    const handleEdit = (entityId) => {
-        let entity;
     
-        // Check the activeTab to determine which list to search in
-        if (activeTab === 'clients') {
-            entity = clients.find(client => client._id === entityId);  // Assuming 'id' is the unique identifier
-        } else if (activeTab === 'vendors') {
-            entity = vendors.find(vendor => vendor._id === entityId);  // Assuming 'id' is the unique identifier
-        } else if (activeTab === 'items') {
-            entity = items.find(item => item._id === entityId);  // Assuming 'id' is the unique identifier
-        }
-    
-        // Set the selected entity and open the modal if found
-        if (entity) {
-            setEditingEntity(entity);  // Set the selected entity for editing
-            setIsModalOpen(true);      // Open the modal
-        }
-    };
     
     useEffect(() => {
         if (activeTab === 'clients') fetchClients();
@@ -149,7 +133,79 @@ const Database = () => {
         }
     };
     
-
+    const handleEdit = async (id) => {
+        const token = localStorage.getItem('authToken'); // Get the token from localStorage
+        if (!token) {
+            console.error("No token found");
+            return;
+        }
+    
+        let fetchEndpoint = "";
+        let fetchDataFunction = null;
+    
+        // Determine the endpoint and fetch function based on the active tab
+        if (activeTab === "clients") {
+            fetchEndpoint = `/routes/clients/${id}`;
+            fetchDataFunction = fetchClients;
+        } else if (activeTab === "vendors") {
+            fetchEndpoint = `/routes/vendors/${id}`;
+            fetchDataFunction = fetchVendors;
+        } else if (activeTab === "items") {
+            fetchEndpoint = `/routes/items/${id}`;
+            fetchDataFunction = fetchItems;
+        }
+    
+        setLoading(true); // Set loading state to true while fetching data
+    
+        try {
+            // Fetch the entity data for editing
+            const response = await axios.get(`http://localhost:4000${fetchEndpoint}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`, // Include Bearer token in the request header
+                },
+            });
+    
+            // Get the data from the response
+            const entityData = response.data;
+    
+            // Set the modal data state with the fetched data
+            if (activeTab === "clients") {
+                setClientData({
+                    name: entityData.name,
+                    email: entityData.email,
+                    phone: entityData.phone,
+                    address: entityData.address,
+                    cifCnp: entityData.cifcnp,
+                });
+            } else if (activeTab === "vendors") {
+                setVendorData({
+                    name: entityData.name,
+                    email: entityData.email,
+                    phone: entityData.phone,
+                    address: entityData.address,
+                    cifCnp: entityData.cifcnp,
+                });
+            } else if (activeTab === "items") {
+                setItemData({
+                    name: entityData.name,
+                    type: entityData.type,
+                    unit: entityData.unit,
+                    price: entityData.price,
+                });
+            }
+    
+            // Open the modal to edit the entity
+            openModal(); // Replace this with the function that opens your modal
+    
+        } catch (error) {
+            console.error("Error fetching data for edit:", error);
+            alert(`Error fetching data: ${error.message}`);
+        } finally {
+            setLoading(false); // Reset loading state
+        }
+    };
+    
+    
     const filteredData = () => {
         const query = searchQuery.toLowerCase();
         let data = [];
