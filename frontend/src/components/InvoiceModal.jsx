@@ -25,7 +25,7 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
         clientName: '', clientAddress: '', clientPhoneNo: '', clientEmail: '', clientType: 'company', clientCifcnp: '',
         vendorName: '', vendorAddress: '', vendorPhoneNo: '', vendorEmail: '', vendorType: 'company', vendorCifcnp: '',
         issue_date: '', due_date: '', tax: 0, total: 0,
-        items: [{ itemName: '', quantity: 1, unitPrice: 0, um: '', type: '' }],
+        items: [{ itemName: '', quantity: 1, unitPrice: 0, um: '', type: 'product' }],
     });
 
 
@@ -353,7 +353,7 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                             </div>
                             <div className="my-2">
                                 <label htmlFor="client-cif-cnp" className="block text-sm font-small text-gray-700 mt-1">
-                                    {invoiceData.clientType === 'company' ? 'CIF' : 'CNP'}
+                                    {invoiceData.clientType === 'company' ? 'CUI' : 'CNP'}
                                 </label>
                                 <input
                                     type="text"
@@ -361,7 +361,7 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                                     value={invoiceData.clientCifcnp}
                                     onChange={(e) => handleChange(e, 'clientCifcnp')}
                                     className="mt-1 p-2 w-full border border-gray-300 rounded-md"
-                                    placeholder={invoiceData.clientType === 'company' ? 'Enter company CIF' : 'Enter individual CNP'}
+                                    placeholder={invoiceData.clientType === 'company' ? 'Enter company CUI' : 'Enter individual CNP'}
                                 />
                                 {errors.clientCifcnp && <p className="text-red-500 text-xs">{errors.clientCifcnp}</p>}
 
@@ -456,7 +456,7 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
 
                             <div className="my-2">
                                 <label htmlFor="vendor-cif-cnp" className="block text-sm font-small text-gray-700 mt-1">
-                                    {invoiceData.vendorType === 'company' ? 'CIF' : 'CNP'}
+                                    {invoiceData.vendorType === 'company' ? 'CUI' : 'CNP'}
                                 </label>
                                 <input
                                     type="text"
@@ -464,7 +464,7 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                                     value={invoiceData.vendorCifcnp}
                                     onChange={(e) => handleChange(e, 'vendorCifcnp')}
                                     className="mt-1 p-2 w-full border border-gray-300 rounded-md"
-                                    placeholder={invoiceData.vendorType === 'company' ? 'Enter company CIF' : 'Enter individual CNP'}
+                                    placeholder={invoiceData.vendorType === 'company' ? 'Enter company CUI' : 'Enter individual CNP'}
                                 />
                                 {errors.vendorCifcnp && <p className="text-red-500 text-xs">{errors.vendorCifcnp}</p>}
 
@@ -541,7 +541,7 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                                         <td className="border px-3 py-2">
                                             <select
                                                 value={item.type}
-                                                onChange={(e) => handleItemChange(e, 'itemType', index)}
+                                                onChange={(e) => handleItemChange(e, 'type', index)}
                                                 className="w-28 rounded-md border border-gray-300 text-sm p-2"
                                             >
                                                 <option value="product">Product</option>

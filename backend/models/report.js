@@ -75,7 +75,7 @@ const reportSchema = new mongoose.Schema({
             checkedpercentIndividualVendors: {type:Number},
             checkedpercentCompanyVendors: {type:Number},
             checkedpercentProducts: {type:Number},
-            checkedpercentPercent: {type:Number},
+            checkedpercentServices: {type:Number},
 
         },
     },

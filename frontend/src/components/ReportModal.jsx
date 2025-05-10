@@ -39,7 +39,7 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
                 percentIndividualVendors: 0,
                 percentCompanyVendors: 0,
                 percentProducts: 0,
-                percentPercent: 0,
+                percentServices: 0,
             },
         },
         selectedCheckboxes: {
@@ -72,7 +72,7 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
                 checkedpercentIndividualVendors: false,
                 checkedpercentCompanyVendors: false,
                 checkedpercentProducts: false,
-                checkedpercentPercent: false,
+                checkedpercentServices: false,
             },
         },
     });
@@ -285,41 +285,43 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
         let percentIndividualVendors = 0;
         let percentCompanyVendors = 0;
         let percentProducts = 0;
-        let percentPercent = 0;
-
-        // Count the entities
+        let percentServices = 0;
+        
         if (selectedCheckboxes.invoiceEntities?.checkednumberOfIndividualClients) {
-            numberOfIndividualClients = invoicesInRange.filter(invoice => invoice.clientType === 'Individual').length;
+            numberOfIndividualClients = invoicesInRange.filter(invoice => invoice.clientType === 'individual').length;
         }
-
+        
         if (selectedCheckboxes.invoiceEntities?.checkednumberOfCompanyClients) {
-            numberOfCompanyClients = invoicesInRange.filter(invoice => invoice.clientType === 'Company').length;
+            numberOfCompanyClients = invoicesInRange.filter(invoice => invoice.clientType === 'company').length;
         }
-
+        
         if (selectedCheckboxes.invoiceEntities?.checkednumberOfIndividualVendors) {
-            numberOfIndividualVendors = invoicesInRange.filter(invoice => invoice.vendorType === 'Individual').length;
+            numberOfIndividualVendors = invoicesInRange.filter(invoice => invoice.vendorType === 'individual').length;
         }
-
+        
         if (selectedCheckboxes.invoiceEntities?.checkednumberOfCompanyVendors) {
-            numberOfCompanyVendors = invoicesInRange.filter(invoice => invoice.vendorType === 'Company').length;
+            numberOfCompanyVendors = invoicesInRange.filter(invoice => invoice.vendorType === 'company').length;
         }
-
-        if (selectedCheckboxes.invoiceEntities?.checkednumberOfProducts) {
-            numberOfProducts = invoicesInRange.filter(invoice => invoice.items.type === 'Product').length;
+        
+        if (selectedCheckboxes.invoiceEntities?.checkednumberOfProducts || selectedCheckboxes.invoiceEntities?.checkednumberOfServices) {
+            invoicesInRange.forEach(invoice => {
+                invoice.items.forEach(item => {
+                    const type = item.type?.toLowerCase(); // ensure consistency
+                    if (type === 'product') numberOfProducts++;
+                    if (type === 'service') numberOfServices++;
+                });
+            });
         }
-
-        if (selectedCheckboxes.invoiceEntities?.checkednumberOfServices) {
-            numberOfServices = invoicesInRange.filter(invoice => invoice.items.type === 'Service').length;
-        }
-
-        // Calculate percentages
+        
         percentIndividualClients = totalInvoices > 0 ? (numberOfIndividualClients / totalInvoices) * 100 : 0;
         percentCompanyClients = totalInvoices > 0 ? (numberOfCompanyClients / totalInvoices) * 100 : 0;
         percentIndividualVendors = totalInvoices > 0 ? (numberOfIndividualVendors / totalInvoices) * 100 : 0;
         percentCompanyVendors = totalInvoices > 0 ? (numberOfCompanyVendors / totalInvoices) * 100 : 0;
-        percentProducts = totalInvoices > 0 ? (numberOfProducts / totalInvoices) * 100 : 0;
-        percentPercent = totalInvoices > 0 ? (numberOfServices / totalInvoices) * 100 : 0;
-
+        
+        const totalItems = numberOfProducts + numberOfServices;
+        percentProducts = totalItems > 0 ? (numberOfProducts / totalItems) * 100 : 0;
+        percentServices = totalItems > 0 ? (numberOfServices / totalItems) * 100 : 0;
+        
         updatedIndicators.invoiceEntities = {
             numberOfIndividualClients,
             numberOfCompanyClients,
@@ -332,8 +334,9 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
             percentIndividualVendors,
             percentCompanyVendors,
             percentProducts,
-            percentPercent,
+            percentServices,
         };
+        
 
         return {
             ...reportData,
@@ -710,12 +713,12 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
                         <div className="flex items-center space-x-1">
                             <input
                                 type="checkbox"
-                                name="checkedpercentPercent"
-                                checked={reportData.selectedCheckboxes.invoiceEntities.checkedpercentPercent}
-                                onChange={(e) => handleCheckboxChange(e, 'invoiceEntities', 'checkedpercentPercent')}
+                                name="checkedpercentServices"
+                                checked={reportData.selectedCheckboxes.invoiceEntities.checkedpercentServices}
+                                onChange={(e) => handleCheckboxChange(e, 'invoiceEntities', 'checkedpercentServices')}
                                 className="w-5 h-5 accent-blue-500 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none checked:bg-blue-500 hover:ring-2 hover:ring-blue-300"
                             />
-                            <span>Percent Total</span>
+                            <span>Percent of Services</span>
                         </div>
 
                     </div>

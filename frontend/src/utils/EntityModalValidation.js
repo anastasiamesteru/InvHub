@@ -10,9 +10,9 @@ export const validateClientForm = (data = {}) => {
     if (!address.trim()) errors.address = "Client address is required.";
 
     if (!cifCnp.trim()) {
-        errors.cifCnp = clientType === "company" ? "CIF is required." : "CNP is required.";
-    } else if (clientType === "company" && !/^\d{8,9}$/.test(cifCnp)) {
-        errors.cifCnp = "Valid CIF required (8-9 digits).";
+        errors.cifCnp = clientType === "company" ? "CUI is required." : "CNP is required.";
+    } else if (clientType === "company" && !/^\d{2,10}$/.test(cifCnp)) {
+        errors.cifCnp = "Valid CUI required (8-9 digits).";
     } else if (clientType === "individual" && !/^\d{13}$/.test(cifCnp)) {
         errors.cifCnp = "Valid CNP required (13 digits).";
     }
@@ -31,9 +31,9 @@ export const validateVendorForm = (data) => {
     if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) errors.email = "Valid email is required.";
 
     if (!cifCnp.trim()) {
-        errors.cifCnp = vendorType === "company" ? "CIF is required." : "CNP is required.";
-    } else if (vendorType === "company" && !/^\d{8,9}$/.test(cifCnp)) {
-        errors.cifCnp = "Valid CIF required (8-9 digits).";
+        errors.cifCnp = vendorType === "company" ? "CUI is required." : "CNP is required.";
+    } else if (vendorType === "company" && !/^\d{2,10}$/.test(cifCnp)) {
+        errors.cifCnp = "Valid CUI required (8-9 digits).";
     } else if (vendorType === "individual" && !/^\d{13}$/.test(cifCnp)) {
         errors.cifCnp = "Valid CNP required (13 digits).";
     }

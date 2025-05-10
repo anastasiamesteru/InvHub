@@ -310,37 +310,37 @@ const ReportPDF = ({ reportData }) => {
             {invoiceEntities.percentIndividualClients != null && (
               <View style={styles.row}>
                 <Text style={[styles.cell, { textAlign: 'center' }]}>Percent of Individual Clients</Text>
-                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoiceEntities.percentIndividualClients}%</Text>
+                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoiceEntities.percentIndividualClients.toFixed(2)}%</Text>
               </View>
             )}
             {invoiceEntities.percentCompanyClients != null && (
               <View style={styles.row}>
                 <Text style={[styles.cell, { textAlign: 'center' }]}>Percent of Company Clients</Text>
-                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoiceEntities.percentCompanyClients}%</Text>
+                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoiceEntities.percentCompanyClients.toFixed(2)}%</Text>
               </View>
             )}
             {invoiceEntities.percentIndividualVendors != null && (
               <View style={styles.row}>
                 <Text style={[styles.cell, { textAlign: 'center' }]}>Percent of Individual Vendors</Text>
-                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoiceEntities.percentIndividualVendors}%</Text>
+                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoiceEntities.percentIndividualVendors.toFixed(2)}%</Text>
               </View>
             )}
             {invoiceEntities.percentCompanyVendors != null && (
               <View style={styles.row}>
                 <Text style={[styles.cell, { textAlign: 'center' }]}>Percent of Company Vendors</Text>
-                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoiceEntities.percentCompanyVendors}%</Text>
+                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoiceEntities.percentCompanyVendors.toFixed(2)}%</Text>
               </View>
             )}
             {invoiceEntities.percentProducts != null && (
               <View style={styles.row}>
                 <Text style={[styles.cell, { textAlign: 'center' }]}>Percent of Products</Text>
-                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoiceEntities.percentProducts}%</Text>
+                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoiceEntities.percentProducts.toFixed(2)}%</Text>
               </View>
             )}
-            {invoiceEntities.percentPercent != null && (
+            {invoiceEntities.percentServices != null && (
               <View style={styles.row}>
-                <Text style={[styles.cell, { textAlign: 'center' }]}>Percent of Percent</Text>
-                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoiceEntities.percentPercent}%</Text>
+                <Text style={[styles.cell, { textAlign: 'center' }]}>Percent of Services</Text>
+                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoiceEntities.percentServices.toFixed(2)}%</Text>
               </View>
             )}
           </View>

@@ -23,9 +23,9 @@ export const InvoiceModalValidation = (data) => {
     if (!safeTrim(clientEmail)) errors.clientEmail = "Client email is required.";
 
     if (!safeTrim(clientCifcnp)) {
-        errors.clientCifcnp = clientType === "company" ? "CIF is required." : "CNP is required.";
-    } else if (clientType === "company" && !/^\d{8,9}$/.test(clientCifcnp)) {
-        errors.clientCifcnp = "Valid CIF required (8-9 digits).";
+        errors.clientCifcnp = clientType === "company" ? "CUI is required." : "CNP is required.";
+    } else if (clientType === "company" && !/^\d{2,10}$/.test(clientCifcnp)) {
+        errors.clientCifcnp = "Valid CUI required (8-9 digits).";
     } else if (clientType === "individual" && !/^\d{13}$/.test(clientCifcnp)) {
         errors.clientCifcnp = "Valid CNP required (13 digits).";
     }
@@ -37,9 +37,9 @@ export const InvoiceModalValidation = (data) => {
     if (!safeTrim(vendorEmail)) errors.vendorEmail = "Vendor email is required.";
 
     if (!safeTrim(vendorCifcnp)) {
-        errors.vendorCifcnp = vendorType === "company" ? "CIF is required." : "CNP is required.";
-    } else if (vendorType === "company" && !/^\d{8,9}$/.test(vendorCifcnp)) {
-        errors.vendorCifcnp = "Valid CIF required (8-9 digits).";
+        errors.vendorCifcnp = vendorType === "company" ? "CUI is required." : "CNP is required.";
+    } else if (vendorType === "company" && !/^\d{2,10}$/.test(vendorCifcnp)) {
+        errors.vendorCifcnp = "Valid cui required (8-9 digits).";
     } else if (vendorType === "individual" && !/^\d{13}$/.test(vendorCifcnp)) {
         errors.vendorCifcnp = "Valid CNP required (13 digits).";
     }

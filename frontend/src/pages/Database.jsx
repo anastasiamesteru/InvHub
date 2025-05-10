@@ -303,7 +303,7 @@ const Database = () => {
                                     className="px-3 py-2 text-center bg-gray-200 cursor-pointer"
                                     onClick={() => handleSort('cifcnp')}
                                 >
-                                    CIF/CNP
+                                    CUI/CNP
                                     {sortColumn === 'cifcnp' ? (sortOrder === 'asc' ? ' ▲' : ' ▼') : ''}
                                 </th>
                                 <th className="px-3 py-2 text-center bg-gray-200">Actions</th>
