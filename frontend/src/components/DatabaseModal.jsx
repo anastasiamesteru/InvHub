@@ -232,13 +232,12 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
             <div className="bg-white p-6 rounded-lg shadow-md w-1/3">
                 <div className="flex justify-between items-center">
-                    <h3 className="text-lg font-bold">{activeTab ? activeTab.charAt(0).toUpperCase() + activeTab.slice(1) : 'Unknown'}</h3>
+                    <h3 className="text-lg font-semibold">{activeTab === 'clients' ? "Add a client" : activeTab === 'vendors' ? "Add a vendor" : "Add an item"} </h3>
                     <button className="text-gray-500 hover:text-gray-700" onClick={closeModal}>
                         ✕
                     </button>
                 </div>
                 <form onSubmit={activeTab === 'clients' ? handleSubmitClient : activeTab === 'vendors' ? handleSubmitVendor : handleSubmitItem} className="mt-4">
-                {console.log("Current submit handler:", activeTab === 'clients' ? 'handleSubmitClient' : activeTab === 'vendors' ? 'handleSubmitVendor' : 'handleSubmitItem')}
 
                     {activeTab === 'clients' && (
                         <>
@@ -255,7 +254,7 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
 
                             <label className="block text-sm font-medium text-gray-700 mt-2">Phone Number</label>
                             <input
-                                type="number"
+                                type="tel"
                                 name="phone"
                                 className="mt-1 p-2 w-full border border-gray-300 rounded-md"
                                 value={clientData.phone}
@@ -326,7 +325,7 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
 
                             <label className="block text-sm font-medium text-gray-700 mt-2">Phone Number</label>
                             <input
-                                type="number"
+                                type="tel"
                                 name="phone"
                                 className="mt-1 p-2 w-full border border-gray-300 rounded-md"
                                 value={vendorData.phone}

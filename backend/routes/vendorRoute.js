@@ -31,6 +31,27 @@ vendorRoute.get('/getall', verifyToken, async (req, res) => {
     }
 });
 
+// Get one vendor
+vendorRoute.get("/:id", verifyToken, async (req, res) => {
+    try {
+        const id = req.params.id.trim();
+
+        if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+            return res.status(400).json({ error: "Invalid ObjectId format" });
+        }
+
+        const vendor = await Vendor.findOne({ _id: id, userEmail: req.user.email });
+
+        if (!vendor) {
+            return res.status(404).json({ message: "Vendor not found" });
+        }
+
+        res.status(200).json(vendor);
+    } catch (error) {
+        console.error("Error:", error.message);
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+});
 
 // Update a vendor
 vendorRoute.put("/:id", verifyToken, async (req, res) => {

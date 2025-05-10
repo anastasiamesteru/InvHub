@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import DatabaseModal from '../components/DatabaseModal';
+import EditClientModal from '../components/EditClientModal';
+import EditVendorModal from '../components/EditVendorModal';
+import EditItemModal from '../components/EditItemModal';
 import axios from 'axios';
 
 const Database = () => {
@@ -9,7 +12,7 @@ const Database = () => {
     const [clients, setClients] = useState([]);
     const [vendors, setVendors] = useState([]);
     const [items, setItems] = useState([]);
-    const [editingEntity, setEditingEntity] = useState(null); 
+    const [editingEntity, setEditingEntity] = useState(null);
     const [loading, setLoading] = useState(false);
 
 
@@ -22,8 +25,8 @@ const Database = () => {
 
     const handleButtonClick = (category) => setActiveTab(category);
 
-    
-    
+
+
     useEffect(() => {
         if (activeTab === 'clients') fetchClients();
         else if (activeTab === 'vendors') fetchVendors();
@@ -36,94 +39,97 @@ const Database = () => {
             console.error("No token found");
             return;
         }
-    
+
         try {
             const response = await fetch('http://localhost:4000/routes/clients/getall', {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`, // Include Bearer token in the request header
-                    'Content-Type': 'application/json',
                 },
             });
-    
-            if (!response.ok) throw new Error('Failed to fetch clients');
+
+            if (!response.ok) throw new Error('Failed to fetch clients baaaaaaaaa');
             const data = await response.json();
             setClients(data);
         } catch (error) {
-            console.error("Server error:", errorData);
 
             console.error("Error fetching clients:", error);
         }
     };
-    
+
+
     const fetchVendors = async () => {
         const token = localStorage.getItem('authToken'); // Get the token from localStorage
         if (!token) {
             console.error("No token found");
             return;
         }
-    
+
         try {
             const response = await fetch('http://localhost:4000/routes/vendors/getall', {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`, // Include Bearer token in the request header
-                    'Content-Type': 'application/json',
                 },
             });
-    
+
             if (!response.ok) throw new Error('Failed to fetch vendors');
             const data = await response.json();
             setVendors(data);
-        } catch (error) {
+
+        }
+        catch (error) {
+
             console.error("Error fetching vendors:", error);
         }
     };
-    
     const fetchItems = async () => {
-        const token = localStorage.getItem('authToken'); // Get the token from localStorage
-        if (!token) {
-            console.error("No token found");
-            return;
-        }
-    
+        const token = localStorage.getItem('authToken');
+        if (!token) return console.error("Token missing");
+
         try {
-            const response = await fetch('http://localhost:4000/routes/items/getall', {
-                method: 'GET',
+            const response = await fetch("http://localhost:4000/routes/items/getall", {
+                method: "GET",
                 headers: {
-                    'Authorization': `Bearer ${token}`, // Include Bearer token in the request header
-                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
                 },
             });
-    
-            if (!response.ok) throw new Error('Failed to fetch items');
+
+            if (!response.ok) {
+                // try to see what the server actually sent back
+                // const errorData = await response.json().catch(() => null);
+                //  console.error("Fetch failed, server said:", errorData);
+                throw new Error("Bad Request");
+            }
+
             const data = await response.json();
             setItems(data);
-        } catch (error) {
-            console.error("Error fetching items:", error);
+        } catch (err) {
+            console.error("Error fetching items:", err);
         }
     };
-    
+
+
     const handleDelete = async (id) => {
         const token = localStorage.getItem('authToken'); // Get the token from localStorage
         if (!token) {
             console.error("No token found");
             return;
         }
-    
+
         let deleteEndpoint = "";
-    
+
         if (activeTab === "clients") deleteEndpoint = `/routes/clients/${id}`;
         else if (activeTab === "vendors") deleteEndpoint = `/routes/vendors/${id}`;
         else if (activeTab === "items") deleteEndpoint = `/routes/items/${id}`;
-    
+
         try {
             await axios.delete(`http://localhost:4000${deleteEndpoint}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`, // Include Bearer token in the request header
                 },
             });
-    
+
             // Refresh the data after deleting
             if (activeTab === "clients") fetchClients();
             else if (activeTab === "vendors") fetchVendors();
@@ -132,80 +138,9 @@ const Database = () => {
             console.error("Error deleting:", error);
         }
     };
-    
-    const handleEdit = async (id) => {
-        const token = localStorage.getItem('authToken'); // Get the token from localStorage
-        if (!token) {
-            console.error("No token found");
-            return;
-        }
-    
-        let fetchEndpoint = "";
-        let fetchDataFunction = null;
-    
-        // Determine the endpoint and fetch function based on the active tab
-        if (activeTab === "clients") {
-            fetchEndpoint = `/routes/clients/${id}`;
-            fetchDataFunction = fetchClients;
-        } else if (activeTab === "vendors") {
-            fetchEndpoint = `/routes/vendors/${id}`;
-            fetchDataFunction = fetchVendors;
-        } else if (activeTab === "items") {
-            fetchEndpoint = `/routes/items/${id}`;
-            fetchDataFunction = fetchItems;
-        }
-    
-        setLoading(true); // Set loading state to true while fetching data
-    
-        try {
-            // Fetch the entity data for editing
-            const response = await axios.get(`http://localhost:4000${fetchEndpoint}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`, // Include Bearer token in the request header
-                },
-            });
-    
-            // Get the data from the response
-            const entityData = response.data;
-    
-            // Set the modal data state with the fetched data
-            if (activeTab === "clients") {
-                setClientData({
-                    name: entityData.name,
-                    email: entityData.email,
-                    phone: entityData.phone,
-                    address: entityData.address,
-                    cifCnp: entityData.cifcnp,
-                });
-            } else if (activeTab === "vendors") {
-                setVendorData({
-                    name: entityData.name,
-                    email: entityData.email,
-                    phone: entityData.phone,
-                    address: entityData.address,
-                    cifCnp: entityData.cifcnp,
-                });
-            } else if (activeTab === "items") {
-                setItemData({
-                    name: entityData.name,
-                    type: entityData.type,
-                    unit: entityData.unit,
-                    price: entityData.price,
-                });
-            }
-    
-            // Open the modal to edit the entity
-            openModal(); // Replace this with the function that opens your modal
-    
-        } catch (error) {
-            console.error("Error fetching data for edit:", error);
-            alert(`Error fetching data: ${error.message}`);
-        } finally {
-            setLoading(false); // Reset loading state
-        }
-    };
-    
-    
+
+
+
     const filteredData = () => {
         const query = searchQuery.toLowerCase();
         let data = [];
@@ -247,18 +182,18 @@ const Database = () => {
         }
     };
 
-    const [currentPage, setCurrentPage] = useState(2);  
+    const [currentPage, setCurrentPage] = useState(2);
 
     const thingsPerPage = 8;
     //console.log('Current Page:', currentPage);
-    
+
     const indexOfLast = currentPage * thingsPerPage;
     const indexOfFirst = indexOfLast - thingsPerPage;
-    
+
     const filtereditems = filteredData();
-    
+
     const totalPages = Math.ceil(filtereditems.length / thingsPerPage);
-    
+
     useEffect(() => {
         if (currentPage > totalPages && totalPages > 0) {
             setCurrentPage(totalPages);
@@ -266,12 +201,60 @@ const Database = () => {
             setCurrentPage(1);
         }
     }, [filtereditems, totalPages]);
-    
-    
-    const current = filtereditems.slice(indexOfFirst, indexOfLast); 
-    
- 
 
+
+    const current = filtereditems.slice(indexOfFirst, indexOfLast);
+
+    // Clients
+    const [isEditClientModalOpen, setIsEditClientModalOpen] = useState(false);
+    const [clientToEdit, setClientToEdit] = useState(null);
+
+    const openEditClientModal = (clientId) => {
+        setClientToEdit(clientId);
+        setIsEditClientModalOpen(true);
+    };
+
+    const handleClientUpdate = (updatedClient) => {
+        setClients(prevClients =>
+            prevClients.map(client =>
+                client._id === updatedClient._id ? updatedClient : client
+            )
+        );
+    };
+
+    // Vendors
+    const [isEditVendorModalOpen, setIsEditVendorModalOpen] = useState(false);
+    const [vendorToEdit, setVendorToEdit] = useState(null);
+
+    const openEditVendorModal = (vendorId) => {
+        setVendorToEdit(vendorId);
+        setIsEditVendorModalOpen(true);
+    };
+
+    const handleVendorUpdate = (updatedVendor) => {
+        setVendors(prevVendors =>
+            prevVendors.map(vendor =>
+                vendor._id === updatedVendor._id ? updatedVendor : vendor
+            )
+        );
+    };
+
+    // Items
+    const [isEditItemModalOpen, setIsEditItemModalOpen] = useState(false);
+    const [itemToEdit, setItemToEdit] = useState(null);
+
+    const openEditItemModal = (itemId) => {
+        setItemToEdit(itemId);
+        setIsEditItemModalOpen(true);
+    };
+
+    const handleItemUpdate = (updatedItem) => {
+        setItems(prevItems =>
+            prevItems.map(item =>
+                item._id === updatedItem._id ? updatedItem : item
+            )
+        );
+    };
 
     const renderTableContent = () => {
         const filteredItems = filteredData();
@@ -342,16 +325,23 @@ const Database = () => {
                                         <td className="px-3 py-2 text-center">{client.cifcnp || "N/A"}</td>
 
                                         <td className="px-3 py-2 text-center flex justify-center gap-2">
-                                            <button className="px-2 py-1 text-center" onClick={() => handleEdit(client._id)}>
+                                            <button className="px-2 py-1 text-center" onClick={() => openEditClientModal(client._id)}>
                                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
                                                     <path d="M16.98 3.02a2.87 2.87 0 1 1 4.06 4.06l-1.41 1.41-4.06-4.06 1.41-1.41zM3 17.25V21h3.75l11.29-11.29-3.75-3.75L3 17.25z" />
                                                 </svg>
                                             </button>
+
                                             <button className="px-2 py-1 text-center" onClick={() => handleDelete(client._id)}>
                                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" className="w-5 h-5">
                                                     <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
                                                 </svg>
                                             </button>
+                                            <EditClientModal
+                                                show={isEditClientModalOpen}
+                                                onClose={() => setIsEditClientModalOpen(false)}
+                                                clientId={clientToEdit}
+                                                onUpdate={handleClientUpdate}
+                                            />
                                         </td>
                                     </tr>
                                 ))
@@ -429,7 +419,7 @@ const Database = () => {
                                         <td className="px-3 py-2 text-center">{vendor.cifcnp || "N/A"}</td>
 
                                         <td className="px-3 py-2 text-center flex justify-center gap-2">
-                                            <button className="px-2 py-1 text-center" onClick={() => handleEdit(vendor._id)}>
+                                            <button className="px-2 py-1 text-center" onClick={() => openEditVendorModal(vendor._id)}>
                                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
                                                     <path d="M16.98 3.02a2.87 2.87 0 1 1 4.06 4.06l-1.41 1.41-4.06-4.06 1.41-1.41zM3 17.25V21h3.75l11.29-11.29-3.75-3.75L3 17.25z" />
                                                 </svg>
@@ -439,6 +429,12 @@ const Database = () => {
                                                     <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
                                                 </svg>
                                             </button>
+                                            <EditVendorModal
+                                                show={isEditVendorModalOpen}
+                                                onClose={() => setIsEditVendorModalOpen(false)}
+                                                vendorId={vendorToEdit}
+                                                onUpdate={handleVendorUpdate}
+                                            />
                                         </td>
                                     </tr>
 
@@ -503,7 +499,7 @@ const Database = () => {
                                         </td>
                                         <td className="px-3 py-2 text-center">{item.um || "N/A"}</td>
                                         <td className="px-3 py-2 text-center flex justify-center gap-2">
-                                            <button className="px-2 py-1 text-center" onClick={() => handleEdit(item._id)}>
+                                            <button className="px-2 py-1 text-center" onClick={() => openEditItemModal(item._id)}>
                                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
                                                     <path d="M16.98 3.02a2.87 2.87 0 1 1 4.06 4.06l-1.41 1.41-4.06-4.06 1.41-1.41zM3 17.25V21h3.75l11.29-11.29-3.75-3.75L3 17.25z" />
                                                 </svg>
@@ -514,6 +510,12 @@ const Database = () => {
                                                 </svg>
                                             </button>
                                         </td>
+                                        <EditItemModal
+                                                show={isEditItemModalOpen}
+                                                onClose={() => setIsEditItemModalOpen(false)}
+                                                itemId={itemToEdit}
+                                                onUpdate={handleItemUpdate}
+                                            />
                                     </tr>
                                 ))
                             ) : (

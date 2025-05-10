@@ -29,6 +29,27 @@ clientRoute.get("/getall", verifyToken, async (req, res) => {
     }
 });
 
+// Get one client 
+clientRoute.get("/:id", verifyToken, async (req, res) => {
+    try {
+        const id = req.params.id.trim();
+
+        if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+            return res.status(400).json({ error: "Invalid ObjectId format" });
+        }
+
+        const client = await Client.findOne({ _id: id, userEmail: req.user.email });
+
+        if (!client) {
+            return res.status(404).json({ error: "Client not found" });
+        }
+
+        res.status(200).json(client);
+    } catch (error) {
+        console.error("Error:", error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
 
 // Update a client
 clientRoute.put("/:id", verifyToken, async (req, res) => {

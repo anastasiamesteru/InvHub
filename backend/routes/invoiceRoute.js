@@ -15,6 +15,28 @@ invoiceRoute.get("/getall", verifyToken, async (req, res) => {
     }
 });
 
+// Get one invoice 
+invoiceRoute.get("/:id", verifyToken, async (req, res) => {
+    try {
+        const id = req.params.id.trim();
+
+        if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+            return res.status(400).json({ error: "Invalid ObjectId format" });
+        }
+
+        const invoice = await Invoice.findOne({ _id: id, userEmail: req.user.email });
+
+        if (!invoice) {
+            return res.status(404).json({ message: "Invoice not found" });
+        }
+
+        res.status(200).json(invoice);
+    } catch (error) {
+        console.error("Error fetching invoice:", error.message);
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+});
+
 // Create a new invoice
 invoiceRoute.post("/create",verifyToken, async (req, res) => {
     try {
