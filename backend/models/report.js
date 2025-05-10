@@ -62,6 +62,22 @@ const reportSchema = new mongoose.Schema({
             checkedmedianDaysToPayment: { type: Boolean },
             checkedmodeOfPaymentDelays: { type: Boolean },
         },
+        invoiceEntities: {
+            checkednumberOfIndividualClients: { type: Number },
+            checkednumberOfCompanyClients: { type: Number },
+            checkednumberOfIndividualVendors: { type: Number },
+            checkednumberOfCompanyVendors: { type: Number },
+            checkednumberOfProducts: { type: Number },
+            checkednumberOfServices: { type: Number },
+
+            checkedpercentIndividualClients: {type:Number},
+            checkedpercentCompanyClients: {type:Number},
+            checkedpercentIndividualVendors: {type:Number},
+            checkedpercentCompanyVendors: {type:Number},
+            checkedpercentProducts: {type:Number},
+            checkedpercentPercent: {type:Number},
+
+        },
     },
 });
 

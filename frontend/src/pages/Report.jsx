@@ -19,7 +19,7 @@ const Report = () => {
             console.error("No token found");
             return;
         }
-    
+
         try {
             const response = await fetch('http://localhost:4000/routes/reports/getall', {
                 method: 'GET',
@@ -35,7 +35,7 @@ const Report = () => {
             console.error("Error fetching reports:", error);
         }
     };
-    
+
 
     useEffect(() => {
         fetchReports();
@@ -48,15 +48,15 @@ const Report = () => {
             console.error("No token found");
             return;
         }
-    
+
         try {
             await axios.delete(`http://localhost:4000/routes/reports/${id}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
-                    
+
                 },
             });
-    
+
             // Refresh the invoice list after deleting
             setReports(prevReports => prevReports.filter(report => report._id !== id));
             fetchReports();
@@ -64,7 +64,7 @@ const Report = () => {
             console.error("Error deleting invoice:", error);
         }
     };
-    
+
     const filteredReports = () => {
         const query = searchQuery?.toLowerCase() || '';
         let data = reports ?? []; // Ensure data is correctly initialized
@@ -211,20 +211,30 @@ const Report = () => {
 
 
                                     <td className="px-3 py-2 text-center">
-                                        <div>
-                                            <div>
-                                                <strong>Payment Status: </strong>
-                                                {Object.values(report.indicators.paymentStatus).filter(value => value).length} /{Object.keys(report.indicators.paymentStatus).length} indicators
-                                            </div>
-                                            <div>
-                                                <strong>Overdue Analysis: </strong>
-                                                {Object.values(report.indicators.overdueAnalysis).filter(value => value).length} / {Object.keys(report.indicators.overdueAnalysis).length} indicators
-                                            </div>
-                                            <div>
-                                                <strong>Invoice Patterns: </strong>
-                                                {Object.values(report.indicators.invoicePatterns).filter(value => value).length} / {Object.keys(report.indicators.invoicePatterns).length} indicators
-                                            </div>
-                                        </div>
+                                    <div>
+    <div>
+        <strong>Total Indicators: </strong>
+        {[
+            report.indicators.paymentStatus || {},
+            report.indicators.overdueAnalysis || {},
+            report.indicators.invoicePatterns || {},
+            report.indicators.invoiceEntities || {}
+
+        ]
+        .reduce((total, category) => total + Object.values(category).filter(value => value).length, 0)} 
+        / 
+        {[
+            report.indicators.paymentStatus || {},
+            report.indicators.overdueAnalysis || {},
+            report.indicators.invoicePatterns || {},
+            report.indicators.invoiceEntities || {}
+
+        ]
+        .reduce((total, category) => total + Object.keys(category).length, 0)}
+        indicators
+    </div>
+</div>
+
                                     </td>
 
 

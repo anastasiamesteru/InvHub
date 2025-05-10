@@ -9,31 +9,6 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
         title: '',
         startDate: '',
         endDate: '',
-        selectedCheckboxes: {
-            paymentStatus: {
-                checkednumberOfPaidInvoices: false,
-                checkednumberOfUnpaidInvoices: false,
-                checkedpercentPaid: false,
-                checkedpercentUnpaid: false,
-            },
-            overdueAnalysis: {
-                checkednumberOfOnTimeInvoices: false,
-                checkednumberOfOverdueInvoices: false,
-                checkednumberOfInvoicesOverdue30Days: false,
-                checkednumberOfInvoicesOverdue60Days: false,
-                checkednumberOfInvoicesOverdue90PlusDays: false,
-                checkedpercentOverdue: false,
-                checkedpercentOverdue30: false,
-                checkedpercentOverdue60: false,
-                checkedpercentOverdue90Plus: false,
-                checkedpercentOnTime: false,
-            },
-            invoicePatterns: {
-                checkedaverageDaysToPayment: false,
-                checkedmedianDaysToPayment: false,
-                checkedmodeOfPaymentDelays: false,
-            },
-        },
         indicators: {
             paymentStatus: {
                 numberOfPaidInvoices: 0,
@@ -44,13 +19,7 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
             overdueAnalysis: {
                 numberOfOnTimeInvoices: 0,
                 numberOfOverdueInvoices: 0,
-                numberOfInvoicesOverdue30Days: 0,
-                numberOfInvoicesOverdue60Days: 0,
-                numberOfInvoicesOverdue90PlusDays: 0,
                 percentOverdue: 0,
-                percentOverdue30: 0,
-                percentOverdue60: 0,
-                percentOverdue90Plus: 0,
                 percentOnTime: 0,
             },
             invoicePatterns: {
@@ -58,8 +27,56 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
                 medianDaysToPayment: 0,
                 modeOfPaymentDelays: 0,
             },
+            invoiceEntities: {
+                numberOfIndividualClients: 0,
+                numberOfCompanyClients: 0,
+                numberOfIndividualVendors: 0,
+                numberOfCompanyVendors: 0,
+                numberOfProducts: 0,
+                numberOfServices: 0,
+                percentIndividualClients: 0,
+                percentCompanyClients: 0,
+                percentIndividualVendors: 0,
+                percentCompanyVendors: 0,
+                percentProducts: 0,
+                percentPercent: 0,
+            },
+        },
+        selectedCheckboxes: {
+            paymentStatus: {
+                checkednumberOfPaidInvoices: false,
+                checkednumberOfUnpaidInvoices: false,
+                checkedpercentPaid: false,
+                checkedpercentUnpaid: false,
+            },
+            overdueAnalysis: {
+                checkednumberOfOnTimeInvoices: false,
+                checkednumberOfOverdueInvoices: false,
+                checkedPercentOverdue: false,
+                checkedpercentOnTime: false,
+            },
+            invoicePatterns: {
+                checkedaverageDaysToPayment: false,
+                checkedmedianDaysToPayment: false,
+                checkedmodeOfPaymentDelays: false,
+            },
+            invoiceEntities: {
+                checkednumberOfIndividualClients: false,
+                checkednumberOfCompanyClients: false,
+                checkednumberOfIndividualVendors: false,
+                checkednumberOfCompanyVendors: false,
+                checkednumberOfProducts: false,
+                checkednumberOfServices: false,
+                checkedpercentIndividualClients: false,
+                checkedpercentCompanyClients: false,
+                checkedpercentIndividualVendors: false,
+                checkedpercentCompanyVendors: false,
+                checkedpercentProducts: false,
+                checkedpercentPercent: false,
+            },
         },
     });
+
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -75,7 +92,7 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
             console.error("No token found");
             return;
         }
-    
+
         try {
             const response = await fetch('http://localhost:4000/routes/invoices/getall', {
                 method: 'GET',
@@ -91,7 +108,7 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
             console.error("Error fetching invoices:", error);
         }
     };
-    
+
     useEffect(() => {
         fetchInvoices();
     }, []);
@@ -140,124 +157,45 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
             percentPaid,
             percentUnpaid,
         };
-        // Overdue Analysis Indicators
+
         let numberOfOnTimeInvoices = 0;
         let numberOfOverdueInvoices = 0;
-        let numberOfInvoicesOverdue30Days = 0;
-        let numberOfInvoicesOverdue60Days = 0;
-        let numberOfInvoicesOverdue90PlusDays = 0;
         let percentOverdue = 0;
-        let percentOverdue30 = 0;
-        let percentOverdue60 = 0;
-        let percentOverdue90Plus = 0;
         let percentOnTime = 0;
         
-        const today = new Date();
-        const unpaidInvoices = invoicesInRange.filter(invoice => invoice.paymentStatus === 'Unpaid');
-        
-        // numberOfOverdueInvoices
-        if (selectedCheckboxes.overdueAnalysis?.checkednumberOfOverdueInvoices) {
-            numberOfOverdueInvoices = unpaidInvoices.filter(invoice =>
-                invoice.due_date && new Date(invoice.due_date) < today
-            ).length;
+        if (selectedCheckboxes.paymentStatus && selectedCheckboxes.overdueAnalysis.checkednumberOfOnTimeInvoices) {
+            // Count invoices with timeStatus as 'On Time'
+            numberOfOnTimeInvoices = invoicesInRange.filter(invoice => invoice.timeStatus === 'On Time').length;
         }
         
-        // numberOfInvoicesOverdue30Days
-        if (selectedCheckboxes.overdueAnalysis?.checkednumberOfInvoicesOverdue30Days) {
-            numberOfInvoicesOverdue30Days = unpaidInvoices.filter(invoice => {
-                if (!invoice.due_date) return false;
-                const overdueDays = (today - new Date(invoice.due_date)) / (1000 * 60 * 60 * 24);
-                return overdueDays > 30 && overdueDays <= 60;
-            }).length;
+        if (selectedCheckboxes.paymentStatus && selectedCheckboxes.overdueAnalysis.checkednumberOfOverdueInvoices) {
+            // Count invoices with timeStatus as 'Overdue'
+            numberOfOverdueInvoices = invoicesInRange.filter(invoice => invoice.timeStatus === 'Overdue').length;
         }
         
-        // numberOfInvoicesOverdue60Days
-        if (selectedCheckboxes.overdueAnalysis?.checkednumberOfInvoicesOverdue60Days) {
-            numberOfInvoicesOverdue60Days = unpaidInvoices.filter(invoice => {
-                if (!invoice.due_date) return false;
-                const overdueDays = (today - new Date(invoice.due_date)) / (1000 * 60 * 60 * 24);
-                return overdueDays > 60 && overdueDays <= 90;
-            }).length;
-        }
-        
-        // numberOfInvoicesOverdue90PlusDays
-        if (selectedCheckboxes.overdueAnalysis?.checkednumberOfInvoicesOverdue90PlusDays) {
-            numberOfInvoicesOverdue90PlusDays = unpaidInvoices.filter(invoice => {
-                if (!invoice.due_date) return false;
-                const overdueDays = (today - new Date(invoice.due_date)) / (1000 * 60 * 60 * 24);
-                return overdueDays > 90;
-            }).length;
-        }
-        
-        // percentOverdue
-        if (selectedCheckboxes.overdueAnalysis?.checkedpercentOverdue) {
-            const overdueCount = unpaidInvoices.filter(invoice =>
-                invoice.due_date && new Date(invoice.due_date) < today
-            ).length;
-            percentOverdue = totalInvoices > 0 ? (overdueCount / totalInvoices) * 100 : 0;
-        }
-        
-        // percentOverdue30
-        if (selectedCheckboxes.overdueAnalysis?.checkedpercentOverdue30) {
-            const count = unpaidInvoices.filter(invoice => {
-                if (!invoice.due_date) return false;
-                const overdueDays = (today - new Date(invoice.due_date)) / (1000 * 60 * 60 * 24);
-                return overdueDays > 30 && overdueDays <= 60;
-            }).length;
-            percentOverdue30 = totalInvoices > 0 ? (count / totalInvoices) * 100 : 0;
-        }
-        
-        // percentOverdue60
-        if (selectedCheckboxes.overdueAnalysis?.checkedpercentOverdue60) {
-            const count = unpaidInvoices.filter(invoice => {
-                if (!invoice.due_date) return false;
-                const overdueDays = (today - new Date(invoice.due_date)) / (1000 * 60 * 60 * 24);
-                return overdueDays > 60 && overdueDays <= 90;
-            }).length;
-            percentOverdue60 = totalInvoices > 0 ? (count / totalInvoices) * 100 : 0;
-        }
-        
-        // percentOverdue90Plus
-        if (selectedCheckboxes.overdueAnalysis?.checkedpercentOverdue90Plus) {
-            const count = unpaidInvoices.filter(invoice => {
-                if (!invoice.due_date) return false;
-                const overdueDays = (today - new Date(invoice.due_date)) / (1000 * 60 * 60 * 24);
-                return overdueDays > 90;
-            }).length;
-            percentOverdue90Plus = totalInvoices > 0 ? (count / totalInvoices) * 100 : 0;
-        }
-        
-        // numberOfOnTimeInvoices
-        if (selectedCheckboxes.overdueAnalysis?.checkednumberOfOnTimeInvoices) {
-            numberOfOnTimeInvoices = invoicesInRange.filter(invoice =>
-                invoice.paymentDate && invoice.due_date &&
-                new Date(invoice.paymentDate) <= new Date(invoice.due_date)
-            ).length;
-        }
-        
-        // percentOnTime
-        if (selectedCheckboxes.overdueAnalysis?.checkedpercentOnTime) {
-            const onTimeCount = invoicesInRange.filter(invoice =>
-                invoice.paymentDate && invoice.due_date &&
-                new Date(invoice.paymentDate) <= new Date(invoice.due_date)
-            ).length;
+        if (selectedCheckboxes.paymentStatus && selectedCheckboxes.overdueAnalysis.checkedpercentOnTime) {
+            // Calculate percentage of on-time invoices
+            const onTimeCount = invoicesInRange.filter(invoice => invoice.timeStatus === 'On Time').length;
             percentOnTime = totalInvoices > 0 ? (onTimeCount / totalInvoices) * 100 : 0;
         }
         
-        // Update the indicators
+        if (selectedCheckboxes.paymentStatus && selectedCheckboxes.overdueAnalysis.checkedPercentOverdue) {
+            // Calculate percentage of overdue invoices
+            const overdueCount = invoicesInRange.filter(invoice => invoice.timeStatus === 'Overdue').length;
+            percentOverdue = totalInvoices > 0 ? (overdueCount / totalInvoices) * 100 : 0;
+        }
+        
+        // Updating the indicators
         updatedIndicators.overdueAnalysis = {
             numberOfOnTimeInvoices,
             numberOfOverdueInvoices,
-            numberOfInvoicesOverdue30Days,
-            numberOfInvoicesOverdue60Days,
-            numberOfInvoicesOverdue90PlusDays,
             percentOverdue,
-            percentOverdue30,
-            percentOverdue60,
-            percentOverdue90Plus,
             percentOnTime,
         };
+                
         
+
+
 
         // Invoice Patterns Indicators
         let averageDaysToPayment = 0;
@@ -268,27 +206,27 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
             const paidInvoices = invoicesInRange.filter(invoice =>
                 invoice.paymentStatus === 'Paid' && invoice.paymentDate && invoice.issue_date
             );
-        
+
             const paymentDelays = paidInvoices.map(invoice => {
                 const delay = (new Date(invoice.paymentDate) - new Date(invoice.issue_date)) / (1000 * 60 * 60 * 24);
                 return Math.round(delay);
             });
-        
+
             averageDaysToPayment = paymentDelays.length > 0
                 ? paymentDelays.reduce((sum, val) => sum + val, 0) / paymentDelays.length
                 : 0;
         }
-        
+
         if (selectedCheckboxes.invoicePatterns.checkedmedianDaysToPayment) {
             const paidInvoices = invoicesInRange.filter(invoice =>
                 invoice.paymentStatus === 'Paid' && invoice.paymentDate && invoice.issue_date
             );
-        
+
             const paymentDelays = paidInvoices.map(invoice => {
                 const delay = (new Date(invoice.paymentDate) - new Date(invoice.issue_date)) / (1000 * 60 * 60 * 24);
                 return Math.round(delay);
             });
-        
+
             function calculateMedian(arr) {
                 if (arr.length === 0) return 0;
                 const sorted = [...arr].sort((a, b) => a - b);
@@ -297,15 +235,15 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
                     ? (sorted[mid - 1] + sorted[mid]) / 2
                     : sorted[mid];
             }
-        
+
             medianDaysToPayment = calculateMedian(paymentDelays);
         }
-        
+
         if (selectedCheckboxes.invoicePatterns.checkedmodeOfPaymentDelays) {
             const paidInvoices = invoicesInRange.filter(invoice =>
                 invoice.paymentStatus === 'Paid' && invoice.paymentDate && invoice.issue_date
             );
-        
+
             const paymentDelays = paidInvoices.map(invoice => {
                 const delay = (new Date(invoice.paymentDate) - new Date(invoice.issue_date)) / (1000 * 60 * 60 * 24);
                 return Math.round(delay);
@@ -324,23 +262,85 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
                 }
                 return parseInt(mode);
             }
-        
+
             modeOfPaymentDelays = calculateMode(paymentDelays);
         }
-        
-        // Update indicators
+
+        // Update indicators for Invoice Patterns
         updatedIndicators.invoicePatterns = {
             averageDaysToPayment: Math.round(averageDaysToPayment),
             medianDaysToPayment,
             modeOfPaymentDelays,
         };
 
+        // Invoice Entities Indicators
+        let numberOfIndividualClients = 0;
+        let numberOfCompanyClients = 0;
+        let numberOfIndividualVendors = 0;
+        let numberOfCompanyVendors = 0;
+        let numberOfProducts = 0;
+        let numberOfServices = 0;
+        let percentIndividualClients = 0;
+        let percentCompanyClients = 0;
+        let percentIndividualVendors = 0;
+        let percentCompanyVendors = 0;
+        let percentProducts = 0;
+        let percentPercent = 0;
+
+        // Count the entities
+        if (selectedCheckboxes.invoiceEntities?.checkednumberOfIndividualClients) {
+            numberOfIndividualClients = invoicesInRange.filter(invoice => invoice.clientType === 'Individual').length;
+        }
+
+        if (selectedCheckboxes.invoiceEntities?.checkednumberOfCompanyClients) {
+            numberOfCompanyClients = invoicesInRange.filter(invoice => invoice.clientType === 'Company').length;
+        }
+
+        if (selectedCheckboxes.invoiceEntities?.checkednumberOfIndividualVendors) {
+            numberOfIndividualVendors = invoicesInRange.filter(invoice => invoice.vendorType === 'Individual').length;
+        }
+
+        if (selectedCheckboxes.invoiceEntities?.checkednumberOfCompanyVendors) {
+            numberOfCompanyVendors = invoicesInRange.filter(invoice => invoice.vendorType === 'Company').length;
+        }
+
+        if (selectedCheckboxes.invoiceEntities?.checkednumberOfProducts) {
+            numberOfProducts = invoicesInRange.filter(invoice => invoice.items.type === 'Product').length;
+        }
+
+        if (selectedCheckboxes.invoiceEntities?.checkednumberOfServices) {
+            numberOfServices = invoicesInRange.filter(invoice => invoice.items.type === 'Service').length;
+        }
+
+        // Calculate percentages
+        percentIndividualClients = totalInvoices > 0 ? (numberOfIndividualClients / totalInvoices) * 100 : 0;
+        percentCompanyClients = totalInvoices > 0 ? (numberOfCompanyClients / totalInvoices) * 100 : 0;
+        percentIndividualVendors = totalInvoices > 0 ? (numberOfIndividualVendors / totalInvoices) * 100 : 0;
+        percentCompanyVendors = totalInvoices > 0 ? (numberOfCompanyVendors / totalInvoices) * 100 : 0;
+        percentProducts = totalInvoices > 0 ? (numberOfProducts / totalInvoices) * 100 : 0;
+        percentPercent = totalInvoices > 0 ? (numberOfServices / totalInvoices) * 100 : 0;
+
+        updatedIndicators.invoiceEntities = {
+            numberOfIndividualClients,
+            numberOfCompanyClients,
+            numberOfIndividualVendors,
+            numberOfCompanyVendors,
+            numberOfProducts,
+            numberOfServices,
+            percentIndividualClients,
+            percentCompanyClients,
+            percentIndividualVendors,
+            percentCompanyVendors,
+            percentProducts,
+            percentPercent,
+        };
 
         return {
             ...reportData,
             indicators: updatedIndicators,
         };
     };
+
 
     const handleCheckboxChange = (event, category, indicator) => {
         const { name, checked } = event.target;
@@ -371,11 +371,11 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-    
+
         setLoading(true);
-    
+
         const updatedReportData = computeAndUpdateIndicators(reportData);
-    
+
         const payload = {
             reportNumber: updatedReportData.reportNumber,
             title: updatedReportData.title,
@@ -384,14 +384,14 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
             indicators: updatedReportData.indicators,
             selectedCheckboxes: updatedReportData.selectedCheckboxes
         };
-    
+
         const token = localStorage.getItem('authToken'); // Get the token from localStorage
         if (!token) {
             console.error("No token found");
             setLoading(false);
             return;
         }
-    
+
         try {
             const response = await axios.post('http://localhost:4000/routes/reports/create', payload, {
                 headers: {
@@ -399,7 +399,7 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
                     'Authorization': `Bearer ${token}`,  // Add the Authorization header with the token
                 },
             });
-    
+
             console.log('Report response:', response);
             await fetchReports();
             onClose();
@@ -415,7 +415,7 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
             setLoading(false);
         }
     };
-    
+
     if (!isOpen) return null;
 
     return (
@@ -559,44 +559,9 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
                         <div className="flex items-center space-x-1">
                             <input
                                 type="checkbox"
-                                name="checkednumberOfInvoicesOverdue30Days"
-                                checked={reportData.selectedCheckboxes.overdueAnalysis.checkednumberOfInvoicesOverdue30Days}
-                                onChange={(e) => handleCheckboxChange(e, 'overdueAnalysis', 'checkednumberOfInvoicesOverdue30Days')}
-
-                                className="w-5 h-5 accent-blue-500 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none checked:bg-blue-500 hover:ring-2 hover:ring-blue-300"
-                            />
-                            <span>Number of invoices overdue by 30 days</span>
-                        </div>
-
-                        <div className="flex items-center space-x-1">
-                            <input
-                                type="checkbox"
-                                name="checkednumberOfInvoicesOverdue60Days"
-                                checked={reportData.selectedCheckboxes.overdueAnalysis.checkednumberOfInvoicesOverdue60Days}
-                                onChange={(e) => handleCheckboxChange(e, 'overdueAnalysis', 'checkednumberOfInvoicesOverdue60Days')}
-
-                                className="w-5 h-5 accent-blue-500 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none checked:bg-blue-500 hover:ring-2 hover:ring-blue-300"
-                            />
-                            <span>Number of invoices overdue by 60 days</span>
-                        </div>
-
-                        <div className="flex items-center space-x-1">
-                            <input
-                                type="checkbox"
-                                name="checkednumberOfInvoicesOverdue90PlusDays"
-                                checked={reportData.selectedCheckboxes.overdueAnalysis.checkednumberOfInvoicesOverdue90PlusDays}
-                                onChange={(e) => handleCheckboxChange(e, 'overdueAnalysis', 'checkednumberOfInvoicesOverdue90PlusDays')}
-
-                                className="w-5 h-5 accent-blue-500 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none checked:bg-blue-500 hover:ring-2 hover:ring-blue-300"
-                            />
-                            <span>Number of invoices overdue by 90+ days</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                            <input
-                                type="checkbox"
-                                name="checkedpercentOverdue"
-                                checked={reportData.selectedCheckboxes.overdueAnalysis.checkedpercentOverdue}
-                                onChange={(e) => handleCheckboxChange(e, 'overdueAnalysis', 'checkedpercentOverdue')}
+                                name="checkedPercentOverdue"
+                                checked={reportData.selectedCheckboxes.overdueAnalysis.checkedPercentOverdue}
+                                onChange={(e) => handleCheckboxChange(e, 'overdueAnalysis', 'checkedPercentOverdue')}
 
                                 className="w-5 h-5 accent-blue-500 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none checked:bg-blue-500 hover:ring-2 hover:ring-blue-300"
                             />
@@ -614,47 +579,149 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
                             />
                             <span>Percent on time</span>
                         </div>
+                    </div>
 
+
+                    <span className="font-semibold text-gray-800 text-center p-4 block">Invoice Entities</span>
+
+                    {/* Invoice Entities Group */}
+                    <div className="grid grid-cols-2 gap-4">
                         <div className="flex items-center space-x-1">
                             <input
                                 type="checkbox"
-                                name="checkedpercentOverdue30"
-                                checked={reportData.selectedCheckboxes.overdueAnalysis.checkedpercentOverdue30}
-                                onChange={(e) => handleCheckboxChange(e, 'overdueAnalysis', 'checkedpercentOverdue30')}
-
+                                name="checkednumberOfIndividualClients"
+                                checked={reportData.selectedCheckboxes.invoiceEntities.checkednumberOfIndividualClients}
+                                onChange={(e) => handleCheckboxChange(e, 'invoiceEntities', 'checkednumberOfIndividualClients')}
                                 className="w-5 h-5 accent-blue-500 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none checked:bg-blue-500 hover:ring-2 hover:ring-blue-300"
                             />
-                            <span>Percent overdue by 30 days</span>
+                            <span>Number of Individual Clients</span>
                         </div>
 
                         <div className="flex items-center space-x-1">
                             <input
                                 type="checkbox"
-                                name="checkedpercentOverdue60"
-                                checked={reportData.selectedCheckboxes.overdueAnalysis.checkedpercentOverdue60}
-                                onChange={(e) => handleCheckboxChange(e, 'overdueAnalysis', 'checkedpercentOverdue60')}
-
+                                name="checkednumberOfCompanyClients"
+                                checked={reportData.selectedCheckboxes.invoiceEntities.checkednumberOfCompanyClients}
+                                onChange={(e) => handleCheckboxChange(e, 'invoiceEntities', 'checkednumberOfCompanyClients')}
                                 className="w-5 h-5 accent-blue-500 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none checked:bg-blue-500 hover:ring-2 hover:ring-blue-300"
                             />
-                            <span>Percent overdue by 60 days</span>
+                            <span>Number of Company Clients</span>
                         </div>
 
                         <div className="flex items-center space-x-1">
                             <input
                                 type="checkbox"
-                                name="checkedpercentOverdue90Plus"
-                                checked={reportData.selectedCheckboxes.overdueAnalysis.checkedpercentOverdue90Plus}
-                                onChange={(e) => handleCheckboxChange(e, 'overdueAnalysis', 'checkedpercentOverdue90Plus')}
-
+                                name="checkednumberOfIndividualVendors"
+                                checked={reportData.selectedCheckboxes.invoiceEntities.checkednumberOfIndividualVendors}
+                                onChange={(e) => handleCheckboxChange(e, 'invoiceEntities', 'checkednumberOfIndividualVendors')}
                                 className="w-5 h-5 accent-blue-500 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none checked:bg-blue-500 hover:ring-2 hover:ring-blue-300"
                             />
-                            <span>Percent overdue by 90+ days</span>
+                            <span>Number of Individual Vendors</span>
                         </div>
+
+                        <div className="flex items-center space-x-1">
+                            <input
+                                type="checkbox"
+                                name="checkednumberOfCompanyVendors"
+                                checked={reportData.selectedCheckboxes.invoiceEntities.checkednumberOfCompanyVendors}
+                                onChange={(e) => handleCheckboxChange(e, 'invoiceEntities', 'checkednumberOfCompanyVendors')}
+                                className="w-5 h-5 accent-blue-500 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none checked:bg-blue-500 hover:ring-2 hover:ring-blue-300"
+                            />
+                            <span>Number of Company Vendors</span>
+                        </div>
+
+                        <div className="flex items-center space-x-1">
+                            <input
+                                type="checkbox"
+                                name="checkednumberOfProducts"
+                                checked={reportData.selectedCheckboxes.invoiceEntities.checkednumberOfProducts}
+                                onChange={(e) => handleCheckboxChange(e, 'invoiceEntities', 'checkednumberOfProducts')}
+                                className="w-5 h-5 accent-blue-500 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none checked:bg-blue-500 hover:ring-2 hover:ring-blue-300"
+                            />
+                            <span>Number of Products</span>
+                        </div>
+
+                        <div className="flex items-center space-x-1">
+                            <input
+                                type="checkbox"
+                                name="checkednumberOfServices"
+                                checked={reportData.selectedCheckboxes.invoiceEntities.checkednumberOfServices}
+                                onChange={(e) => handleCheckboxChange(e, 'invoiceEntities', 'checkednumberOfServices')}
+                                className="w-5 h-5 accent-blue-500 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none checked:bg-blue-500 hover:ring-2 hover:ring-blue-300"
+                            />
+                            <span>Number of Services</span>
+                        </div>
+
+                        <div className="flex items-center space-x-1">
+                            <input
+                                type="checkbox"
+                                name="checkedpercentIndividualClients"
+                                checked={reportData.selectedCheckboxes.invoiceEntities.checkedpercentIndividualClients}
+                                onChange={(e) => handleCheckboxChange(e, 'invoiceEntities', 'checkedpercentIndividualClients')}
+                                className="w-5 h-5 accent-blue-500 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none checked:bg-blue-500 hover:ring-2 hover:ring-blue-300"
+                            />
+                            <span>Percent of Individual Clients</span>
+                        </div>
+
+                        <div className="flex items-center space-x-1">
+                            <input
+                                type="checkbox"
+                                name="checkedpercentCompanyClients"
+                                checked={reportData.selectedCheckboxes.invoiceEntities.checkedpercentCompanyClients}
+                                onChange={(e) => handleCheckboxChange(e, 'invoiceEntities', 'checkedpercentCompanyClients')}
+                                className="w-5 h-5 accent-blue-500 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none checked:bg-blue-500 hover:ring-2 hover:ring-blue-300"
+                            />
+                            <span>Percent of Company Clients</span>
+                        </div>
+
+                        <div className="flex items-center space-x-1">
+                            <input
+                                type="checkbox"
+                                name="checkedpercentIndividualVendors"
+                                checked={reportData.selectedCheckboxes.invoiceEntities.checkedpercentIndividualVendors}
+                                onChange={(e) => handleCheckboxChange(e, 'invoiceEntities', 'checkedpercentIndividualVendors')}
+                                className="w-5 h-5 accent-blue-500 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none checked:bg-blue-500 hover:ring-2 hover:ring-blue-300"
+                            />
+                            <span>Percent of Individual Vendors</span>
+                        </div>
+
+                        <div className="flex items-center space-x-1">
+                            <input
+                                type="checkbox"
+                                name="checkedpercentCompanyVendors"
+                                checked={reportData.selectedCheckboxes.invoiceEntities.checkedpercentCompanyVendors}
+                                onChange={(e) => handleCheckboxChange(e, 'invoiceEntities', 'checkedpercentCompanyVendors')}
+                                className="w-5 h-5 accent-blue-500 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none checked:bg-blue-500 hover:ring-2 hover:ring-blue-300"
+                            />
+                            <span>Percent of Company Vendors</span>
+                        </div>
+
+                        <div className="flex items-center space-x-1">
+                            <input
+                                type="checkbox"
+                                name="checkedpercentProducts"
+                                checked={reportData.selectedCheckboxes.invoiceEntities.checkedpercentProducts}
+                                onChange={(e) => handleCheckboxChange(e, 'invoiceEntities', 'checkedpercentProducts')}
+                                className="w-5 h-5 accent-blue-500 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none checked:bg-blue-500 hover:ring-2 hover:ring-blue-300"
+                            />
+                            <span>Percent of Products</span>
+                        </div>
+
+                        <div className="flex items-center space-x-1">
+                            <input
+                                type="checkbox"
+                                name="checkedpercentPercent"
+                                checked={reportData.selectedCheckboxes.invoiceEntities.checkedpercentPercent}
+                                onChange={(e) => handleCheckboxChange(e, 'invoiceEntities', 'checkedpercentPercent')}
+                                className="w-5 h-5 accent-blue-500 border-2 border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:outline-none checked:bg-blue-500 hover:ring-2 hover:ring-blue-300"
+                            />
+                            <span>Percent Total</span>
+                        </div>
+
                     </div>
 
                     <span className="font-semibold text-gray-800 text-center p-4 block">Invoice Trends</span>
 
-                    {/* Overdue Analysis Group */}
 
                     {/* invoicePatterns Group */}
                     <div className="grid grid-cols-1 gap-4">
