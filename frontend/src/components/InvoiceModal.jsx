@@ -25,7 +25,7 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
         clientName: '', clientAddress: '', clientPhoneNo: '', clientEmail: '', clientType: 'company', clientCifcnp: '',
         vendorName: '', vendorAddress: '', vendorPhoneNo: '', vendorEmail: '', vendorType: 'company', vendorCifcnp: '',
         issue_date: '', due_date: '', tax: 0, total: 0,
-        items: [{ itemName: '', quantity: 1, unitPrice: 0, um: '' }],
+        items: [{ itemName: '', quantity: 1, unitPrice: 0, um: '', type: '' }],
     });
 
 
@@ -45,7 +45,7 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
             ...prevData,
             items: [
                 ...prevData.items,
-                { itemName: '', quantity: 1, unitPrice: 0, um: '' },
+                { itemName: '', quantity: 1, unitPrice: 0, um: '', type: '' },
             ],
         }));
     };
@@ -209,7 +209,11 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
 
     const onItemSelect = (selectedItems) => {
         const itemsArray = Array.isArray(selectedItems) ? selectedItems : [selectedItems];
-
+    
+        // Set the itemType based on the type of the first item in the selection (or apply your own logic)
+        const firstItemType = itemsArray[0]?.type || 'product'; // Default to 'product' if no type is found
+        setItemType(firstItemType); // Update itemType state
+    
         setInvoiceData((prevData) => ({
             ...prevData,
             items: [
@@ -219,13 +223,17 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                     quantity: 1,
                     unitPrice: item.price,
                     um: item.um,
+                    type: item.type,
                 }))
             ]
         }));
-
-        setShowItemsModal(false);
+    
+        setShowItemsModal(false); // Close modal after selection
     };
+    
+    const [itemType, setItemType] = useState('product');
 
+    const handleItemTypeChange = (event) => setItemType(event.target.value);
 
     if (!isOpen) return null;
     return (
@@ -486,6 +494,7 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                                     <th className="border border-gray-300 px-4 py-2 font-small text-center">Item</th>
                                     <th className="border border-gray-300 px-4 py-2 font-small text-center">Quantity</th>
                                     <th className="border border-gray-300 px-4 py-2 font-small text-center">Unit Price</th>
+                                    <th className="border border-gray-300 px-4 py-2 font-small text-center">Type</th>
                                     <th className="border border-gray-300 px-4 py-2 font-small text-center">U.M.</th>
                                     <th className="border border-gray-300 px-4 py-2 font-small text-center">Line Total</th>
                                     <th className="border border-gray-300 px-4 py-2 font-large text-center"></th>
@@ -495,61 +504,69 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                             {/* Table Body */}
                             <tbody>
                                 {invoiceData.items.map((item, index) => (
-                                    <tr key={index} className="border border-gray-300">
-                                        {/* Product/Service */}
-                                        <td className="border border-gray-300 px-4 py-2 text-center">
+                                    <tr key={index} className="border border-gray-300 text-base">
+                                        {/* Name */}
+                                        <td className="border px-3 py-2">
                                             <input
                                                 type="text"
                                                 placeholder="Product/Service"
-                                                className="w-full h-full rounded-md border border-gray-300 bg-transparent text-gray-700 text-sm px-2 py-1 focus:outline-none focus:border-gray-400"
+                                                className="w-40 rounded-md border bg-transparent text-gray-700 text-sm px-2 py-1 focus:outline-none focus:border-gray-400"
                                                 value={item.itemName}
                                                 onChange={(e) => handleItemChange(e, 'itemName', index)}
                                             />
                                         </td>
-
                                         {/* Quantity */}
-                                        <td className="border border-gray-300 px-4 py-2 text-center">
+                                        <td className="border px-3 py-2 text-center">
                                             <input
                                                 type="number"
                                                 min={1}
-                                                placeholder="qty"
-                                                className="w-20 h-full rounded-md border border-gray-300 bg-transparent text-gray-700 text-sm px-2 py-1 focus:outline-none focus:border-gray-400"
+                                                placeholder="Qty"
+                                                className="w-20 rounded-md border bg-transparent text-gray-700 text-sm px-2 py-1 focus:outline-none focus:border-gray-400"
                                                 value={item.quantity}
                                                 onChange={(e) => handleItemChange(e, 'quantity', index)}
                                             />
                                         </td>
-
                                         {/* Price */}
-                                        <td className="px-4 py-3 text-center">
+                                        <td className="border px-3 py-2 text-center">
                                             <input
                                                 type="number"
-                                                inputMode="decimal"
-                                                placeholder="price"
-                                                className="w-20 h-full rounded-md border border-gray-300 bg-transparent text-gray-700 text-sm px-2 py-1 focus:outline-none focus:border-gray-400"
-                                                value={item.unitPrice}
                                                 min={0}
+                                                placeholder="Price"
+                                                className="w-24 rounded-md border bg-transparent text-gray-700 text-sm px-2 py-1 focus:outline-none focus:border-gray-400"
+                                                value={item.unitPrice}
                                                 onChange={(e) => handleItemChange(e, 'unitPrice', index)}
                                             />
                                         </td>
-
-                                        <td className="px-4 py-3 text-center">
+                                        {/* Type */}
+                                        <td className="border px-3 py-2">
+                                            <select
+                                                value={item.type}
+                                                onChange={(e) => handleItemChange(e, 'itemType', index)}
+                                                className="w-28 rounded-md border border-gray-300 text-sm p-2"
+                                            >
+                                                <option value="product">Product</option>
+                                                <option value="service">Service</option>
+                                            </select>
+                                        </td>
+                                        {/* UM */}
+                                        <td className="border px-3 py-2 text-center">
                                             <input
                                                 type="text"
-                                                placeholder="um"
-                                                className="w-20 h-full rounded-md border border-gray-300 bg-transparent text-gray-700 text-sm px-2 py-1 focus:outline-none focus:border-gray-400"
+                                                placeholder="UM"
+                                                className="w-20 rounded-md border bg-transparent text-gray-700 text-sm px-2 py-1 focus:outline-none focus:border-gray-400"
                                                 value={item.um}
                                                 onChange={(e) => handleItemChange(e, 'um', index)}
                                             />
                                         </td>
-                                        {/* Total Price */}
-                                        <td className="border border-gray-300 px-2 py-2 text-center">
-                                            <span>
-                                                {(Number(item.quantity) * Number(item.unitPrice)).toFixed(2)}
-                                            </span>
+                                        {/* Total */}
+                                        <td className="border px-3 py-2 text-center whitespace-nowrap text-sm">
+                                            <span>{(Number(item.quantity) * Number(item.unitPrice)).toFixed(2)}</span>
                                         </td>
-
-                                        <td className="px-2 py-4 text-center flex justify-center items-center">
-                                            <button type="button" className="px-1 py-1 text-center" onClick={() => removeItem(index)}>
+                                        {/* Actions */}
+                                        <td className="px-3 py-2 text-center">
+                                            <div className="flex justify-center gap-x-2">
+                                                {/* Remove */}
+                                                <button type="button" className="px-1 py-1 text-center" onClick={() => removeItem(index)}>
                                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" className="w-5 h-5">
                                                     <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
                                                 </svg>
@@ -559,16 +576,20 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" />
                                                 </svg>
                                             </button>
+                                            </div>
+
+                                            {/* Modal */}
                                             <ItemsModal
                                                 show={showItemsModal}
                                                 onItemSelect={onItemSelect}
                                                 onClose={() => setShowItemsModal(false)}
                                             />
                                         </td>
-
                                     </tr>
                                 ))}
                             </tbody>
+
+
                         </table>
 
                         {/* Add new line button */}

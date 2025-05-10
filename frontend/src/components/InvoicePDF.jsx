@@ -183,6 +183,7 @@ const InvoicePDF = ({ invoiceData }) => {
             <Text style={[styles.cell, { fontWeight: 'bold', textAlign: 'center' }]}>Item Name</Text>
             <Text style={[styles.cell, { fontWeight: 'bold', textAlign: 'center' }]}>Quantity</Text>
             <Text style={[styles.cell, { fontWeight: 'bold', textAlign: 'center' }]}>Unit Price</Text>
+            <Text style={[styles.cell, { fontWeight: 'bold', textAlign: 'center' }]}>Type</Text>
             <Text style={[styles.cell, { fontWeight: 'bold', textAlign: 'center' }]}>U.M.</Text>
             <Text style={[styles.lastCell, { fontWeight: 'bold', textAlign: 'center' }]}>Total</Text>
           </View>
@@ -192,6 +193,7 @@ const InvoicePDF = ({ invoiceData }) => {
               <Text style={[styles.cell, { textAlign: 'center' }]}>{item.itemName}</Text>
               <Text style={[styles.cell, { textAlign: 'center' }]}>{item.quantity}</Text>
               <Text style={[styles.cell, { textAlign: 'center' }]}>${item.unitPrice.toFixed(2)}</Text>
+              <Text style={[styles.cell, { textAlign: 'center' }]}>{item.type}</Text>
               <Text style={[styles.cell, { textAlign: 'center' }]}>{item.um}</Text>
               <Text style={[styles.lastCell, { textAlign: 'center' }]}>${(item.unitPrice * item.quantity).toFixed(2)}</Text>
             </View>

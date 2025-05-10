@@ -11,25 +11,37 @@ const reportSchema = new mongoose.Schema({
         paymentStatus: {
             numberOfPaidInvoices: { type: Number },
             numberOfUnpaidInvoices: { type: Number },
+
             percentPaid: { type: Number },
             percentUnpaid: { type: Number },
         },
         overdueAnalysis: {
             numberOfOnTimeInvoices: { type: Number },
             numberOfOverdueInvoices: { type: Number },
-            numberOfInvoicesOverdue30Days: { type: Number },
-            numberOfInvoicesOverdue60Days: { type: Number },
-            numberOfInvoicesOverdue90PlusDays: { type: Number },
+
             percentOverdue: { type: Number },
-            percentOverdue30: { type: Number },
-            percentOverdue60: { type: Number },
-            percentOverdue90Plus: { type: Number },
             percentOnTime: { type: Number },
         },
         invoicePatterns: {
             averageDaysToPayment: { type: Number },
             medianDaysToPayment: { type: Number },
             modeOfPaymentDelays: { type: Number },
+        },
+        invoiceEntities: {
+            numberOfIndividualClients: { type: Number },
+            numberOfCompanyClients: { type: Number },
+            numberOfIndividualVendors: { type: Number },
+            numberOfCompanyVendors: { type: Number },
+            numberOfProducts: { type: Number },
+            numberOfServices: { type: Number },
+
+            percentIndividualClients: {type:Number},
+            percentCompanyClients: {type:Number},
+            percentIndividualVendors: {type:Number},
+            percentCompanyVendors: {type:Number},
+            percentProducts: {type:Number},
+            percentPercent: {type:Number},
+
         },
     },
     selectedCheckboxes: {
@@ -42,12 +54,7 @@ const reportSchema = new mongoose.Schema({
         overdueAnalysis: {
             checkednumberOfOnTimeInvoices: { type: Boolean },
             checkednumberOfOverdueInvoices: { type: Boolean },
-            checkednumberOfInvoicesOverdue30Days: { type: Boolean },
-            checkednumberOfInvoicesOverdue60Days: { type: Boolean },
-            checkednumberOfInvoicesOverdue90PlusDays: { type: Boolean },
-            checkedpercentOverdue30: { type: Boolean },
-            checkedpercentOverdue90: { type: Boolean },
-            checkedpercentOverdue90Plus: { type: Boolean },
+            checkedPercentOverdue:{ type: Boolean },
             checkedpercentOnTime: { type: Boolean },
         },
         invoicePatterns: {
