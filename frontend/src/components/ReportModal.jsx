@@ -7,6 +7,7 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
 
     const [reportData, setReportData] = useState({
         title: '',
+        description: '',
         startDate: '',
         endDate: '',
         indicators: {
@@ -162,29 +163,29 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
         let numberOfOverdueInvoices = 0;
         let percentOverdue = 0;
         let percentOnTime = 0;
-        
+
         if (selectedCheckboxes.paymentStatus && selectedCheckboxes.overdueAnalysis.checkednumberOfOnTimeInvoices) {
             // Count invoices with timeStatus as 'On Time'
             numberOfOnTimeInvoices = invoicesInRange.filter(invoice => invoice.timeStatus === 'On Time').length;
         }
-        
+
         if (selectedCheckboxes.paymentStatus && selectedCheckboxes.overdueAnalysis.checkednumberOfOverdueInvoices) {
             // Count invoices with timeStatus as 'Overdue'
             numberOfOverdueInvoices = invoicesInRange.filter(invoice => invoice.timeStatus === 'Overdue').length;
         }
-        
+
         if (selectedCheckboxes.paymentStatus && selectedCheckboxes.overdueAnalysis.checkedpercentOnTime) {
             // Calculate percentage of on-time invoices
             const onTimeCount = invoicesInRange.filter(invoice => invoice.timeStatus === 'On Time').length;
             percentOnTime = totalInvoices > 0 ? (onTimeCount / totalInvoices) * 100 : 0;
         }
-        
+
         if (selectedCheckboxes.paymentStatus && selectedCheckboxes.overdueAnalysis.checkedPercentOverdue) {
             // Calculate percentage of overdue invoices
             const overdueCount = invoicesInRange.filter(invoice => invoice.timeStatus === 'Overdue').length;
             percentOverdue = totalInvoices > 0 ? (overdueCount / totalInvoices) * 100 : 0;
         }
-        
+
         // Updating the indicators
         updatedIndicators.overdueAnalysis = {
             numberOfOnTimeInvoices,
@@ -192,8 +193,8 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
             percentOverdue,
             percentOnTime,
         };
-                
-        
+
+
 
 
 
@@ -286,23 +287,23 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
         let percentCompanyVendors = 0;
         let percentProducts = 0;
         let percentServices = 0;
-        
+
         if (selectedCheckboxes.invoiceEntities?.checkednumberOfIndividualClients) {
             numberOfIndividualClients = invoicesInRange.filter(invoice => invoice.clientType === 'individual').length;
         }
-        
+
         if (selectedCheckboxes.invoiceEntities?.checkednumberOfCompanyClients) {
             numberOfCompanyClients = invoicesInRange.filter(invoice => invoice.clientType === 'company').length;
         }
-        
+
         if (selectedCheckboxes.invoiceEntities?.checkednumberOfIndividualVendors) {
             numberOfIndividualVendors = invoicesInRange.filter(invoice => invoice.vendorType === 'individual').length;
         }
-        
+
         if (selectedCheckboxes.invoiceEntities?.checkednumberOfCompanyVendors) {
             numberOfCompanyVendors = invoicesInRange.filter(invoice => invoice.vendorType === 'company').length;
         }
-        
+
         if (selectedCheckboxes.invoiceEntities?.checkednumberOfProducts || selectedCheckboxes.invoiceEntities?.checkednumberOfServices) {
             invoicesInRange.forEach(invoice => {
                 invoice.items.forEach(item => {
@@ -312,16 +313,16 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
                 });
             });
         }
-        
+
         percentIndividualClients = totalInvoices > 0 ? (numberOfIndividualClients / totalInvoices) * 100 : 0;
         percentCompanyClients = totalInvoices > 0 ? (numberOfCompanyClients / totalInvoices) * 100 : 0;
         percentIndividualVendors = totalInvoices > 0 ? (numberOfIndividualVendors / totalInvoices) * 100 : 0;
         percentCompanyVendors = totalInvoices > 0 ? (numberOfCompanyVendors / totalInvoices) * 100 : 0;
-        
+
         const totalItems = numberOfProducts + numberOfServices;
         percentProducts = totalItems > 0 ? (numberOfProducts / totalItems) * 100 : 0;
         percentServices = totalItems > 0 ? (numberOfServices / totalItems) * 100 : 0;
-        
+
         updatedIndicators.invoiceEntities = {
             numberOfIndividualClients,
             numberOfCompanyClients,
@@ -336,7 +337,7 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
             percentProducts,
             percentServices,
         };
-        
+
 
         return {
             ...reportData,
@@ -381,6 +382,7 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
 
         const payload = {
             reportNumber: updatedReportData.reportNumber,
+            description: updatedReportData.description,
             title: updatedReportData.title,
             startDate: updatedReportData.startDate,
             endDate: updatedReportData.endDate,
@@ -474,7 +476,21 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
                             />
                         </div>
                     </div>
+                    <div className="flex flex-col border-b-2 border-gray-400 pt-4 pb-4">
+                        <div className="flex flex-col flex-1">
+                            <label htmlFor="description" className="font-semibold text-gray-800 mb-2">Description</label>
+                            <input
+                                type="textarea"
+                                id="description"
+                                name="description"
+                                value={reportData.description}
+                                onChange={handleInputChange}
+                                required
+                                className="p-2 border border-gray-300 rounded"
+                            />
+                        </div>
 
+                    </div>
                     <span className="font-semibold text-gray-800 text-center p-4 block">Payment Status</span>
 
                     <div className="grid grid-cols-2 gap-4">

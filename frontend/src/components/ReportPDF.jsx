@@ -110,6 +110,9 @@ const ReportPDF = ({ reportData }) => {
 
   const {
     reportNumber = "N/A",
+
+    description = "N/A",
+
     title = "N/A",
     startDate = "N/A",
     endDate = "N/A",
@@ -124,231 +127,229 @@ const ReportPDF = ({ reportData }) => {
   } = reportData;
 
   return (
-    <Document>
-      <Page size="A4" style={styles.page}>
-        <Text style={[styles.header, { textAlign: 'center' }]}>{title}</Text>
-        <Text style={[styles.title, { textAlign: 'center' }]}>{reportNumber}</Text>
+   <Document>
+  <Page size="A4" style={styles.page}>
+    <Text style={[styles.header, { textAlign: 'center' }]}>{title}</Text>
+    <Text style={[styles.title, { textAlign: 'center' }]}>{reportNumber}</Text>
 
+    <View style={styles.section} />
 
-        <View style={styles.section}></View>
+    {/* Date Range */}
+    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.subTitle}>
+          <Text style={{ fontWeight: 'bold' }}>Start Date:</Text> {formatDate(startDate)}
+        </Text>
+      </View>
+      <View style={{ flex: 1, alignItems: 'flex-end' }}>
+        <Text style={styles.subTitle}>
+          <Text style={{ fontWeight: 'bold' }}>End Date:</Text> {formatDate(endDate)}
+        </Text>
+      </View>
+    </View>
 
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.subTitle}>
-              <Text style={{ fontWeight: 'bold' }}>Start Date:</Text> {formatDate(startDate)}
-            </Text>
+    {/* Description */}
+    <Text style={styles.subTitle}>{description}</Text>
+    <Text></Text>
+
+    {/* Payment Status Table */}
+    <View style={styles.section}>
+      <Text style={styles.titleText}>Payment Status</Text>
+      <View style={styles.table}>
+        {/* Header Row */}
+        <View style={styles.row}>
+          <Text style={[styles.cell, { fontWeight: 'bold', textAlign: 'center' }]}>Status</Text>
+          <Text style={[styles.lastCell, { fontWeight: 'bold', textAlign: 'center' }]}>Count</Text>
+        </View>
+        
+        {/* Data Rows */}
+        {paymentStatus.numberOfPaidInvoices != null && (
+          <View style={styles.row}>
+            <Text style={[styles.cell, { textAlign: 'center' }]}>Paid Invoices</Text>
+            <Text style={[styles.lastCell, { textAlign: 'center' }]}>{paymentStatus.numberOfPaidInvoices}</Text>
           </View>
-
-          <View style={{ flex: 1, alignItems: 'flex-end' }}>
-            <Text style={styles.subTitle}>
-              <Text style={{ fontWeight: 'bold' }}>End Date:</Text> {formatDate(endDate)}
-            </Text>
+        )}
+        {paymentStatus.numberOfUnpaidInvoices != null && (
+          <View style={styles.row}>
+            <Text style={[styles.cell, { textAlign: 'center' }]}>Unpaid Invoices</Text>
+            <Text style={[styles.lastCell, { textAlign: 'center' }]}>{paymentStatus.numberOfUnpaidInvoices}</Text>
           </View>
+        )}
+        {paymentStatus.percentPaid != null && (
+          <View style={styles.row}>
+            <Text style={[styles.cell, { textAlign: 'center' }]}>Percent Paid</Text>
+            <Text style={[styles.lastCell, { textAlign: 'center' }]}>{paymentStatus.percentPaid.toFixed(2)}%</Text>
+          </View>
+        )}
+        {paymentStatus.percentUnpaid != null && (
+          <View style={styles.row}>
+            <Text style={[styles.cell, { textAlign: 'center' }]}>Percent Unpaid</Text>
+            <Text style={[styles.lastCell, { textAlign: 'center' }]}>{paymentStatus.percentUnpaid.toFixed(2)}%</Text>
+          </View>
+        )}
+      </View>
+    </View>
+
+    {/* Overdue Analysis Table */}
+    <View style={styles.section}>
+      <Text style={styles.titleText}>Overdue Analysis</Text>
+      <View style={styles.table}>
+        {/* Header Row */}
+        <View style={styles.row}>
+          <Text style={[styles.cell, { fontWeight: 'bold', textAlign: 'center' }]}>Analysis</Text>
+          <Text style={[styles.lastCell, { fontWeight: 'bold', textAlign: 'center' }]}>Count</Text>
         </View>
 
-
-        <Text style={styles.subTitle}>This report provides a comprehensive overview of invoice activity and payment behavior for the specified reporting period. It highlights key performance indicators related to payment status, overdue trends, and payment timing, offering actionable insights for financial tracking and decision-making.</Text>
-        <Text></Text>
-
-        {/* Payment Status Table */}
-        <View style={styles.section}>
-          <Text style={styles.titleText}>Payment Status</Text>
-          <View style={styles.table}>
-            {/* Header Row */}
-            <View style={styles.row}>
-              <Text style={[styles.cell, { fontWeight: 'bold', textAlign: 'center' }]}>Status</Text>
-              <Text style={[styles.lastCell, { fontWeight: 'bold', textAlign: 'center' }]}>Count</Text>
-            </View>
-
-            {/* Conditional Rows */}
-            {paymentStatus.numberOfPaidInvoices != null && (
-              <View style={styles.row}>
-                <Text style={[styles.cell, { textAlign: 'center' }]}>Paid Invoices</Text>
-                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{paymentStatus.numberOfPaidInvoices}</Text>
-              </View>
-            )}
-            {paymentStatus.numberOfUnpaidInvoices != null && (
-              <View style={styles.row}>
-                <Text style={[styles.cell, { textAlign: 'center' }]}>Unpaid Invoices</Text>
-                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{paymentStatus.numberOfUnpaidInvoices}</Text>
-              </View>
-            )}
-            {paymentStatus.percentPaid != null && (
-              <View style={styles.row}>
-                <Text style={[styles.cell, { textAlign: 'center' }]}>Percent Paid</Text>
-                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{paymentStatus.percentPaid.toFixed(2)}%</Text>
-              </View>
-            )}
-            {paymentStatus.percentUnpaid != null && (
-              <View style={styles.row}>
-                <Text style={[styles.cell, { textAlign: 'center' }]}>Percent Unpaid</Text>
-                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{paymentStatus.percentUnpaid.toFixed(2)}%</Text>
-              </View>
-            )}
+        {/* Data Rows */}
+        {overdueAnalysis.numberOfOnTimeInvoices != null && (
+          <View style={styles.row}>
+            <Text style={[styles.cell, { textAlign: 'center' }]}>Invoices Paid On Time</Text>
+            <Text style={[styles.lastCell, { textAlign: 'center' }]}>{overdueAnalysis.numberOfOnTimeInvoices}</Text>
           </View>
+        )}
+        {overdueAnalysis.numberOfOverdueInvoices != null && (
+          <View style={styles.row}>
+            <Text style={[styles.cell, { textAlign: 'center' }]}>Overdue Invoices</Text>
+            <Text style={[styles.lastCell, { textAlign: 'center' }]}>{overdueAnalysis.numberOfOverdueInvoices}</Text>
+          </View>
+        )}
+        {overdueAnalysis.percentOnTime != null && (
+          <View style={styles.row}>
+            <Text style={[styles.cell, { textAlign: 'center' }]}>Percent On Time</Text>
+            <Text style={[styles.lastCell, { textAlign: 'center' }]}>{overdueAnalysis.percentOnTime.toFixed(2)}%</Text>
+          </View>
+        )}
+        {overdueAnalysis.percentOverdue != null && (
+          <View style={styles.row}>
+            <Text style={[styles.cell, { textAlign: 'center' }]}>Percent Overdue</Text>
+            <Text style={[styles.lastCell, { textAlign: 'center' }]}>{overdueAnalysis.percentOverdue.toFixed(2)}%</Text>
+          </View>
+        )}
+      </View>
+    </View>
+
+    {/* Invoice Patterns Table */}
+    <View style={styles.section}>
+      <Text style={styles.titleText}>Invoice Patterns</Text>
+      <View style={styles.table}>
+        {/* Header Row */}
+        <View style={styles.row}>
+          <Text style={[styles.cell, { fontWeight: 'bold', textAlign: 'center' }]}>Invoice Pattern Data</Text>
+          <Text style={[styles.lastCell, { fontWeight: 'bold', textAlign: 'center' }]}>Amount</Text>
         </View>
 
-
-        {/* Overdue Analysis Table */}
-        <View style={styles.section}>
-          <Text style={styles.titleText}>Overdue Analysis</Text>
-          <View style={styles.table}>
-            {/* Header Row */}
-            <View style={styles.row}>
-              <Text style={[styles.cell, { fontWeight: 'bold', textAlign: 'center' }]}>Analysis</Text>
-              <Text style={[styles.lastCell, { fontWeight: 'bold', textAlign: 'center' }]}>Count</Text>
-            </View>
-
-            {/* Conditionally Rendered Rows */}
-            {overdueAnalysis.numberOfOnTimeInvoices != null && (
-              <View style={styles.row}>
-                <Text style={[styles.cell, { textAlign: 'center' }]}>Invoices Paid On Time</Text>
-                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{overdueAnalysis.numberOfOnTimeInvoices}</Text>
-              </View>
-            )}
-            {overdueAnalysis.numberOfOverdueInvoices != null && (
-              <View style={styles.row}>
-                <Text style={[styles.cell, { textAlign: 'center' }]}>Overdue Invoices</Text>
-                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{overdueAnalysis.numberOfOverdueInvoices}</Text>
-              </View>
-            )}
-            {overdueAnalysis.percentOnTime != null && (
-              <View style={styles.row}>
-                <Text style={[styles.cell, { textAlign: 'center' }]}>Percent On Time</Text>
-                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{overdueAnalysis.percentOnTime.toFixed(2)}%</Text>
-              </View>
-            )}
-            {overdueAnalysis.percentOverdue != null && (
-              <View style={styles.row}>
-                <Text style={[styles.cell, { textAlign: 'center' }]}>Percent Overdue</Text>
-                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{overdueAnalysis.percentOverdue.toFixed(2)}%</Text>
-              </View>
-            )}
+        {/* Data Rows */}
+        {invoicePatterns.averageDaysToPayment != null && (
+          <View style={styles.row}>
+            <Text style={[styles.cell, { textAlign: 'center' }]}>Average Days to Payment</Text>
+            <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoicePatterns.averageDaysToPayment}</Text>
           </View>
+        )}
+        {invoicePatterns.medianDaysToPayment != null && (
+          <View style={styles.row}>
+            <Text style={[styles.cell, { textAlign: 'center' }]}>Median Days to Payment</Text>
+            <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoicePatterns.medianDaysToPayment}</Text>
+          </View>
+        )}
+        {invoicePatterns.modeOfPaymentDelays != null && (
+          <View style={styles.row}>
+            <Text style={[styles.cell, { textAlign: 'center' }]}>Mode of Payment Delays</Text>
+            <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoicePatterns.modeOfPaymentDelays}</Text>
+          </View>
+        )}
+      </View>
+    </View>
+
+    {/* Invoice Entities Table */}
+    <View style={styles.section}>
+      <Text style={styles.titleText}>Invoice Entities</Text>
+      <View style={styles.table}>
+        {/* Header Row */}
+        <View style={styles.row}>
+          <Text style={[styles.cell, { fontWeight: 'bold', textAlign: 'center' }]}>Invoice Entity</Text>
+          <Text style={[styles.lastCell, { fontWeight: 'bold', textAlign: 'center' }]}>Amount</Text>
         </View>
 
-        {/* Invoice Patterns Table */}
-        <View style={styles.section}>
-          <Text style={styles.titleText}>Invoice Patterns</Text>
-          <View style={styles.table}>
-            {/* Header Row */}
-            <View style={styles.row}>
-              <Text style={[styles.cell, { fontWeight: 'bold', textAlign: 'center' }]}>Invoice Pattern Data</Text>
-              <Text style={[styles.lastCell, { fontWeight: 'bold', textAlign: 'center' }]}>Amount</Text>
-            </View>
-
-            {/* Conditionally Rendered Rows */}
-            {invoicePatterns.averageDaysToPayment != null && (
-              <View style={styles.row}>
-                <Text style={[styles.cell, { textAlign: 'center' }]}>Average Days to Payment</Text>
-                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoicePatterns.averageDaysToPayment}</Text>
-              </View>
-            )}
-            {invoicePatterns.medianDaysToPayment != null && (
-              <View style={styles.row}>
-                <Text style={[styles.cell, { textAlign: 'center' }]}>Median Days to Payment</Text>
-                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoicePatterns.medianDaysToPayment}</Text>
-              </View>
-            )}
-            {invoicePatterns.modeOfPaymentDelays != null && (
-              <View style={styles.row}>
-                <Text style={[styles.cell, { textAlign: 'center' }]}>Mode of Payment Delays</Text>
-                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoicePatterns.modeOfPaymentDelays}</Text>
-              </View>
-            )}
+        {/* Data Rows */}
+        {invoiceEntities.numberOfIndividualClients != null && (
+          <View style={styles.row}>
+            <Text style={[styles.cell, { textAlign: 'center' }]}>Number of Individual Clients</Text>
+            <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoiceEntities.numberOfIndividualClients}</Text>
           </View>
-        </View>
-        {/* Invoice Entities Table */}
-        <View style={styles.section}>
-          <Text style={styles.titleText}>Invoice Entities</Text>
-          <View style={styles.table}>
-            {/* Header Row */}
-            <View style={styles.row}>
-              <Text style={[styles.cell, { fontWeight: 'bold', textAlign: 'center' }]}>Invoice Entity</Text>
-              <Text style={[styles.lastCell, { fontWeight: 'bold', textAlign: 'center' }]}>Amount</Text>
-            </View>
-
-            {/* Conditionally Rendered Rows for Invoice Entities */}
-            {invoiceEntities.numberOfIndividualClients != null && (
-              <View style={styles.row}>
-                <Text style={[styles.cell, { textAlign: 'center' }]}>Number of Individual Clients</Text>
-                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoiceEntities.numberOfIndividualClients}</Text>
-              </View>
-            )}
-            {invoiceEntities.numberOfCompanyClients != null && (
-              <View style={styles.row}>
-                <Text style={[styles.cell, { textAlign: 'center' }]}>Number of Company Clients</Text>
-                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoiceEntities.numberOfCompanyClients}</Text>
-              </View>
-            )}
-            {invoiceEntities.numberOfIndividualVendors != null && (
-              <View style={styles.row}>
-                <Text style={[styles.cell, { textAlign: 'center' }]}>Number of Individual Vendors</Text>
-                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoiceEntities.numberOfIndividualVendors}</Text>
-              </View>
-            )}
-            {invoiceEntities.numberOfCompanyVendors != null && (
-              <View style={styles.row}>
-                <Text style={[styles.cell, { textAlign: 'center' }]}>Number of Company Vendors</Text>
-                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoiceEntities.numberOfCompanyVendors}</Text>
-              </View>
-            )}
-            {invoiceEntities.numberOfProducts != null && (
-              <View style={styles.row}>
-                <Text style={[styles.cell, { textAlign: 'center' }]}>Number of Products</Text>
-                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoiceEntities.numberOfProducts}</Text>
-              </View>
-            )}
-            {invoiceEntities.numberOfServices != null && (
-              <View style={styles.row}>
-                <Text style={[styles.cell, { textAlign: 'center' }]}>Number of Services</Text>
-                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoiceEntities.numberOfServices}</Text>
-              </View>
-            )}
-
-            {/* Conditionally Rendered Rows for Percentages */}
-            {invoiceEntities.percentIndividualClients != null && (
-              <View style={styles.row}>
-                <Text style={[styles.cell, { textAlign: 'center' }]}>Percent of Individual Clients</Text>
-                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoiceEntities.percentIndividualClients.toFixed(2)}%</Text>
-              </View>
-            )}
-            {invoiceEntities.percentCompanyClients != null && (
-              <View style={styles.row}>
-                <Text style={[styles.cell, { textAlign: 'center' }]}>Percent of Company Clients</Text>
-                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoiceEntities.percentCompanyClients.toFixed(2)}%</Text>
-              </View>
-            )}
-            {invoiceEntities.percentIndividualVendors != null && (
-              <View style={styles.row}>
-                <Text style={[styles.cell, { textAlign: 'center' }]}>Percent of Individual Vendors</Text>
-                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoiceEntities.percentIndividualVendors.toFixed(2)}%</Text>
-              </View>
-            )}
-            {invoiceEntities.percentCompanyVendors != null && (
-              <View style={styles.row}>
-                <Text style={[styles.cell, { textAlign: 'center' }]}>Percent of Company Vendors</Text>
-                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoiceEntities.percentCompanyVendors.toFixed(2)}%</Text>
-              </View>
-            )}
-            {invoiceEntities.percentProducts != null && (
-              <View style={styles.row}>
-                <Text style={[styles.cell, { textAlign: 'center' }]}>Percent of Products</Text>
-                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoiceEntities.percentProducts.toFixed(2)}%</Text>
-              </View>
-            )}
-            {invoiceEntities.percentServices != null && (
-              <View style={styles.row}>
-                <Text style={[styles.cell, { textAlign: 'center' }]}>Percent of Services</Text>
-                <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoiceEntities.percentServices.toFixed(2)}%</Text>
-              </View>
-            )}
+        )}
+        {invoiceEntities.numberOfCompanyClients != null && (
+          <View style={styles.row}>
+            <Text style={[styles.cell, { textAlign: 'center' }]}>Number of Company Clients</Text>
+            <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoiceEntities.numberOfCompanyClients}</Text>
           </View>
-        </View>
+        )}
+        {invoiceEntities.numberOfIndividualVendors != null && (
+          <View style={styles.row}>
+            <Text style={[styles.cell, { textAlign: 'center' }]}>Number of Individual Vendors</Text>
+            <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoiceEntities.numberOfIndividualVendors}</Text>
+          </View>
+        )}
+        {invoiceEntities.numberOfCompanyVendors != null && (
+          <View style={styles.row}>
+            <Text style={[styles.cell, { textAlign: 'center' }]}>Number of Company Vendors</Text>
+            <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoiceEntities.numberOfCompanyVendors}</Text>
+          </View>
+        )}
+        {invoiceEntities.numberOfProducts != null && (
+          <View style={styles.row}>
+            <Text style={[styles.cell, { textAlign: 'center' }]}>Number of Products</Text>
+            <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoiceEntities.numberOfProducts}</Text>
+          </View>
+        )}
+        {invoiceEntities.numberOfServices != null && (
+          <View style={styles.row}>
+            <Text style={[styles.cell, { textAlign: 'center' }]}>Number of Services</Text>
+            <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoiceEntities.numberOfServices}</Text>
+          </View>
+        )}
 
+        {/* Percentages */}
+        {invoiceEntities.percentOfIndividualClients != null && (
+          <View style={styles.row}>
+            <Text style={[styles.cell, { textAlign: 'center' }]}>Percent of Individual Clients</Text>
+            <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoiceEntities.percentOfIndividualClients.toFixed(2)}%</Text>
+          </View>
+        )}
+        {invoiceEntities.percentOfCompanyClients != null && (
+          <View style={styles.row}>
+            <Text style={[styles.cell, { textAlign: 'center' }]}>Percent of Company Clients</Text>
+            <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoiceEntities.percentOfCompanyClients.toFixed(2)}%</Text>
+          </View>
+        )}
+        {invoiceEntities.percentOfIndividualVendors != null && (
+          <View style={styles.row}>
+            <Text style={[styles.cell, { textAlign: 'center' }]}>Percent of Individual Vendors</Text>
+            <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoiceEntities.percentOfIndividualVendors.toFixed(2)}%</Text>
+          </View>
+        )}
+        {invoiceEntities.percentOfCompanyVendors != null && (
+          <View style={styles.row}>
+            <Text style={[styles.cell, { textAlign: 'center' }]}>Percent of Company Vendors</Text>
+            <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoiceEntities.percentOfCompanyVendors.toFixed(2)}%</Text>
+          </View>
+        )}
+        {invoiceEntities.percentOfProducts != null && (
+          <View style={styles.row}>
+            <Text style={[styles.cell, { textAlign: 'center' }]}>Percent of Products</Text>
+            <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoiceEntities.percentOfProducts.toFixed(2)}%</Text>
+          </View>
+        )}
+        {invoiceEntities.percentOfServices != null && (
+          <View style={styles.row}>
+            <Text style={[styles.cell, { textAlign: 'center' }]}>Percent of Services</Text>
+            <Text style={[styles.lastCell, { textAlign: 'center' }]}>{invoiceEntities.percentOfServices.toFixed(2)}%</Text>
+          </View>
+        )}
+      </View>
+    </View>
+  </Page>
+</Document>
 
-      </Page>
-    </Document>
   );
 };
 

@@ -176,6 +176,8 @@ const Report = () => {
                                 Report Title
                                 {sortColumn === 'title' ? (sortOrder === 'asc' ? ' ▲' : ' ▼') : ''}
                             </th>
+                            <th className="px-3 py-2 text-center bg-gray-200">Description</th>
+
                             <th
                                 className="px-3 py-2 text-center bg-gray-200 cursor-pointer"
                                 onClick={() => handleSort('startDate')}
@@ -190,7 +192,6 @@ const Report = () => {
                                 End Date
                                 {sortColumn === 'endDate' ? (sortOrder === 'asc' ? ' ▲' : ' ▼') : ''}
                             </th>
-                            <th className="px-3 py-2 text-center bg-gray-200">Indicators</th>
                             <th className="px-3 py-2 text-center bg-gray-200">Actions</th>
                         </tr>
                     </thead>
@@ -200,6 +201,7 @@ const Report = () => {
                                 <tr key={report.reportNumber} className="hover:bg-gray-100">
                                     <td className="px-3 py-2 text-center">{report.reportNumber}</td>
                                     <td className="px-3 py-2 text-center">{report.title}</td>
+                                    <td className="px-3 py-2 text-center">{report.description}</td>
 
 
                                     <td className="px-3 py-2 text-center">
@@ -209,33 +211,6 @@ const Report = () => {
                                         {report.endDate ? formatDate(report.endDate) : 'No End Date'}
                                     </td>
 
-
-                                    <td className="px-3 py-2 text-center">
-                                    <div>
-    <div>
-        <strong>Total Indicators: </strong>
-        {[
-            report.indicators.paymentStatus || {},
-            report.indicators.overdueAnalysis || {},
-            report.indicators.invoicePatterns || {},
-            report.indicators.invoiceEntities || {}
-
-        ]
-        .reduce((total, category) => total + Object.values(category).filter(value => value).length, 0)} 
-        / 
-        {[
-            report.indicators.paymentStatus || {},
-            report.indicators.overdueAnalysis || {},
-            report.indicators.invoicePatterns || {},
-            report.indicators.invoiceEntities || {}
-
-        ]
-        .reduce((total, category) => total + Object.keys(category).length, 0)}
-        indicators
-    </div>
-</div>
-
-                                    </td>
 
 
                                     <td className="px-3 py-2 text-center flex justify-center gap-2">

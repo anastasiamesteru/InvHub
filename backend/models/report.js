@@ -4,6 +4,7 @@ const reportSchema = new mongoose.Schema({
     userEmail: {type: String, required: true, trim: true},
 
     reportNumber: String,
+    description:String,
     title: String,
     startDate: Date,
     endDate: Date,
