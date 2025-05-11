@@ -151,7 +151,7 @@ const EditClientModal = ({ show, onClose, clientId, onUpdate }) => {
               </select>
 
               <label className="block text-left text-sm font-medium text-gray-700 mt-2">
-                {clientData.type === 'company' ? 'CIF' : 'CNP'}
+                {clientData.type === 'company' ? 'CUI' : 'CNP'}
               </label>
               <input
                 type="text"
@@ -159,7 +159,7 @@ const EditClientModal = ({ show, onClose, clientId, onUpdate }) => {
                 className="mt-1 p-2 w-full border border-gray-300 rounded-md"
                 value={clientData.cifcnp}
                 onChange={handleInputChange}
-                placeholder={clientData.type === 'company' ? 'Enter CIF' : 'Enter CNP'}
+                placeholder={clientData.type === 'company' ? 'Enter CUI' : 'Enter CNP'}
               />
             </div>
 

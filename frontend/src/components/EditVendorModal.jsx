@@ -144,7 +144,7 @@ const EditVendorModal = ({ show, onClose, vendorId, onUpdate }) => {
               </select>
 
               <label className="block text-left text-sm font-medium text-gray-700 mt-2">
-                {vendorData.type === 'company' ? 'CIF' : 'CNP'}
+                {vendorData.type === 'company' ? 'CUI' : 'CNP'}
               </label>
               <input
                 type="text"
@@ -152,7 +152,7 @@ const EditVendorModal = ({ show, onClose, vendorId, onUpdate }) => {
                 className="mt-1 p-2 w-full border border-gray-300 rounded-md"
                 value={vendorData.cifcnp}
                 onChange={handleInputChange}
-                placeholder={vendorData.type === 'company' ? 'Enter CIF' : 'Enter CNP'}
+                placeholder={vendorData.type === 'company' ? 'Enter CUI' : 'Enter CNP'}
               />
             </div>
 

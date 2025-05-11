@@ -296,7 +296,7 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
                             </select>
 
                             <label className="block text-sm font-medium text-gray-700 mt-2">
-                                {clientType === 'company' ? 'CIF' : 'CNP'}
+                                {clientType === 'company' ? 'CUI' : 'CNP'}
                             </label>
                             <input
                                 type="text"
@@ -304,7 +304,7 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
                                 className="mt-1 p-2 w-full border border-gray-300 rounded-md"
                                 value={clientData.cifCnp}
                                 onChange={(e) => handleChange(e, 'client')}
-                                placeholder={clientType === 'company' ? 'Enter CIF' : 'Enter CNP'}
+                                placeholder={clientType === 'company' ? 'Enter CUI' : 'Enter CNP'}
                             />
                             {errors.cifCnp && <p className="text-red-500 text-xs">{errors.cifCnp}</p>}
                         </>
@@ -367,7 +367,7 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
                             </select>
 
                             <label className="block text-sm font-medium text-gray-700 mt-2">
-                                {vendorType === 'company' ? 'CIF' : 'CNP'}
+                                {vendorType === 'company' ? 'CUI' : 'CNP'}
                             </label>
                             <input
                                 type="text"
@@ -375,7 +375,7 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
                                 className="mt-1 p-2 w-full border border-gray-300 rounded-md"
                                 value={vendorData.cifCnp}
                                 onChange={(e) => handleChange(e, 'vendor')}
-                                placeholder={vendorType === 'company' ? 'Enter CIF' : 'Enter CNP'}
+                                placeholder={vendorType === 'company' ? 'Enter CUI' : 'Enter CNP'}
                             />
                             {errors.cifCnp && <p className="text-red-500 text-xs">{errors.cifCnp}</p>}
                         </>
