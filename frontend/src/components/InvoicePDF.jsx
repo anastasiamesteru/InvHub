@@ -159,7 +159,7 @@ const InvoicePDF = ({ invoiceData }) => {
             <Text style={styles.subTitle}><Text style={{ fontWeight: 'bold' }}>Email:</Text> {clientEmail}</Text>
             <Text style={styles.subTitle}><Text style={{ fontWeight: 'bold' }}>Phone No:</Text> {clientPhoneNo}</Text>
             <Text style={styles.subTitle}><Text style={{ fontWeight: 'bold' }}>Address:</Text> {clientAddress}</Text>
-            <Text style={styles.subTitle}><Text style={{ fontWeight: 'bold' }}>CIF/CNP:</Text> {clientCifcnp}</Text>
+            <Text style={styles.subTitle}><Text style={{ fontWeight: 'bold' }}>CUI/CNP:</Text> {clientCifcnp}</Text>
 
           </View>
 
@@ -172,7 +172,7 @@ const InvoicePDF = ({ invoiceData }) => {
             <Text style={styles.subTitle}><Text style={{ fontWeight: 'bold' }}>Email:</Text> {vendorEmail}</Text>
             <Text style={styles.subTitle}><Text style={{ fontWeight: 'bold' }}>Phone No:</Text> {vendorPhoneNo}</Text>
             <Text style={styles.subTitle}><Text style={{ fontWeight: 'bold' }}>Address:</Text> {vendorAddress}</Text>
-            <Text style={styles.subTitle}><Text style={{ fontWeight: 'bold' }}>CIF/CNP:</Text> {vendorCifcnp}</Text>
+            <Text style={styles.subTitle}><Text style={{ fontWeight: 'bold' }}>CUI/CNP:</Text> {vendorCifcnp}</Text>
 
           </View>
         </View>

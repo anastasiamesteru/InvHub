@@ -25,7 +25,7 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
         clientName: '', clientAddress: '', clientPhoneNo: '', clientEmail: '', clientType: 'company', clientCifcnp: '',
         vendorName: '', vendorAddress: '', vendorPhoneNo: '', vendorEmail: '', vendorType: 'company', vendorCifcnp: '',
         issue_date: '', due_date: '', tax: 0, total: 0,
-        items: [{ itemName: '', quantity: 1, unitPrice: 0, um: '', type: 'product' }],
+        items: [{ itemName: '', quantity: 1, unitPrice: 0, um: '', type: 'Product' }],
     });
 
 
@@ -209,11 +209,11 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
 
     const onItemSelect = (selectedItems) => {
         const itemsArray = Array.isArray(selectedItems) ? selectedItems : [selectedItems];
-    
+
         // Set the itemType based on the type of the first item in the selection (or apply your own logic)
         const firstItemType = itemsArray[0]?.type || 'product'; // Default to 'product' if no type is found
         setItemType(firstItemType); // Update itemType state
-    
+
         setInvoiceData((prevData) => ({
             ...prevData,
             items: [
@@ -227,10 +227,10 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                 }))
             ]
         }));
-    
+
         setShowItemsModal(false); // Close modal after selection
     };
-    
+
     const [itemType, setItemType] = useState('product');
 
     const handleItemTypeChange = (event) => setItemType(event.target.value);
@@ -300,6 +300,19 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                                 {errors.clientName && <p className="text-red-500 text-xs">{errors.clientName}</p>}
 
                             </div>
+                              <div className="my-2">
+                                <label htmlFor="clientPhoneNo" className="block text-sm font-small text-gray-700">Phone number:</label>
+                                <input
+                                    id="clientPhoneNo"
+                                    type="tel"
+                                    placeholder="Client phone number"
+                                    value={invoiceData.clientPhoneNo}
+                                    onChange={(e) => handleChange(e, 'clientPhoneNo')}
+                                    className="w-full mt-1 p-2 border border-gray-300 rounded-md"
+                                />
+                                {errors.clientPhoneNo && <p className="text-red-500 text-xs">{errors.clientPhoneNo}</p>}
+
+                            </div>
                             <div className="my-2">
                                 <label htmlFor="clientAddress" className="block text-sm font-small text-gray-700">Address:</label>
                                 <input
@@ -313,19 +326,7 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                                 {errors.clientAddress && <p className="text-red-500 text-xs">{errors.clientAddress}</p>}
 
                             </div>
-                            <div className="my-2">
-                                <label htmlFor="clientPhoneNo" className="block text-sm font-small text-gray-700">Phone number:</label>
-                                <input
-                                    id="clientPhoneNo"
-                                    type="number"
-                                    placeholder="Client phone number"
-                                    value={invoiceData.clientPhoneNo}
-                                    onChange={(e) => handleChange(e, 'clientPhoneNo')}
-                                    className="w-full mt-1 p-2 border border-gray-300 rounded-md"
-                                />
-                                {errors.clientPhoneNo && <p className="text-red-500 text-xs">{errors.clientPhoneNo}</p>}
-
-                            </div>
+                          
                             <div className="my-2">
                                 <label htmlFor="clientEmail" className="block text-sm font-small text-gray-700">Email:</label>
                                 <input
@@ -400,7 +401,19 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                                 {errors.vendorName && <p className="text-red-500 text-xs">{errors.vendorName}</p>}
 
                             </div>
+                            <div className="my-2">
+                                <label htmlFor="vendorPhoneNo" className="block text-sm font-small text-gray-700">Phone number:</label>
+                                <input
+                                    id="vendorPhoneNo"
+                                    type="tel"
+                                    placeholder="Vendor phone number"
+                                    value={invoiceData.vendorPhoneNo}
+                                    onChange={(e) => handleChange(e, 'vendorPhoneNo')}
+                                    className="w-full mt-1 p-2 border border-gray-300 rounded-md"
+                                />
+                                {errors.vendorPhoneNo && <p className="text-red-500 text-xs">{errors.vendorPhoneNo}</p>}
 
+                            </div>
                             <div className="my-2">
                                 <label htmlFor="vendorAddress" className="block text-sm font-small text-gray-700">Address:</label>
                                 <input
@@ -414,19 +427,7 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                                 {errors.vendorAddress && <p className="text-red-500 text-xs">{errors.vendorAddress}</p>}
 
                             </div>
-                            <div className="my-2">
-                                <label htmlFor="vendorPhoneNo" className="block text-sm font-small text-gray-700">Phone number:</label>
-                                <input
-                                    id="vendorPhoneNo"
-                                    type="number"
-                                    placeholder="Vendor phone number"
-                                    value={invoiceData.vendorPhoneNo}
-                                    onChange={(e) => handleChange(e, 'vendorPhoneNo')}
-                                    className="w-full mt-1 p-2 border border-gray-300 rounded-md"
-                                />
-                                {errors.vendorPhoneNo && <p className="text-red-500 text-xs">{errors.vendorPhoneNo}</p>}
 
-                            </div>
                             <div className="my-2">
                                 <label htmlFor="vendorEmail" className="block text-sm font-small text-gray-700">Email:</label>
                                 <input
@@ -530,12 +531,14 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                                         <td className="border px-3 py-2 text-center">
                                             <input
                                                 type="number"
-                                                min={0}
+                                                min="0"
+                                                step="0.01"  // Allows decimal numbers
                                                 placeholder="Price"
                                                 className="w-24 rounded-md border bg-transparent text-gray-700 text-sm px-2 py-1 focus:outline-none focus:border-gray-400"
                                                 value={item.unitPrice}
                                                 onChange={(e) => handleItemChange(e, 'unitPrice', index)}
                                             />
+
                                         </td>
                                         {/* Type */}
                                         <td className="border px-3 py-2">
@@ -567,15 +570,15 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                                             <div className="flex justify-center gap-x-2">
                                                 {/* Remove */}
                                                 <button type="button" className="px-1 py-1 text-center" onClick={() => removeItem(index)}>
-                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" className="w-5 h-5">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                                                </svg>
-                                            </button>
-                                            <button type="button" className="px-1 py-1 text-center" onClick={() => setShowItemsModal(true)}>
-                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" className="w-5 h-5">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" />
-                                                </svg>
-                                            </button>
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" className="w-5 h-5">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                                                    </svg>
+                                                </button>
+                                                <button type="button" className="px-1 py-1 text-center" onClick={() => setShowItemsModal(true)}>
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" className="w-5 h-5">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" />
+                                                    </svg>
+                                                </button>
                                             </div>
 
                                             {/* Modal */}
