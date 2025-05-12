@@ -6,7 +6,9 @@ export default {
   ],
   theme: {
     extend: {
-    
+      colors: {
+        'custom-gray': 'rgba(31, 41, 55, 0.5)', // Custom gray color with 50% opacity
+      },
       fontFamily: {
         sans: ['Poppins', 'sans-serif'],
       },

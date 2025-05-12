@@ -229,7 +229,7 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
          
 
     return (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="fixed inset-0 flex items-center justify-center bg-slate-800 bg-opacity-60">
             <div className="bg-white p-6 rounded-lg shadow-md w-1/3">
                 <div className="flex justify-between items-center">
                     <h3 className="text-lg font-semibold">{activeTab === 'clients' ? "Add a client" : activeTab === 'vendors' ? "Add a vendor" : "Add an item"} </h3>

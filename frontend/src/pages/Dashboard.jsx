@@ -301,8 +301,8 @@ const Dashboard = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="bg-gray-200 p-4 rounded-lg shadow-md">
                             <div className="bg-indigo-800 rounded-full h-12 w-12 flex items-center justify-center mx-auto">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="white" class="size-6">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z" />
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="white" class="size-6">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z" />
                                 </svg>
                             </div>
                             <h3 className="text-indigo-800 text-md font-medium">Total Outstanding</h3>
@@ -333,30 +333,20 @@ const Dashboard = () => {
                         <h3 className="text-xl font-medium text-indigo-800">Invoice Performance</h3>
                         <div className="mt-4 h-64 bg-white rounded-md">
                             <ResponsiveContainer width="100%" height="100%">
-                                <LineChart
+                                <LineChart 
                                     data={monthlyData.lineChartData}
                                     margin={{ top: 20, right: 30, left: 0, bottom: 10 }}
                                 >
                                     <XAxis dataKey="month" tickFormatter={(value) => value.split(' ')[0]} />
                                     <YAxis allowDecimals />
-                                    <Tooltip
-                                        formatter={(value, name) => {
-                                            const labels = {
-                                                outstandingAmount: "Outstanding Amount",
-                                                overdueAmount: "Overdue Amount",
-                                                totalAmount: "Total Amount",
-                                            };
-                                            return [value, labels[name] || name];
-                                        }}
-                                        labelFormatter={(label) => `Month: ${label}`}
-                                    />
+                                   
                                     <Legend
                                         iconType="circle"
                                         formatter={(value) => {
                                             const labels = {
-                                                outstandingAmount: "Outstanding Amount",
-                                                overdueAmount: "Overdue Amount",
-                                                totalAmount: "Total Amount",
+                                                outstandingAmount: "outstanding",
+                                                overdueAmount: "overdue",
+                                                totalAmount: "collected",
                                             };
                                             return labels[value] || value;
                                         }}

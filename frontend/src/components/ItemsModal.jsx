@@ -80,6 +80,9 @@ const ItemsModal = ({ show, onClose, onItemSelect }) => {
   );
 
   const handleConfirmSelection = () => {
+   //  e.preventDefault();
+   //    e.stopPropagation();
+
     if (selectedItems.length > 0) {
       onItemSelect(selectedItems);
       onClose();

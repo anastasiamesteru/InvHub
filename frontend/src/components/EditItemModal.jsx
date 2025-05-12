@@ -85,7 +85,7 @@ const EditItemModal = ({ show, onClose, itemId, onUpdate }) => {
     if (!show) return null;
 
     return (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+    <div className="fixed inset-0 flex items-center justify-center bg-slate-800 bg-opacity-10">
         <div className="bg-white w-full max-w-lg rounded-lg shadow-lg p-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold">Edit Item</h2>

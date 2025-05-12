@@ -1,0 +1,644 @@
+import { useState, useEffect } from "react";
+import { InvoiceModalValidation } from "../utils/InvoiceModalValidation";
+import ClientsModal from "./ClientsModal";
+import VendorsModal from "./VendorsModal";
+import ItemsModal from "./ItemsModal";
+
+
+const EditInvoiceModal = ({ show, onClose, invoiceId, onUpdate }) => {
+  const [error, setError] = useState(null);
+  const [invoiceData, setInvoiceData] = useState({
+    invoiceNumber: '',
+    clientName: '', clientAddress: '', clientPhoneNo: '', clientEmail: '', clientType: 'company', clientCifcnp: '',
+    vendorName: '', vendorAddress: '', vendorPhoneNo: '', vendorEmail: '', vendorType: 'company', vendorCifcnp: '',
+    issue_date: '', due_date: '', tax: 0, total: 0,
+    items: [{ itemName: '', quantity: 1, unitPrice: 0, um: '', type: 'Product' }],
+  });
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+
+
+  const [showClientsModal, setShowClientsModal] = useState(false);
+  const [selectedClient, setSelectedClient] = useState(null);
+
+  const [showVendorsModal, setShowVendorsModal] = useState(false);
+  const [selectedVendor, setSelectedVendor] = useState(null);
+
+  const [showItemsModal, setShowItemsModal] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+
+  useEffect(() => {
+    if (invoiceId && show) {
+      const fetchInvoiceData = async () => {
+        const token = localStorage.getItem('authToken');
+        if (!token) return console.error("No token found");
+
+        try {
+          const response = await fetch(`http://localhost:4000/routes/invoices/${invoiceId}`, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+          });
+
+          if (!response.ok) throw new Error('Failed to fetch invoice data');
+          const data = await response.json();
+          setInvoiceData(data);
+        } catch (error) {
+          console.error("Error fetching invoice:", error);
+          setError(error.message);
+        }
+      };
+
+      fetchInvoiceData();
+    }
+  }, [invoiceId, show]);
+
+
+  const calculateTotalWithoutTax = () => {
+    return invoiceData.items.reduce((total, item) => total + (item.unitPrice * item.quantity), 0);
+  };
+
+  const calculateTotal = () => {
+    const totalItemsCost = calculateTotalWithoutTax();
+    const validTax = !isNaN(invoiceData.tax) && invoiceData.tax >= 0 ? invoiceData.tax : 0;
+    const taxAmount = (totalItemsCost * validTax) / 100;
+    return totalItemsCost + taxAmount;
+  };
+
+  const addItem = () => {
+    setInvoiceData((prevData) => ({
+      ...prevData,
+      items: [
+        ...prevData.items,
+        { itemName: '', quantity: 1, unitPrice: 0, um: '', type: '' },
+      ],
+    }));
+  };
+
+  const removeItem = (index) => {
+    setInvoiceData((prevData) => ({
+      ...prevData,
+      items: prevData.items.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleItemChange = (e, field, index) => {
+    const { value } = e.target;
+    setInvoiceData((prevData) => {
+      const updatedItems = prevData.items.map((item, i) =>
+        i === index
+          ? {
+            ...item,
+            [field]: field === 'quantity' || field === 'unitPrice' ? parseFloat(value) || 0 : value,
+          }
+          : item
+      );
+      return { ...prevData, items: updatedItems };
+    });
+  };
+
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setInvoiceData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSave = async () => {
+    const token = localStorage.getItem("authToken");
+
+    // If no token, show an alert and exit early
+    if (!token) return alert("No token found.");
+
+    setLoading(true); // Set loading state to true while saving
+
+    // Validate invoice data and check for errors
+    const validationErrors = InvoiceModalValidation(invoiceData);
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors); // Set validation errors if any
+      setLoading(false); // Stop loading since validation failed
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:4000/routes/invoices/${invoiceId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(invoiceData),
+      });
+
+      if (!response.ok) {
+        // If the response is not OK, throw an error with the response message
+        throw new Error(`Failed to update invoice: ${response.statusText}`);
+      }
+
+      const updatedInvoice = await response.json();
+
+      // Call the onUpdate function to update the parent component with the updated invoice
+      onUpdate(updatedInvoice);
+
+      // Close the modal after updating
+      onClose();
+
+    } catch (error) {
+      // Catch any errors and log them
+      console.error("Error saving invoice data:", error.message);
+
+      // Set the error message in state to display to the user
+      setError(error.message);
+    } finally {
+      // Stop loading after the operation is complete (success or error)
+      setLoading(false);
+    }
+  };
+
+
+
+  const onClientSelect = (selectedClient) => {
+    setErrors({});
+    setInvoiceData((prevData) => ({
+      ...prevData,
+      clientName: selectedClient.name,
+      clientAddress: selectedClient.address,
+      clientPhoneNo: selectedClient.phone,
+      clientEmail: selectedClient.email,
+      clientType: selectedClient.type, // 'company' or 'individual'
+      clientCifcnp: selectedClient.cifcnp,
+    }));
+
+    setShowClientsModal(false); // Close modal after selection
+  };
+
+  const onVendorSelect = (selectedVendor) => {
+    setErrors({});
+    setInvoiceData((prevData) => ({
+      ...prevData,
+      vendorName: selectedVendor.name,
+      vendorAddress: selectedVendor.address,
+      vendorPhoneNo: selectedVendor.phone,
+      vendorEmail: selectedVendor.email,
+      vendorType: selectedVendor.type, // 'company' or 'individual'
+      vendorCifcnp: selectedVendor.cifcnp,
+    }));
+
+    setShowVendorsModal(false); // Close modal after selection
+  };
+
+  const onItemSelect = (selectedItems) => {
+    const itemsArray = Array.isArray(selectedItems) ? selectedItems : [selectedItems];
+
+    // Set the itemType based on the type of the first item in the selection (or apply your own logic)
+    const firstItemType = itemsArray[0]?.type || 'product'; // Default to 'product' if no type is found
+    setItemType(firstItemType); // Update itemType state
+
+    setInvoiceData((prevData) => ({
+      ...prevData,
+      items: [
+        ...prevData.items,
+        ...itemsArray.map(item => ({
+          itemName: item.name,
+          quantity: 1,
+          unitPrice: item.price,
+          um: item.um,
+          type: item.type,
+        }))
+      ]
+    }));
+
+    setShowItemsModal(false); // Close modal after selection
+  };
+  const handleItemTypeChange = (event) => setItemType(event.target.value);
+
+  const [itemType, setItemType] = useState('product');
+
+  const handleOpenClientsModal = (e) => {
+    e.preventDefault();
+    setShowClientsModal(true);
+  };
+
+  const handleOpenVendorsModal = (e) => {
+    e.preventDefault();
+    setShowVendorsModal(true);
+  };
+
+  const handleOpenItemsModal = (e) => {
+    e.preventDefault();
+    setShowItemsModal(true);
+  };
+
+
+  if (!show) return null;
+
+  const handleSubmit = (e) => {
+    e.preventDefault();  // Prevent the page reload on form submission
+    handleSave();  // Your save function
+  };
+
+  return (
+    <div className="fixed inset-0 bg-slate-800 bg-opacity-10 flex justify-center items-center z-50">
+      <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center">
+          <h3 className="text-xl font-semibold">Update invoice</h3>
+          <button
+            className="text-gray-500 hover:text-gray-700"
+            onClick={onClose}
+          >
+            ✕
+          </button>
+        </div>
+
+        <form id="invoice-form" className="mt-4" onSubmit={handleSubmit}>
+          <div className="flex flex-col border-b-2 border-gray-400 pt-4 pb-4">
+            <div className="flex justify-between">
+              <div className="w-1/2 pr-2 flex flex-col items-center">
+                <label htmlFor="issue_date" className="block text-sm font-small text-gray-700">Issue date</label>
+                <input
+                  id="issue_date"
+                  type="date"
+                  value={invoiceData.issue_date ? invoiceData.issue_date.split('T')[0] : ''}
+                  onChange={(e) => handleChange(e, 'issue_date')}
+                  className="w-50 mt-1 p-2 border border-gray-300 rounded-md"
+                />
+
+              </div>
+
+              <div className="w-1/2 pl-2 flex flex-col items-center">
+                <label htmlFor="dueDate" className="block text-sm font-small text-gray-700">Due date</label>
+                <input
+                  id="due_date"
+                  type="date"
+                  value={invoiceData.due_date ? invoiceData.due_date.split('T')[0] : ''}
+                  onChange={(e) => handleChange(e, 'due_date')}
+                  className="w-50 mt-1 p-2 border border-gray-300 rounded-md"
+                />
+              </div>
+            </div>
+
+            {errors.due_date && (
+              <p className="text-red-500 text-xs text-center mt-2">{errors.due_date}</p>
+            )}
+          </div>
+
+
+
+          <div className="flex justify-between border-b-2 border-gray-400 pt-4 pb-4">
+            {/* Client Info*/}
+            <div className="w-1/2 pr-5 border-r-2 border-gray-300">
+              <h3 className="text-lg font-semibold text-center">Client Information</h3>
+              <div className="my-2">
+                <label htmlFor="clientName" className="block text-sm font-small text-gray-700">Name:</label>
+                <input
+                  id="clientName"
+                  type="text"
+                  placeholder="Client Name"
+                  value={invoiceData.clientName}
+                  onChange={(e) => handleChange(e, 'clientName')}
+                  className="w-full mt-1 p-2 border border-gray-300 rounded-md"
+                />
+                {errors.clientName && <p className="text-red-500 text-xs">{errors.clientName}</p>}
+
+              </div>
+              <div className="my-2">
+                <label htmlFor="clientPhoneNo" className="block text-sm font-small text-gray-700">Phone number:</label>
+                <input
+                  id="clientPhoneNo"
+                  type="tel"
+                  placeholder="Client phone number"
+                  value={invoiceData.clientPhoneNo}
+                  onChange={(e) => handleChange(e, 'clientPhoneNo')}
+                  className="w-full mt-1 p-2 border border-gray-300 rounded-md"
+                />
+                {errors.clientPhoneNo && <p className="text-red-500 text-xs">{errors.clientPhoneNo}</p>}
+
+              </div>
+              <div className="my-2">
+                <label htmlFor="clientAddress" className="block text-sm font-small text-gray-700">Address:</label>
+                <input
+                  id="clientAddress"
+                  type="text"
+                  placeholder="Client Address"
+                  value={invoiceData.clientAddress}
+                  onChange={(e) => handleChange(e, 'clientAddress')}
+                  className="w-full mt-1 p-2 border border-gray-300 rounded-md"
+                />
+                {errors.clientAddress && <p className="text-red-500 text-xs">{errors.clientAddress}</p>}
+
+              </div>
+
+              <div className="my-2">
+                <label htmlFor="clientEmail" className="block text-sm font-small text-gray-700">Email:</label>
+                <input
+                  id="clientEmail"
+                  type="email"
+                  placeholder="client@example.com"
+                  value={invoiceData.clientEmail}
+                  onChange={(e) => handleChange(e, 'clientEmail')}
+                  className="w-full mt-1 p-2 border border-gray-300 rounded-md"
+                />
+                {errors.clientEmail && <p className="text-red-500 text-xs">{errors.clientEmail}</p>}
+
+              </div>
+              <div className="my-2">
+                <label htmlFor="type" className="block text-sm font-small text-gray-700 mt-1">Type</label>
+                <select
+                  id="clientType"
+                  value={invoiceData.clientType}
+                  onChange={(e) => handleChange(e, 'clientType')}
+                  className="mt-1 p-2 w-full border border-gray-300 rounded-md"
+                >
+                  <option value="company">Company</option>
+                  <option value="individual">Individual</option>
+                </select>
+              </div>
+              <div className="my-2">
+                <label htmlFor="client-cif-cnp" className="block text-sm font-small text-gray-700 mt-1">
+                  {invoiceData.clientType === 'company' ? 'CUI' : 'CNP'}
+                </label>
+                <input
+                  type="text"
+                  id="client-cif-cnp"
+                  value={invoiceData.clientCifcnp}
+                  onChange={(e) => handleChange(e, 'clientCifcnp')}
+                  className="mt-1 p-2 w-full border border-gray-300 rounded-md"
+                  placeholder={invoiceData.clientType === 'company' ? 'Enter company CUI' : 'Enter individual CNP'}
+                />
+                {errors.clientCifcnp && <p className="text-red-500 text-xs">{errors.clientCifcnp}</p>}
+
+              </div>
+              <div className="my-2 flex justify-center">
+                <button className="mt-4 px-4 py-2 font-semibold bg-purple-500 text-white rounded-md hover:bg-purple-600 disabled:bg-gray-400" onClick={handleOpenClientsModal}>
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" />
+                  </svg>
+
+
+                </button>
+                <ClientsModal
+                  show={showClientsModal}
+                  onClientSelect={onClientSelect}
+                  onClose={() => setShowClientsModal(false)}
+                />
+              </div>
+
+
+            </div>
+
+            {/* Vendor Info*/}
+            <div className="w-1/2 pr-5 border-gray-300 pl-4">
+              <h3 className="text-lg font-semibold text-center">Vendor Information</h3>
+              <div className="my-2">
+                <label htmlFor="vendorName" className="block text-sm font-small text-gray-700">Name:</label>
+                <input
+                  id="vendorName"
+                  type="text"
+                  placeholder="Vendor Name"
+                  value={invoiceData.vendorName}
+                  onChange={(e) => handleChange(e, 'vendorName')}
+                  className="w-full mt-1 p-2 border border-gray-300 rounded-md"
+                />
+                {errors.vendorName && <p className="text-red-500 text-xs">{errors.vendorName}</p>}
+
+              </div>
+              <div className="my-2">
+                <label htmlFor="vendorPhoneNo" className="block text-sm font-small text-gray-700">Phone number:</label>
+                <input
+                  id="vendorPhoneNo"
+                  type="tel"
+                  placeholder="Vendor phone number"
+                  value={invoiceData.vendorPhoneNo}
+                  onChange={(e) => handleChange(e, 'vendorPhoneNo')}
+                  className="w-full mt-1 p-2 border border-gray-300 rounded-md"
+                />
+                {errors.vendorPhoneNo && <p className="text-red-500 text-xs">{errors.vendorPhoneNo}</p>}
+
+              </div>
+              <div className="my-2">
+                <label htmlFor="vendorAddress" className="block text-sm font-small text-gray-700">Address:</label>
+                <input
+                  id="vendorAddress"
+                  type="text"
+                  placeholder="Vendor Address"
+                  value={invoiceData.vendorAddress}
+                  onChange={(e) => handleChange(e, 'vendorAddress')}
+                  className="w-full mt-1 p-2 border border-gray-300 rounded-md"
+                />
+                {errors.vendorAddress && <p className="text-red-500 text-xs">{errors.vendorAddress}</p>}
+
+              </div>
+
+              <div className="my-2">
+                <label htmlFor="vendorEmail" className="block text-sm font-small text-gray-700">Email:</label>
+                <input
+                  id="vendorEmail"
+                  type="email"
+                  placeholder="vendor@example.com"
+                  value={invoiceData.vendorEmail}
+                  onChange={(e) => handleChange(e, 'vendorEmail')}
+                  className="w-full mt-1 p-2 border border-gray-300 rounded-md"
+                />
+                {errors.vendorEmail && <p className="text-red-500 text-xs">{errors.vendorEmail}</p>}
+
+              </div>
+              <div className="my-2">
+                <label htmlFor="type" className="block text-sm font-small text-gray-700 mt-1">Type</label>
+                <select
+                  id="vendorType"
+                  value={invoiceData.vendorType}
+                  onChange={(e) => handleChange(e, 'vendorType')}
+                  className="mt-1 p-2 w-full border border-gray-300 rounded-md"
+                >
+                  <option value="company">Company</option>
+                  <option value="individual">Individual</option>
+                </select>
+              </div>
+
+
+              <div className="my-2">
+                <label htmlFor="vendor-cif-cnp" className="block text-sm font-small text-gray-700 mt-1">
+                  {invoiceData.vendorType === 'company' ? 'CUI' : 'CNP'}
+                </label>
+                <input
+                  type="text"
+                  id="vendor-cif-cnp"
+                  value={invoiceData.vendorCifcnp}
+                  onChange={(e) => handleChange(e, 'vendorCifcnp')}
+                  className="mt-1 p-2 w-full border border-gray-300 rounded-md"
+                  placeholder={invoiceData.vendorType === 'company' ? 'Enter company CUI' : 'Enter individual CNP'}
+                />
+                {errors.vendorCifcnp && <p className="text-red-500 text-xs">{errors.vendorCifcnp}</p>}
+
+              </div>
+              <div className="my-2 flex justify-center">
+                <button className="mt-4 px-4 py-2 font-semibold bg-purple-500 text-white rounded-md hover:bg-purple-600 disabled:bg-gray-400" onClick={handleOpenVendorsModal}>
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" />
+                  </svg>
+                </button>
+                <VendorsModal
+                  show={showVendorsModal}
+                  onVendorSelect={onVendorSelect}
+                  onClose={() => setShowVendorsModal(false)}
+                />
+              </div>
+
+            </div>
+
+
+          </div>
+          <div className="mt-6 border-b-2 border-gray-400 pb-4">
+            <table className="w-full border-collapse border border-gray-300">
+              {/* Table Header */}
+              <thead>
+                <tr className="bg-gray-200">
+                  <th className="border border-gray-300 px-4 py-2 font-small text-center">Item</th>
+                  <th className="border border-gray-300 px-4 py-2 font-small text-center">Quantity</th>
+                  <th className="border border-gray-300 px-4 py-2 font-small text-center">Unit Price</th>
+                  <th className="border border-gray-300 px-4 py-2 font-small text-center">Type</th>
+                  <th className="border border-gray-300 px-4 py-2 font-small text-center">U.M.</th>
+                  <th className="border border-gray-300 px-4 py-2 font-small text-center">Line Total</th>
+                  <th className="border border-gray-300 px-4 py-2 font-large text-center"></th>
+                </tr>
+              </thead>
+
+              {/* Table Body */}
+              <tbody>
+                {invoiceData.items.map((item, index) => (
+                  <tr key={index} className="border border-gray-300 text-base">
+                    {/* Name */}
+                    <td className="border px-3 py-2">
+                      <input
+                        type="text"
+                        placeholder="Product/Service"
+                        className="w-40 rounded-md border bg-transparent text-gray-700 text-sm px-2 py-1 focus:outline-none focus:border-gray-400"
+                        value={item.itemName}
+                        onChange={(e) => handleItemChange(e, 'itemName', index)}
+                      />
+                    </td>
+                    {/* Quantity */}
+                    <td className="border px-3 py-2 text-center">
+                      <input
+                        type="number"
+                        min={1}
+                        placeholder="Qty"
+                        className="w-20 rounded-md border bg-transparent text-gray-700 text-sm px-2 py-1 focus:outline-none focus:border-gray-400"
+                        value={item.quantity}
+                        onChange={(e) => handleItemChange(e, 'quantity', index)}
+                      />
+                    </td>
+                    {/* Price */}
+                    <td className="border px-3 py-2 text-center">
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"  // Allows decimal numbers
+                        placeholder="Price"
+                        className="w-24 rounded-md border bg-transparent text-gray-700 text-sm px-2 py-1 focus:outline-none focus:border-gray-400"
+                        value={item.unitPrice}
+                        onChange={(e) => handleItemChange(e, 'unitPrice', index)}
+                      />
+
+                    </td>
+                    {/* Type */}
+                    <td className="border px-3 py-2">
+                      <select
+                        value={item.type}
+                        onChange={(e) => handleItemChange(e, 'type', index)}
+                        className="w-28 rounded-md border border-gray-300 text-sm p-2"
+                      >
+                        <option value="product">Product</option>
+                        <option value="service">Service</option>
+                      </select>
+                    </td>
+                    {/* UM */}
+                    <td className="border px-3 py-2 text-center">
+                      <input
+                        type="text"
+                        placeholder="UM"
+                        className="w-20 rounded-md border bg-transparent text-gray-700 text-sm px-2 py-1 focus:outline-none focus:border-gray-400"
+                        value={item.um}
+                        onChange={(e) => handleItemChange(e, 'um', index)}
+                      />
+                    </td>
+                    {/* Total */}
+                    <td className="border px-3 py-2 text-center whitespace-nowrap text-sm">
+                      <span>{(Number(item.quantity) * Number(item.unitPrice)).toFixed(2)}</span>
+                    </td>
+                    {/* Actions */}
+                    <td className="px-3 py-2 text-center">
+                      <div className="flex justify-center gap-x-2">
+                        {/* Remove */}
+                        <button type="button" className="px-1 py-1 text-center" onClick={() => removeItem(index)}>
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" className="w-5 h-5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                          </svg>
+                        </button>
+                        <button type="button" className="px-1 py-1 text-center" onClick={handleOpenItemsModal}>
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" className="w-5 h-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" />
+                          </svg>
+                        </button>
+                      </div>
+
+                      {/* Modal */}
+                      <ItemsModal
+                        show={showItemsModal}
+                        onItemSelect={onItemSelect}
+                        onClose={() => setShowItemsModal(false)}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+
+
+            </table>
+
+            {/* Add new line button */}
+            <button type="button" className="mt-4 px-4 py-2 font-semibold bg-purple-500 hover:bg-purple-600 text-white rounded-md" onClick={addItem}>+ Add new line</button>
+
+            {/* Button to Pick Items from DB */}
+
+          </div>
+
+
+          <div className="w-full mx-auto bg-white flex flex-col items-end mt-4">
+
+            <div className="mb-4 flex items-center">
+              <label htmlFor="taxInput" className="block text-gray-700 text-md font-bold mr-2">Tax Amount:</label>
+              <input
+                type="number"
+                id="taxInput"
+                name="taxInput"
+                value={invoiceData.tax}
+                onChange={(e) => handleChange(e, 'tax')}
+                className="w-20 h-full rounded-md border border-gray-300 bg-transparent text-gray-700 text-sm px-2 py-1 focus:outline-none focus:border-gray-400"
+                placeholder="Enter tax amount"
+              />
+            </div>
+
+            <div className="mb-4 flex items-center">
+              <p className="text-md font-semibold text-gray-800">Total: $<span id="totalDisplay">{calculateTotal().toFixed(2)}</span></p>
+            </div>
+
+          </div>
+
+
+          <div className="flex justify-center mt-2">
+            <button type="submit" disabled={loading} className="mt-4 px-4 py-2 font-semibold text-md bg-purple-500 text-white rounded-md hover:bg-purple-600 disabled:bg-gray-400">
+              {loading ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  )
+};
+
+export default EditInvoiceModal;

@@ -3,7 +3,7 @@ import InvoiceModal from '../components/InvoiceModal';
 import axios from 'axios';
 import InvoicePDF from '../components/InvoicePDF';
 import { PDFViewer } from "@react-pdf/renderer";
-
+import EditInvoiceModal from '../components/EditInvoiceModal';
 const Invoice = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
@@ -232,6 +232,22 @@ const Invoice = () => {
 
 
 
+    // Clients
+    const [isEditInvoiceModalOpen, setIsEditInvoiceModalOpen] = useState(false);
+    const [invoiceToEdit, setInvoiceToEdit] = useState(null);
+
+    const openEditInvoiceModal = (invoiceId) => {
+        setInvoiceToEdit(invoiceId);
+        setIsEditInvoiceModalOpen(true);
+    };
+
+    const handleInvoiceUpdate = (updatedInvoice) => {
+        setInvoices(prevInvoices =>
+            prevInvoices.map(invoice =>
+                invoice._id === updatedInvoice._id ? updatedInvoice : invoice
+            )
+        );
+    };
     
     return (
         <div className="p-4 h-w-full h-screen">
@@ -360,7 +376,7 @@ const Invoice = () => {
 
 
                                     <td className="px-3 py-2 text-center flex justify-center gap-2">
-                                        <button className="px-2 py-1 text-center">
+                                        <button className="px-2 py-1 text-center" onClick={() => openEditInvoiceModal(invoice._id)}>
                                             <svg
                                                 xmlns="http://www.w3.org/2000/svg"
                                                 viewBox="0 0 24 24"
@@ -370,6 +386,12 @@ const Invoice = () => {
                                                 <path d="M16.98 3.02a2.87 2.87 0 1 1 4.06 4.06l-1.41 1.41-4.06-4.06 1.41-1.41zM3 17.25V21h3.75l11.29-11.29-3.75-3.75L3 17.25z" />
                                             </svg>
                                         </button>
+                                        <EditInvoiceModal
+                                                show={isEditInvoiceModalOpen}
+                                                onClose={() => setIsEditInvoiceModalOpen(false)}
+                                                invoiceId={invoiceToEdit}
+                                                onUpdate={handleInvoiceUpdate}
+                                            />
                                         <button
                                             className="px-2 py-1 text-center"
                                             onClick={() => handleViewPDF(invoice)}

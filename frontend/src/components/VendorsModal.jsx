@@ -75,6 +75,9 @@ const VendorsModal = ({ show, onClose, onVendorSelect }) => {
   };
 
   const handleConfirmSelection = () => {
+  //   e.preventDefault();
+ //      e.stopPropagation();
+
     if (selectedVendor) {
       onVendorSelect(selectedVendor);
       onClose();

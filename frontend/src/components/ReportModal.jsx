@@ -424,7 +424,7 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50">
+        <div className="fixed inset-0 bg-slate-800 bg-opacity-60 flex justify-center items-center z-50">
             <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
                 <div className="flex justify-between items-center">
                     <h3 className="text-lg font-bold">Create Report</h3>
