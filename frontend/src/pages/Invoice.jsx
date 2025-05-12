@@ -323,7 +323,13 @@ const Invoice = () => {
                                 Due Date
                                 {sortColumn === 'dueDate' ? (sortOrder === 'asc' ? ' ▲' : ' ▼') : ''}
                             </th>
-                            <th className="px-3 py-2 text-center bg-gray-200">Status</th>
+                            <th
+                                className="px-3 py-2 text-center bg-gray-200 cursor-pointer"
+                                onClick={() => handleSort('timeStatus')}
+                            >
+                                Status
+                                {sortColumn === 'timeStatus' ? (sortOrder === 'asc' ? ' ▲' : ' ▼') : ''}
+                            </th>
                             <th
                                 className="px-3 py-2 text-center bg-gray-200 cursor-pointer"
                                 onClick={() => handleSort('total')}
@@ -447,7 +453,7 @@ const Invoice = () => {
             {/* PDF Modal */}
             {selectedInvoice && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 transition-opacity duration-300 ease-in-out">
-                    <div className="bg-white p-6 rounded-lg shadow-xl w-11/12 md:w-3/4 lg:w-2/3 h-4/5 relative overflow-hidden">
+                    <div className="bg-white p-6 rounded-lg shadow-xl w-11/12 md:w-1/4 lg:w-1/3 h-4/5 relative overflow-hidden">
 
                         {/* Close Button */}
                         <button

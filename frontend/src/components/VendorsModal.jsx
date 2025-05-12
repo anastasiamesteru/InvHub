@@ -90,7 +90,7 @@ const VendorsModal = ({ show, onClose, onVendorSelect }) => {
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
       <div className="bg-white w-full max-w-5xl h-[600px] rounded-lg shadow-lg p-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Select a Vendor</h2>
+          <h2 className="text-xl font-semibold">Select a vendor</h2>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700">✕</button>
         </div>
 
@@ -173,7 +173,7 @@ const VendorsModal = ({ show, onClose, onVendorSelect }) => {
             className={`px-4 py-2 rounded text-white ${selectedVendor ? 'mt-4 px-4 py-2 font-semibold bg-purple-500 text-white rounded-md hover:bg-purple-600' : 'mt-4 px-4 py-2 font-semibold bg-gray-400 cursor-not-allowed'
               }`}
           >
-            Select Vendor
+            Add selected vendor
           </button>
         </div>
 
@@ -181,7 +181,7 @@ const VendorsModal = ({ show, onClose, onVendorSelect }) => {
           <div className="flex justify-center mt-4 space-x-2">
             <button
               onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-              className="px-4 py-2 mx-2 text-sm font-semibold text-white bg-purple-500 rounded-lg hover:bg-purple-700"
+              className="px-4 py-2 mx-2 text-sm font-semibold text-white bg-purple-500 rounded-lg hover:bg-purple-700 disabled:opacity-50"
               disabled={currentPage === 1}
             >
               Prev
@@ -202,7 +202,7 @@ const VendorsModal = ({ show, onClose, onVendorSelect }) => {
 
             <button
               onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-              className="px-4 py-2 mx-2 text-sm font-semibold text-white bg-purple-500 rounded-lg hover:bg-purple-700"
+              className="px-4 py-2 mx-2 text-sm font-semibold text-white bg-purple-500 rounded-lg hover:bg-purple-700 disabled:opacity-50"
               disabled={currentPage === totalPages}
             >
               Next

@@ -80,7 +80,7 @@ const Login = ({ onLoginSuccess, setIsAuthenticated }) => {
         <div className="flex justify-center mb-4">
           <img className="w-65" src={assets.Logo} alt="Logo" />
         </div>
-        <h1 className="text-2xl font-semibold text-center mb-3">Login</h1>
+        <h1 className="text-2xl font-semibold text-center mb-3">Log In</h1>
         <p className="text-sm text-gray-700 mb-6">Welcome back! Log in to continue.</p>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
