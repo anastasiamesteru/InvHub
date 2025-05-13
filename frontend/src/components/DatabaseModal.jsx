@@ -262,7 +262,7 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
         <div className="fixed inset-0 flex items-center justify-center bg-slate-800 bg-opacity-60">
             <div className="bg-white p-6 rounded-lg shadow-md w-1/3">
                 <div className="flex justify-between items-center">
-                    <h3 className="text-lg font-semibold">{activeTab === 'clients' ? "Add a client" : activeTab === 'vendors' ? "Add a vendor" : "Add an item"} </h3>
+                    <h3 className="text-lg font-semibold">{activeTab === 'clients' ? "Add a new client" : activeTab === 'vendors' ? "Add a new vendor" : "Add an new item"} </h3>
                     <button className="text-gray-500 hover:text-gray-700" onClick={closeModal}>
                         ✕
                     </button>
@@ -439,8 +439,10 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
                             <input
                                 type="number"
                                 name="price"
+                                min={0}
                                 className="mt-1 p-2 w-full border border-gray-300 rounded-md"
                                 value={itemData.price}
+                                step={0.01}
                                 onChange={(e) => handleChange(e, 'item')}
                                 placeholder="Enter item price"
                             />

@@ -72,7 +72,7 @@ export const validateItemForm = (data) => {
 
     if (!name.trim()) errors.name = "Item name is required.";
     if (!um.trim()) errors.um = "Unit of measurement is required.";
-    if (!price.trim() || isNaN(price) || parseFloat(price) <= 0) errors.price = "Valid price (greater than 0) is required.";
+    if (!price.trim() || isNaN(price) || parseFloat(price) <= 0) errors.price = "Price is required.";
     if (!description.trim()) errors.description = "Description is required.";
 
     return errors;
