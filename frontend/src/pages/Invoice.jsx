@@ -4,6 +4,7 @@ import axios from 'axios';
 import InvoicePDF from '../components/InvoicePDF';
 import { PDFViewer } from "@react-pdf/renderer";
 import EditInvoiceModal from '../components/EditInvoiceModal';
+import DeleteInvoiceModal from '../components/DeleteInvoiceModal';
 const Invoice = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
@@ -16,7 +17,7 @@ const Invoice = () => {
             console.error("No token found");
             return;
         }
-    
+
         try {
             const response = await fetch('http://localhost:4000/routes/invoices/getall', {
                 method: 'GET',
@@ -32,12 +33,18 @@ const Invoice = () => {
             console.error("Error fetching invoices:", error);
         }
     };
-    
+
 
     useEffect(() => {
         fetchInvoices();
     }, []);
 
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [invoiceToDelete, setInvoiceToDelete] = useState(null);
+
+    const handleDeleteSuccess = (id) => {
+        setInvoices(prevInvoices => prevInvoices.filter(invoice => invoice._id !== id));
+    };
 
     const deleteInvoice = async (id) => {
         const token = localStorage.getItem('authToken');
@@ -45,15 +52,15 @@ const Invoice = () => {
             console.error("No token found");
             return;
         }
-    
+
         try {
             await axios.delete(`http://localhost:4000/routes/invoices/${id}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
-                    
+
                 },
             });
-    
+
             // Refresh the invoice list after deleting
             setInvoices(prevInvoices => prevInvoices.filter(invoice => invoice._id !== id));
             fetchInvoices();
@@ -61,7 +68,7 @@ const Invoice = () => {
             console.error("Error deleting invoice:", error);
         }
     };
-    
+
 
     const openModal = () => { setIsModalOpen(true); };
     const closeModal = () => { setIsModalOpen(false); };
@@ -138,7 +145,7 @@ const Invoice = () => {
             console.error("No token found");
             return;
         }
-    
+
         try {
             // Sending the updated data to the backend
             const response = await axios.patch(`http://localhost:4000/routes/invoices/${invoiceId}`, {
@@ -152,16 +159,16 @@ const Invoice = () => {
                     'Content-Type': 'application/json'   // Specify content type
                 }
             });
-    
+
             console.log("Payment status updated successfully:", response.data);
-            
+
             // Fetch invoices after the update
             fetchInvoices();
         } catch (error) {
             console.error('Error updating payment status:', error.response ? error.response.data : error.message);
         }
     };
-    
+
 
     const handlePaymentStatusChange = async (invoiceId, isChecked, invoice) => {
         const paymentStatus = isChecked ? 'Paid' : 'Unpaid';
@@ -248,7 +255,7 @@ const Invoice = () => {
             )
         );
     };
-    
+
     return (
         <div className="p-4 h-w-full h-screen">
             <div className="flex flex-col">
@@ -256,7 +263,7 @@ const Invoice = () => {
                     <p className="text-gray-700 text-m flex-1 py-4">Manage invoices, streamline payment processing, and filter through detailed financial records.</p>
                     <div className="flex gap-2 items-center">
                         <button
-                            className="px-4 py-2 bg-purple-500 border-2 border-purple-500 text-white font-semibold text-sm rounded-lg hover:bg-gray-700 hover:border-gray-700 transition-colors"
+                            className="px-4 py-2 bg-purple-500 border-2 border-purple-500 text-white font-semibold text-sm rounded-lg hover:bg-purple-700 hover:border-purple-700 transition-colors"
                             onClick={openModal}
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 inline-block mr-2">
@@ -393,11 +400,11 @@ const Invoice = () => {
                                             </svg>
                                         </button>
                                         <EditInvoiceModal
-                                                show={isEditInvoiceModalOpen}
-                                                onClose={() => setIsEditInvoiceModalOpen(false)}
-                                                invoiceId={invoiceToEdit}
-                                                onUpdate={handleInvoiceUpdate}
-                                            />
+                                            show={isEditInvoiceModalOpen}
+                                            onClose={() => setIsEditInvoiceModalOpen(false)}
+                                            invoiceId={invoiceToEdit}
+                                            onUpdate={handleInvoiceUpdate}
+                                        />
                                         <button
                                             className="px-2 py-1 text-center"
                                             onClick={() => handleViewPDF(invoice)}
@@ -418,7 +425,10 @@ const Invoice = () => {
                                         </button>
                                         <button
                                             className="px-2 py-1 text-center"
-                                            onClick={() => deleteInvoice(invoice._id)}
+                                            onClick={() => {
+                                                setInvoiceToDelete(invoice._id); // Set the invoice ID to delete
+                                                setShowDeleteModal(true); // Open the modal
+                                            }}
                                         >
                                             <svg
                                                 xmlns="http://www.w3.org/2000/svg"
@@ -435,6 +445,12 @@ const Invoice = () => {
                                                 />
                                             </svg>
                                         </button>
+                                        <DeleteInvoiceModal
+                                            isOpen={showDeleteModal}
+                                            onClose={() => setShowDeleteModal(false)} // Close the modal without deleting
+                                            invoiceToDelete={invoiceToDelete} // Pass the invoice ID to the modal
+                                            onDeleteSuccess={handleDeleteSuccess} // Pass the success handler to update the invoice list
+                                        />
                                     </td>
                                 </tr>
                             ))
@@ -452,8 +468,8 @@ const Invoice = () => {
 
             {/* PDF Modal */}
             {selectedInvoice && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 transition-opacity duration-300 ease-in-out">
-                    <div className="bg-white p-6 rounded-lg shadow-xl w-11/12 md:w-1/4 lg:w-1/3 h-4/5 relative overflow-hidden">
+             <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 transition-opacity duration-300 ease-in-out">
+                    <div className="bg-white p-6 rounded-lg shadow-xl w-11/12 md:w-full lg:w-1/3 h-4/5 relative overflow-hidden">
 
                         {/* Close Button */}
                         <button

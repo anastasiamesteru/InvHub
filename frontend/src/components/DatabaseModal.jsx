@@ -11,6 +11,8 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
         address: '',
         email: '',
         cifCnp: '',
+        type: 'company'
+
     });
 
     const [vendorData, setVendorData] = useState({
@@ -19,6 +21,8 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
         address: '',
         email: '',
         cifCnp: '',
+        type: 'company',
+
     });
 
     const [itemData, setItemData] = useState({
@@ -26,11 +30,10 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
         um: '',
         price: '',
         description: '',
+        type: 'product',
     });
 
-    const [clientType, setClientType] = useState('company');
-    const [vendorType, setVendorType] = useState('company');
-    const [itemType, setItemType] = useState('product');
+
 
     const handleChange = (event, entity) => {
         const { name, value } = event.target;
@@ -52,45 +55,72 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
         }
     };
 
-    useEffect(() => {
-        // Reset form data when the tab changes
-        if (activeTab === 'clients') {
-            setClientData({
-                name: '',
-                phone: '',
-                address: '',
-                email: '',
-                cifCnp: '',
-            });
-        } else if (activeTab === 'vendors') {
-            setVendorData({
-                name: '',
-                phone: '',
-                address: '',
-                email: '',
-                cifCnp: '',
-            });
-        } else if (activeTab === 'items') {
-            setItemData({
-                name: '',
-                um: '',
-                price: '',
-                description: '',
-            });
-        }
-    }, [activeTab]);
-    
-    const handleClientTypeChange = (event) => setClientType(event.target.value);
-    const handleVendorTypeChange = (event) => setVendorType(event.target.value);
-    const handleItemTypeChange = (event) => setItemType(event.target.value);
+  useEffect(() => {
+    if (activeTab === 'clients') {
+        setClientData({
+            name: '',
+            phone: '',
+            address: '',
+            email: '',
+            cifCnp: '',
+            type: 'company', // Reset type here
+        });
+    } else if (activeTab === 'vendors') {
+        setVendorData({
+            name: '',
+            phone: '',
+            address: '',
+            email: '',
+            cifCnp: '',
+            type: 'company', // Reset type here
+        });
+    } else if (activeTab === 'items') {
+        setItemData({
+            name: '',
+            um: '',
+            price: '',
+            description: '',
+            type: 'product', // Reset type here
+        });
+    }
+}, [activeTab]);
+
+
+    const handleClientTypeChange = (event) => {
+        const value = event.target.value;
+        setClientData(prev => ({
+            ...prev,
+            type: value, // Directly set the type in the data
+            cifCnp: '', // Reset CNP/CUI when switching
+        }));
+    };
+
+    const handleVendorTypeChange = (event) => {
+        const value = event.target.value;
+        setVendorData(prev => ({
+            ...prev,
+            type: value, // Directly set the type in the data
+            cifCnp: '', // Reset CNP/CUI
+        }));
+    };
+
+    const handleItemTypeChange = (event) => {
+        const value = event.target.value;
+        setItemData(prev => ({
+            ...prev,
+            type: value, // Directly set the type in the data
+            um: '', // Reset UM (kg, pcs, etc.)
+        }));
+    };
+
 
     const closeModal = () => setIsModalOpen(false);
 
- 
+
 
     const handleSubmitClient = async (event) => {
         event.preventDefault();
-    
+
         const validationErrors = validateClientForm(clientData);
         if (validationErrors) {
             setErrors(validationErrors);
@@ -99,23 +129,23 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
         console.log("Validation Errors:", validationErrors);
 
         setLoading(true);
-    
+
         const payload = {
             name: clientData.name,
             email: clientData.email,
-            type: clientType,
+            type: clientData.type,
             phone: clientData.phone,
             address: clientData.address,
             cifcnp: clientData.cifCnp,
         };
-    
+
         const token = localStorage.getItem('authToken'); // Get the token from localStorage
         if (!token) {
             alert("No token found");
             setLoading(false);
             return;
         }
-    
+
         try {
             const response = await axios.post('http://localhost:4000/routes/clients/create', payload, {
                 headers: {
@@ -123,7 +153,7 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
                     'Authorization': `Bearer ${token}`,  // Add the Authorization header with the token
                 },
             });
-    
+
             await fetchClients();
             closeModal();
         } catch (error) {
@@ -135,7 +165,7 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
 
     const handleSubmitVendor = async (event) => {
         event.preventDefault();
-    
+
         const validationErrors = validateVendorForm(vendorData);
         if (validationErrors && Object.keys(validationErrors).length > 0) {
             setErrors(validationErrors);
@@ -144,23 +174,23 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
         console.log("Validation Errors:", validationErrors);
 
         setLoading(true);
-      
+
         const payload = {
             name: vendorData.name,
             email: vendorData.email,
-            type: vendorType,
+            type: vendorData.type,
             phone: vendorData.phone,
             address: vendorData.address,
             cifcnp: vendorData.cifCnp,
         };
-    
+
         const token = localStorage.getItem('authToken'); // Get the token from localStorage
         if (!token) {
             alert("No token found");
             setLoading(false);
             return;
         }
-    
+
         try {
             const response = await axios.post('http://localhost:4000/routes/vendors/create', payload, {
                 headers: {
@@ -168,7 +198,7 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
                     'Authorization': `Bearer ${token}`,  // Add the Authorization header with the token
                 },
             });
-    
+
             await fetchVendors();
             closeModal();
         } catch (error) {
@@ -182,7 +212,7 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
     const handleSubmitItem = async (event) => {
         event.preventDefault();
         console.log("Item Data Submitted:", itemData);
-    
+
         const validationErrors = validateItemForm(itemData);
         if (validationErrors && Object.keys(validationErrors).length > 0) {
             setErrors(validationErrors);
@@ -190,23 +220,23 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
         }
         console.log("Validation Errors:", validationErrors);
         setLoading(true);
-    
+
         const payload = {
             name: itemData.name,
             um: itemData.um,
             price: itemData.price,
             description: itemData.description,
-            type: itemType,
+            type: itemData.type,
         };
         console.log("Payload for Item:", payload);  // Log the payload
-    
+
         const token = localStorage.getItem('authToken');
         if (!token) {
             alert("No token found");
             setLoading(false);
             return;
         }
-    
+
         try {
             const response = await axios.post('http://localhost:4000/routes/items/create', payload, {
                 headers: {
@@ -214,7 +244,7 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
                     'Authorization': `Bearer ${token}`,
                 },
             });
-    
+
             console.log("Item Response:", response);  // Log the server response
             await fetchItems();
             closeModal();
@@ -225,8 +255,8 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
             setLoading(false);
         }
     };
-    
-         
+
+
 
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-slate-800 bg-opacity-60">
@@ -287,7 +317,7 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
 
                             <label className="block text-sm font-medium text-gray-700 mt-2">Type</label>
                             <select
-                                value={clientType}
+                                value={clientData.type}
                                 onChange={handleClientTypeChange}
                                 className="mt-1 p-2 w-full border border-gray-300 rounded-md"
                             >
@@ -296,7 +326,7 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
                             </select>
 
                             <label className="block text-sm font-medium text-gray-700 mt-2">
-                                {clientType === 'company' ? 'CUI' : 'CNP'}
+                                {clientData.type === 'company' ? 'CUI' : 'CNP'}
                             </label>
                             <input
                                 type="text"
@@ -304,7 +334,7 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
                                 className="mt-1 p-2 w-full border border-gray-300 rounded-md"
                                 value={clientData.cifCnp}
                                 onChange={(e) => handleChange(e, 'client')}
-                                placeholder={clientType === 'company' ? 'Enter CUI' : 'Enter CNP'}
+                                placeholder={clientData.type === 'company' ? 'Enter CUI' : 'Enter CNP'}
                             />
                             {errors.cifCnp && <p className="text-red-500 text-xs">{errors.cifCnp}</p>}
                         </>
@@ -358,7 +388,7 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
 
                             <label className="block text-sm font-medium text-gray-700 mt-2">Type</label>
                             <select
-                                value={vendorType}
+                                value={vendorData.type}
                                 onChange={handleVendorTypeChange}
                                 className="mt-1 p-2 w-full border border-gray-300 rounded-md"
                             >
@@ -367,7 +397,7 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
                             </select>
 
                             <label className="block text-sm font-medium text-gray-700 mt-2">
-                                {vendorType === 'company' ? 'CUI' : 'CNP'}
+                                {vendorData.type === 'company' ? 'CUI' : 'CNP'}
                             </label>
                             <input
                                 type="text"
@@ -375,9 +405,10 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
                                 className="mt-1 p-2 w-full border border-gray-300 rounded-md"
                                 value={vendorData.cifCnp}
                                 onChange={(e) => handleChange(e, 'vendor')}
-                                placeholder={vendorType === 'company' ? 'Enter CUI' : 'Enter CNP'}
+                                placeholder={vendorData.type === 'company' ? 'Enter CUI' : 'Enter CNP'}
                             />
                             {errors.cifCnp && <p className="text-red-500 text-xs">{errors.cifCnp}</p>}
+
                         </>
                     )}
 
@@ -417,7 +448,7 @@ const DatabaseModal = ({ activeTab, setIsModalOpen, fetchClients, fetchVendors, 
 
                             <label className="block text-sm font-medium text-gray-700 mt-2">Type</label>
                             <select
-                                value={itemType}
+                                value={itemData.type}
                                 onChange={handleItemTypeChange}
                                 className="mt-1 p-2 w-full border border-gray-300 rounded-md"
                             >

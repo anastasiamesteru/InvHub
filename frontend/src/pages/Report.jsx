@@ -128,7 +128,7 @@ const Report = () => {
                 <p className="text-gray-700 text-m flex-1 py-4"> Explore your report data and transform numbers into valuable knowledge.</p>
                 <div className="flex gap-2 items-center">
                     <button
-                        className="px-4 py-2 bg-purple-500 border-2 border-purple-500 text-white font-semibold text-sm rounded-lg hover:bg-gray-700 hover:border-gray-700 transition-colors"
+                        className="px-4 py-2 bg-purple-500 border-2 border-purple-500 text-white font-semibold text-sm rounded-lg hover:bg-purple-700 hover:border-purple-700 transition-colors"
                         onClick={openModal}
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 inline-block mr-2">
