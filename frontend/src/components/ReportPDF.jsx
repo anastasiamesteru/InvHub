@@ -144,168 +144,177 @@ const ReportPDF = ({ reportData }) => {
   } = reportData;
 
   return (
-    <Document>
-      <Page size="A4" style={styles.page}>
-        {/* Title Section */}
-        <Text style={[styles.header, { textAlign: 'center' }]}>{title}</Text>
-        <Text style={[styles.title, { textAlign: 'center' }]}>{reportNumber}</Text>
+   <Document>
+  <Page size="A4" style={styles.page}>
+    {/* Title Section */}
+    <Text style={[styles.header, { textAlign: 'center' }]}>{title}</Text>
+    <Text style={[styles.title, { textAlign: 'center' }]}>{reportNumber}</Text>
 
-        {/* Date Range */}
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.subTitle}>
-              <Text style={{ fontWeight: 'bold' }}>Start Date:</Text> {formatDate(startDate)}
-            </Text>
-          </View>
-          <View style={{ flex: 1, alignItems: 'flex-end' }}>
-            <Text style={styles.subTitle}>
-              <Text style={{ fontWeight: 'bold' }}>End Date:</Text> {formatDate(endDate)}
-            </Text>
-          </View>
-        </View>
+    {/* Date Range */}
+    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.subTitle}>
+          <Text style={{ fontWeight: 'bold' }}>Start Date:</Text> {formatDate(startDate)}
+        </Text>
+      </View>
+      <View style={{ flex: 1, alignItems: 'flex-end' }}>
+        <Text style={styles.subTitle}>
+          <Text style={{ fontWeight: 'bold' }}>End Date:</Text> {formatDate(endDate)}
+        </Text>
+      </View>
+    </View>
 
-        {/* Description */}
-        <Text style={styles.subTitle}>{description}</Text>
+    {/* Description */}
+    <Text style={styles.subTitle}>{description}</Text>
 
-        {/* Payment Status Section */}
-        <View style={styles.section}>
-          <Text style={styles.titleText}>Payment Status</Text>
-          {paymentStatus?.numberOfPaidInvoices && paymentStatus.numberOfPaidInvoices !== 0 && (
-            <Text style={styles.text}>
-              Paid Invoices: <Text style={styles.value}>{paymentStatus.numberOfPaidInvoices}</Text>
-            </Text>
-          )}
-          {paymentStatus?.numberOfUnpaidInvoices && paymentStatus.numberOfUnpaidInvoices !== 0 && (
-            <Text style={styles.text}>
-              Unpaid Invoices: <Text style={styles.value}>{paymentStatus.numberOfUnpaidInvoices}</Text>
-            </Text>
-          )}
-          {paymentStatus?.percentPaid && paymentStatus.percentPaid !== 0 && (
-            <Text style={styles.text}>
-              Percent Paid: <Text style={styles.value}>{paymentStatus.percentPaid.toFixed(2)}%</Text>
-            </Text>
-          )}
-          {paymentStatus?.percentUnpaid && paymentStatus.percentUnpaid !== 0 && (
-            <Text style={styles.text}>
-              Percent Unpaid: <Text style={styles.value}>{paymentStatus.percentUnpaid.toFixed(2)}%</Text>
-            </Text>
-          )}
-        </View>
+    {/* Payment Status Section */}
+    {paymentStatus?.numberOfPaidInvoices || paymentStatus?.numberOfUnpaidInvoices || paymentStatus?.percentPaid || paymentStatus?.percentUnpaid ? (
+      <View style={styles.section}>
+        <Text style={styles.titleText}>Payment Status</Text>
+        {paymentStatus?.numberOfPaidInvoices && paymentStatus.numberOfPaidInvoices !== 0 && (
+          <Text style={styles.text}>
+            Paid Invoices: <Text style={styles.value}>{paymentStatus.numberOfPaidInvoices}</Text>
+          </Text>
+        )}
+        {paymentStatus?.numberOfUnpaidInvoices && paymentStatus.numberOfUnpaidInvoices !== 0 && (
+          <Text style={styles.text}>
+            Unpaid Invoices: <Text style={styles.value}>{paymentStatus.numberOfUnpaidInvoices}</Text>
+          </Text>
+        )}
+        {paymentStatus?.percentPaid && paymentStatus.percentPaid !== 0 && (
+          <Text style={styles.text}>
+            Percent Paid: <Text style={styles.value}>{paymentStatus.percentPaid.toFixed(2)}%</Text>
+          </Text>
+        )}
+        {paymentStatus?.percentUnpaid && paymentStatus.percentUnpaid !== 0 && (
+          <Text style={styles.text}>
+            Percent Unpaid: <Text style={styles.value}>{paymentStatus.percentUnpaid.toFixed(2)}%</Text>
+          </Text>
+        )}
+      </View>
+    ) : null}
 
-        {/* Overdue Analysis Section */}
-        <View style={styles.section}>
-          <Text style={styles.titleText}>Overdue Analysis</Text>
-          {overdueAnalysis?.numberOfOnTimeInvoices && overdueAnalysis.numberOfOnTimeInvoices !== 0 && (
-            <Text style={styles.text}>
-              Invoices Paid On Time: <Text style={styles.value}>{overdueAnalysis.numberOfOnTimeInvoices}</Text>
-            </Text>
-          )}
-          {overdueAnalysis?.numberOfOverdueInvoices && overdueAnalysis.numberOfOverdueInvoices !== 0 && (
-            <Text style={styles.text}>
-              Overdue Invoices: <Text style={styles.value}>{overdueAnalysis.numberOfOverdueInvoices}</Text>
-            </Text>
-          )}
-          {overdueAnalysis?.percentOnTime && overdueAnalysis.percentOnTime !== 0 && (
-            <Text style={styles.text}>
-              Percent On Time: <Text style={styles.value}>{overdueAnalysis.percentOnTime.toFixed(2)}%</Text>
-            </Text>
-          )}
-          {overdueAnalysis?.percentOverdue && overdueAnalysis.percentOverdue !== 0 && (
-            <Text style={styles.text}>
-              Percent Overdue: <Text style={styles.value}>{overdueAnalysis.percentOverdue.toFixed(2)}%</Text>
-            </Text>
-          )}
-        </View>
+    {/* Overdue Analysis Section */}
+    {overdueAnalysis?.numberOfOnTimeInvoices || overdueAnalysis?.numberOfOverdueInvoices || overdueAnalysis?.percentOnTime || overdueAnalysis?.percentOverdue ? (
+      <View style={styles.section}>
+        <Text style={styles.titleText}>Overdue Analysis</Text>
+        {overdueAnalysis?.numberOfOnTimeInvoices && overdueAnalysis.numberOfOnTimeInvoices !== 0 && (
+          <Text style={styles.text}>
+            Invoices Paid On Time: <Text style={styles.value}>{overdueAnalysis.numberOfOnTimeInvoices}</Text>
+          </Text>
+        )}
+        {overdueAnalysis?.numberOfOverdueInvoices && overdueAnalysis.numberOfOverdueInvoices !== 0 && (
+          <Text style={styles.text}>
+            Overdue Invoices: <Text style={styles.value}>{overdueAnalysis.numberOfOverdueInvoices}</Text>
+          </Text>
+        )}
+        {overdueAnalysis?.percentOnTime && overdueAnalysis.percentOnTime !== 0 && (
+          <Text style={styles.text}>
+            Percent On Time: <Text style={styles.value}>{overdueAnalysis.percentOnTime.toFixed(2)}%</Text>
+          </Text>
+        )}
+        {overdueAnalysis?.percentOverdue && overdueAnalysis.percentOverdue !== 0 && (
+          <Text style={styles.text}>
+            Percent Overdue: <Text style={styles.value}>{overdueAnalysis.percentOverdue.toFixed(2)}%</Text>
+          </Text>
+        )}
+      </View>
+    ) : null}
 
-        {/* Invoice Entities Section */}
-        <View style={styles.section}>
-          <Text style={styles.titleText}>Invoice Entities</Text>
-          {invoiceEntities?.numberOfIndividualClients && invoiceEntities.numberOfIndividualClients !== 0 && (
-            <Text style={styles.text}>
-              Number of Individual Clients: <Text style={styles.value}>{invoiceEntities.numberOfIndividualClients}</Text>
-            </Text>
-          )}
-          {invoiceEntities?.numberOfCompanyClients && invoiceEntities.numberOfCompanyClients !== 0 && (
-            <Text style={styles.text}>
-              Number of Company Clients: <Text style={styles.value}>{invoiceEntities.numberOfCompanyClients}</Text>
-            </Text>
-          )}
-          {invoiceEntities?.numberOfIndividualVendors && invoiceEntities.numberOfIndividualVendors !== 0 && (
-            <Text style={styles.text}>
-              Number of Individual Vendors: <Text style={styles.value}>{invoiceEntities.numberOfIndividualVendors}</Text>
-            </Text>
-          )}
-          {invoiceEntities?.numberOfCompanyVendors && invoiceEntities.numberOfCompanyVendors !== 0 && (
-            <Text style={styles.text}>
-              Number of Company Vendors: <Text style={styles.value}>{invoiceEntities.numberOfCompanyVendors}</Text>
-            </Text>
-          )}
-          {invoiceEntities?.numberOfProducts && invoiceEntities.numberOfProducts !== 0 && (
-            <Text style={styles.text}>
-              Number of Products: <Text style={styles.value}>{invoiceEntities.numberOfProducts}</Text>
-            </Text>
-          )}
-          {invoiceEntities?.numberOfServices && invoiceEntities.numberOfServices !== 0 && (
-            <Text style={styles.text}>
-              Number of Services: <Text style={styles.value}>{invoiceEntities.numberOfServices}</Text>
-            </Text>
-          )}
-          {invoiceEntities?.percentOfIndividualClients && invoiceEntities.percentOfIndividualClients !== 0 && (
-            <Text style={styles.text}>
-              Percent of Individual Clients: <Text style={styles.value}>{invoiceEntities.percentOfIndividualClients.toFixed(2)}%</Text>
-            </Text>
-          )}
-          {invoiceEntities?.percentOfCompanyClients && invoiceEntities.percentOfCompanyClients !== 0 && (
-            <Text style={styles.text}>
-              Percent of Company Clients: <Text style={styles.value}>{invoiceEntities.percentOfCompanyClients.toFixed(2)}%</Text>
-            </Text>
-          )}
-          {invoiceEntities?.percentOfIndividualVendors && invoiceEntities.percentOfIndividualVendors !== 0 && (
-            <Text style={styles.text}>
-              Percent of Individual Vendors: <Text style={styles.value}>{invoiceEntities.percentOfIndividualVendors.toFixed(2)}%</Text>
-            </Text>
-          )}
-          {invoiceEntities?.percentOfCompanyVendors && invoiceEntities.percentOfCompanyVendors !== 0 && (
-            <Text style={styles.text}>
-              Percent of Company Vendors: <Text style={styles.value}>{invoiceEntities.percentOfCompanyVendors.toFixed(2)}%</Text>
-            </Text>
-          )}
-          {invoiceEntities?.percentOfProducts && invoiceEntities.percentOfProducts !== 0 && (
-            <Text style={styles.text}>
-              Percent of Products: <Text style={styles.value}>{invoiceEntities.percentOfProducts.toFixed(2)}%</Text>
-            </Text>
-          )}
-          {invoiceEntities?.percentOfServices && invoiceEntities.percentOfServices !== 0 && (
-            <Text style={styles.text}>
-              Percent of Services: <Text style={styles.value}>{invoiceEntities.percentOfServices.toFixed(2)}%</Text>
-            </Text>
-          )}
-        </View>
+    {/* Invoice Entities Section */}
+    {invoiceEntities?.numberOfIndividualClients || invoiceEntities?.numberOfCompanyClients || invoiceEntities?.numberOfIndividualVendors || invoiceEntities?.numberOfCompanyVendors || invoiceEntities?.numberOfProducts || invoiceEntities?.numberOfServices || invoiceEntities?.percentOfIndividualClients || invoiceEntities?.percentOfCompanyClients || invoiceEntities?.percentOfIndividualVendors || invoiceEntities?.percentOfCompanyVendors || invoiceEntities?.percentOfProducts || invoiceEntities?.percentOfServices ? (
+      <View style={styles.section}>
+        <Text style={styles.titleText}>Invoice Entities</Text>
+        {invoiceEntities?.numberOfIndividualClients && invoiceEntities.numberOfIndividualClients !== 0 && (
+          <Text style={styles.text}>
+            Number of Individual Clients: <Text style={styles.value}>{invoiceEntities.numberOfIndividualClients}</Text>
+          </Text>
+        )}
+        {invoiceEntities?.numberOfCompanyClients && invoiceEntities.numberOfCompanyClients !== 0 && (
+          <Text style={styles.text}>
+            Number of Company Clients: <Text style={styles.value}>{invoiceEntities.numberOfCompanyClients}</Text>
+          </Text>
+        )}
+        {invoiceEntities?.numberOfIndividualVendors && invoiceEntities.numberOfIndividualVendors !== 0 && (
+          <Text style={styles.text}>
+            Number of Individual Vendors: <Text style={styles.value}>{invoiceEntities.numberOfIndividualVendors}</Text>
+          </Text>
+        )}
+        {invoiceEntities?.numberOfCompanyVendors && invoiceEntities.numberOfCompanyVendors !== 0 && (
+          <Text style={styles.text}>
+            Number of Company Vendors: <Text style={styles.value}>{invoiceEntities.numberOfCompanyVendors}</Text>
+          </Text>
+        )}
+        {invoiceEntities?.numberOfProducts && invoiceEntities.numberOfProducts !== 0 && (
+          <Text style={styles.text}>
+            Number of Products: <Text style={styles.value}>{invoiceEntities.numberOfProducts}</Text>
+          </Text>
+        )}
+        {invoiceEntities?.numberOfServices && invoiceEntities.numberOfServices !== 0 && (
+          <Text style={styles.text}>
+            Number of Services: <Text style={styles.value}>{invoiceEntities.numberOfServices}</Text>
+          </Text>
+        )}
+        {invoiceEntities?.percentOfIndividualClients && invoiceEntities.percentOfIndividualClients !== 0 && (
+          <Text style={styles.text}>
+            Percent of Individual Clients: <Text style={styles.value}>{invoiceEntities.percentOfIndividualClients.toFixed(2)}%</Text>
+          </Text>
+        )}
+        {invoiceEntities?.percentOfCompanyClients && invoiceEntities.percentOfCompanyClients !== 0 && (
+          <Text style={styles.text}>
+            Percent of Company Clients: <Text style={styles.value}>{invoiceEntities.percentOfCompanyClients.toFixed(2)}%</Text>
+          </Text>
+        )}
+        {invoiceEntities?.percentOfIndividualVendors && invoiceEntities.percentOfIndividualVendors !== 0 && (
+          <Text style={styles.text}>
+            Percent of Individual Vendors: <Text style={styles.value}>{invoiceEntities.percentOfIndividualVendors.toFixed(2)}%</Text>
+          </Text>
+        )}
+        {invoiceEntities?.percentOfCompanyVendors && invoiceEntities.percentOfCompanyVendors !== 0 && (
+          <Text style={styles.text}>
+            Percent of Company Vendors: <Text style={styles.value}>{invoiceEntities.percentOfCompanyVendors.toFixed(2)}%</Text>
+          </Text>
+        )}
+        {invoiceEntities?.percentOfProducts && invoiceEntities.percentOfProducts !== 0 && (
+          <Text style={styles.text}>
+            Percent of Products: <Text style={styles.value}>{invoiceEntities.percentOfProducts.toFixed(2)}%</Text>
+          </Text>
+        )}
+        {invoiceEntities?.percentOfServices && invoiceEntities.percentOfServices !== 0 && (
+          <Text style={styles.text}>
+            Percent of Services: <Text style={styles.value}>{invoiceEntities.percentOfServices.toFixed(2)}%</Text>
+          </Text>
+        )}
+      </View>
+    ) : null}
 
-        {/* Invoice Patterns Section */}
-        <View style={styles.section}>
-          <Text style={styles.titleText}>Invoice Patterns</Text>
-          {invoicePatterns?.averageDaysToPayment && invoicePatterns.averageDaysToPayment !== 0 && (
-            <Text style={styles.text}>
-              Average Days to Payment: <Text style={styles.value}>{invoicePatterns.averageDaysToPayment}</Text>
-            </Text>
-          )}
-          {invoicePatterns?.medianDaysToPayment && invoicePatterns.medianDaysToPayment !== 0 && (
-            <Text style={styles.text}>
-              Median Days to Payment: <Text style={styles.value}>{invoicePatterns.medianDaysToPayment}</Text>
-            </Text>
-          )}
-          {invoicePatterns?.modeOfPaymentDelays && invoicePatterns.modeOfPaymentDelays !== 0 && (
-            <Text style={styles.text}>
-              Mode of Payment Delays: <Text style={styles.value}>{invoicePatterns.modeOfPaymentDelays}</Text>
-            </Text>
-          )}
-        </View>
-        <View fixed style={styles.footer}>
-          <Text>Note: Indicators with the value 0 are not displayed even if they are selected beforehand!</Text>
-        </View>
-      </Page>
-    </Document>
+    {/* Invoice Patterns Section */}
+    {invoicePatterns?.averageDaysToPayment || invoicePatterns?.medianDaysToPayment || invoicePatterns?.modeOfPaymentDelays ? (
+      <View style={styles.section}>
+        <Text style={styles.titleText}>Invoice Patterns</Text>
+        {invoicePatterns?.averageDaysToPayment && invoicePatterns.averageDaysToPayment !== 0 && (
+          <Text style={styles.text}>
+            Average Days to Payment: <Text style={styles.value}>{invoicePatterns.averageDaysToPayment}</Text>
+          </Text>
+        )}
+        {invoicePatterns?.medianDaysToPayment && invoicePatterns.medianDaysToPayment !== 0 && (
+          <Text style={styles.text}>
+            Median Days to Payment: <Text style={styles.value}>{invoicePatterns.medianDaysToPayment}</Text>
+          </Text>
+        )}
+        {invoicePatterns?.modeOfPaymentDelays && invoicePatterns.modeOfPaymentDelays !== 0 && (
+          <Text style={styles.text}>
+            Mode of Payment Delays: <Text style={styles.value}>{invoicePatterns.modeOfPaymentDelays}</Text>
+          </Text>
+        )}
+      </View>
+    ) : null}
+
+    <View fixed style={styles.footer}>
+      <Text>Note: Indicators with the value 0 are not displayed even if they are selected beforehand!</Text>
+    </View>
+  </Page>
+</Document>
 
 
 

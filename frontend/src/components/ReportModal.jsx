@@ -416,7 +416,7 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
 
             console.log('Report response:', response);
             await fetchReports();
-            onClose();
+            resetReportForm();
         } catch (error) {
             console.error('Error posting report data:', error);
             if (error.response) {
@@ -880,8 +880,8 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
                             <span>Mode of days payment delays</span>
                         </div>
                     </div>
-                    {errors.selectedIndicators && (
-                        <p className="text-red-500 text-xs text-center mt-2">{errors.selectedIndicators}</p>
+                    {errors.selectedCheckboxes && (
+                        <p className="text-red-500 text-xs text-center mt-2">{errors.selectedCheckboxes}</p>
                     )}
 
                     {/* Submit button */}

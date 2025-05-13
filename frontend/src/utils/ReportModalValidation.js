@@ -6,7 +6,7 @@ export const ReportModalValidation = (data) => {
     const {
         title,
         description,
-        selectedIndicators,
+        selectedCheckboxes,
         startDate,
         endDate
     } = data;
@@ -27,9 +27,12 @@ export const ReportModalValidation = (data) => {
         errors.description = "Description must be at least 10 characters.";
     }
 
-    // Indicators validation
-    if (!Array.isArray(selectedIndicators) || selectedIndicators.length === 0) {
-        errors.selectedIndicators = "At least one indicator must be selected.";
+   const isAnySelected = Object.values(selectedCheckboxes).some(category => 
+        Object.values(category).some(value => value)
+    );
+
+    if (!isAnySelected) {
+        errors.selectedCheckboxes = "At least one indicator must be selected.";
     }
 
     if (!safeTrim(startDate)) {
