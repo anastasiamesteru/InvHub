@@ -265,7 +265,9 @@ const EditInvoiceModal = ({ show, onClose, invoiceId, onUpdate }) => {
                   onChange={(e) => handleChange(e, 'issue_date')}
                   className="w-50 mt-1 p-2 border border-gray-300 rounded-md"
                 />
-
+                {errors.issue_date && (
+                  <p className="text-red-500 text-xs text-center mt-2">{errors.issue_date}</p>
+                )}
               </div>
 
               <div className="w-1/2 pl-2 flex flex-col items-center">
@@ -277,11 +279,14 @@ const EditInvoiceModal = ({ show, onClose, invoiceId, onUpdate }) => {
                   onChange={(e) => handleChange(e, 'due_date')}
                   className="w-50 mt-1 p-2 border border-gray-300 rounded-md"
                 />
+                {errors.due_date && (
+                  <p className="text-red-500 text-xs text-center mt-2">{errors.due_date}</p>
+                )}
               </div>
             </div>
 
-            {errors.due_date && (
-              <p className="text-red-500 text-xs text-center mt-2">{errors.due_date}</p>
+            {errors.date_order && (
+              <p className="text-red-500 text-xs text-center mt-2">{errors.date_order}</p>
             )}
           </div>
 
@@ -491,7 +496,14 @@ const EditInvoiceModal = ({ show, onClose, invoiceId, onUpdate }) => {
 
 
           </div>
-          <div className="mt-6 border-b-2 border-gray-400 pb-4">
+          <div className="pt-2 border-b-2 border-gray-400 pb-4">
+            <div className="flex justify-center w-full pb-3">
+              {errors.items && (
+                <p className="text-red-500 text-xs mt-2 text-center">
+                  {errors.items}
+                </p>
+              )}
+            </div>
             <table className="w-full border-collapse border border-gray-300">
               {/* Table Header */}
               <thead>
