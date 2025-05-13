@@ -164,7 +164,8 @@ const Dashboard = () => {
 
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const now = new Date();
-    const currentYear = now.getFullYear();
+  //  const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
 
     let totalAmount = 0;
     let outstandingAmount = 0;
@@ -173,82 +174,89 @@ const Dashboard = () => {
 
     invoices.forEach(invoice => {
         const issueDate = new Date(invoice.issue_date);
-        if (issueDate.getFullYear() !== currentYear) return;
+
+        if (issueDate.getMonth() !== currentMonth) return;
 
         const amount = Number(invoice.total || 0);
-        totalAmount += amount;
 
-        if (invoice.paymentStatus?.toLowerCase() === "unpaid") {
-            const dueDate = new Date(invoice.due_date);
-            if (dueDate >= now) {
-                outstandingAmount += amount;
-            } else {
-                overdueAmount += amount;
-            }
+        if (invoice.timeStatus?.toLowerCase() === "on time") {
+            totalAmount += amount;
+        }
+        
+        if (invoice.timeStatus?.toLowerCase() === "pending") {
+            outstandingAmount += amount;
         }
 
-        if (invoice.timeStatus?.toLowerCase() === "pending") {
-            pendingAmount += amount;
+        if (invoice.timeStatus?.toLowerCase() === "overdue") {
+            overdueAmount += amount;
         }
     });
 
-    const monthlyData = useMemo(() => {
-        const data = {};
-        const barChartData = {};  // New object to store Paid/Unpaid counts for each month
+const monthlyData = useMemo(() => {
+    const data = {};
+    const barChartData = {}; // For Paid/Unpaid invoice counts
 
-        invoices.forEach(inv => {
-            const date = new Date(inv.issue_date);
-            const month = `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+    invoices.forEach(inv => {
+        const date = new Date(inv.issue_date);
+        const month = `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
 
-            if (!data[month]) {
-                data[month] = { month, totalAmount: 0, outstandingAmount: 0, overdueAmount: 0, onTime: 0, overdue: 0, pending: 0 };
-            }
+        if (!data[month]) {
+            data[month] = {
+                month,
+                onTime: 0,
+                pending: 0,
+                overdue: 0,
+                paidAmount: 0,
+                unpaidAmount: 0,
+            };
+        }
 
-            if (!barChartData[month]) {
-                barChartData[month] = { month, Paid: 0, Unpaid: 0 }; // Initialize Paid/Unpaid count for each month
-            }
+        if (!barChartData[month]) {
+            barChartData[month] = { month, Paid: 0, Unpaid: 0 };
+        }
 
-            const amount = Number(inv.total || 0);
-            data[month].totalAmount += amount;
+        const amount = Number(inv.total || 0);
+        const paymentStatus = inv.paymentStatus?.toLowerCase();
+        const timeStatus = inv.timeStatus?.trim().toLowerCase();
 
-            const paymentStatus = inv.paymentStatus?.toLowerCase();
-            if (paymentStatus === "unpaid") {
-                const dueDate = new Date(inv.due_date);
-                if (dueDate >= now) {
-                    data[month].outstandingAmount += amount;
-                } else {
-                    data[month].overdueAmount += amount;
-                }
-                barChartData[month].Unpaid += 1;
+        // Count Paid/Unpaid amounts
+        if (paymentStatus === "paid") {
+            data[month].paidAmount += amount;
+            barChartData[month].Paid += 1;
+        } else if (paymentStatus === "unpaid") {
+            data[month].unpaidAmount += amount;
+            barChartData[month].Unpaid += 1;
+        }
 
+        // Time-based status totals
+        if (timeStatus === "on time") {
+            data[month].onTime += amount;
+        } else if (timeStatus === "pending") {
+            data[month].pending += amount;
+        } else if (timeStatus === "overdue") {
+            data[month].overdue += amount;
+        }
+    });
 
-            }
-            else {
-                barChartData[month].Paid += 1;
+    const lineChartData = Object.values(data)
+        .sort((a, b) => new Date(`1 ${a.month}`) - new Date(`1 ${b.month}`))
+        .map(d => ({
+            month: d.month,
+            onTime: d.onTime,
+            pending: d.pending,
+            overdue: d.overdue,
+            paid: d.paidAmount,
+            unpaid: d.unpaidAmount
+        }));
 
-            }
+    const pieChartData = [
+        { name: 'Paid', value: statusCounts.paid },
+        { name: 'Unpaid', value: statusCounts.unpaid }
+    ];
 
-            const timeStatus = inv.timeStatus?.trim().toLowerCase();
-            if (timeStatus === "on time") data[month].onTime += 1;
-            if (timeStatus === "overdue") data[month].overdue += 1;
-        });
+    return { lineChartData, pieChartData, barChartData };
+}, [invoices, statusCounts]);
 
-        const lineChartData = Object.values(data)
-            .sort((a, b) => new Date(`1 ${a.month}`) - new Date(`1 ${b.month}`))
-            .map(d => ({
-                month: d.month,
-                outstandingAmount: d.outstandingAmount,
-                overdueAmount: d.overdueAmount,
-                totalAmount: d.totalAmount
-            }));
-
-        const pieChartData = [
-            { name: 'Paid', value: statusCounts.paid },
-            { name: 'Unpaid', value: statusCounts.unpaid }
-        ];
-
-        return { lineChartData, pieChartData, barChartData };
-    }, [invoices, statusCounts]);
 
     useEffect(() => {
         const processInvoices = () => {
@@ -332,49 +340,53 @@ const Dashboard = () => {
                     <div className="p-4 rounded-lg bg-white shadow-lg w-full">
                         <h3 className="text-xl font-medium text-indigo-800">Invoice Performance</h3>
                         <div className="mt-4 h-64 bg-white rounded-md">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <LineChart 
-                                    data={monthlyData.lineChartData}
-                                    margin={{ top: 20, right: 30, left: 0, bottom: 10 }}
-                                >
-                                    <XAxis dataKey="month" tickFormatter={(value) => value.split(' ')[0]} />
-                                    <YAxis allowDecimals />
-                                   
-                                    <Legend
-                                        iconType="circle"
-                                        formatter={(value) => {
-                                            const labels = {
-                                                outstandingAmount: "outstanding",
-                                                overdueAmount: "overdue",
-                                                totalAmount: "collected",
-                                            };
-                                            return labels[value] || value;
-                                        }}
-                                    />
+                        <ResponsiveContainer width="100%" height="100%">
+    <LineChart 
+        data={monthlyData.lineChartData}
+        margin={{ top: 20, right: 30, left: 0, bottom: 10 }}
+    >
+        <XAxis dataKey="month" tickFormatter={(value) => value.split(' ')[0]} />
+        <YAxis allowDecimals />
 
-                                    <Line
-                                        type="natural"
-                                        dataKey="totalAmount"
-                                        stroke="rgba(34, 197, 94, 0.9)" // Green-500
-                                        strokeWidth={3}
-                                        dot={false}
-                                    />
-                                    <Line
-                                        type="natural"
-                                        dataKey="outstandingAmount"
-                                        stroke="rgba(234, 179, 8, 0.9)" // Yellow-500
-                                        strokeWidth={3}
-                                        dot={false}
-                                    />
-                                    <Line
-                                        type="natural"
-                                        dataKey="overdueAmount"
-                                        stroke="rgba(239, 68, 68, 0.9)" // Red-500
-                                        strokeWidth={3}
-                                        dot={false}
-                                    />
-                                </LineChart>
-                            </ResponsiveContainer>
+        <Legend
+            iconType="circle"
+            formatter={(value) => {
+                const labels = {
+                    onTime: "collected",
+                    pending: "outstanding",
+                    overdue: "overdue",
+                   
+                };
+                return labels[value] || value;
+            }}
+        />
+
+        {/* Time status lines */}
+        <Line
+            type="monotone"
+            dataKey="onTime"
+            stroke="rgba(34, 197, 94, 0.9)" // Green-500
+            strokeWidth={3}
+            dot={false}
+        />
+        <Line
+            type="monotone"
+            dataKey="pending"
+            stroke="rgba(234, 179, 8, 0.9)" // Yellow-500
+            strokeWidth={3}
+            dot={false}
+        />
+        <Line
+            type="monotone"
+            dataKey="overdue"
+            stroke="rgba(239, 68, 68, 0.9)" // Red-500
+            strokeWidth={3}
+            dot={false}
+        />
+
+       
+    </LineChart>
+</ResponsiveContainer>
 
 
                         </div>
