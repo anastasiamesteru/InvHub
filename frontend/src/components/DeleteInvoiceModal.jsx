@@ -29,7 +29,7 @@ const DeleteInvoiceModal = ({ isOpen, onClose, invoiceToDelete, onDeleteSuccess 
     return (
         <div className="fixed inset-0 bg-slate-800 bg-opacity-10 flex justify-center items-center z-50">
             <div className="bg-white p-6 rounded-lg shadow-lg w-1/3">
-                <h3 className="text-lg font-semibold text-center mb-4">Delete Invoice</h3>
+                <h3 className="text-lg font-semibold text-center mb-4">Delete invoice</h3>
                 <p className="text-sm text-center mb-4">Are you sure you want to delete this invoice? This action cannot be undone.</p>
 
                 <div className="flex justify-center space-x-4">

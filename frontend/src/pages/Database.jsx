@@ -3,6 +3,7 @@ import DatabaseModal from '../components/DatabaseModal';
 import EditClientModal from '../components/EditClientModal';
 import EditVendorModal from '../components/EditVendorModal';
 import EditItemModal from '../components/EditItemModal';
+import DeleteEntityModal from '../components/DeleteEntityModal';
 import axios from 'axios';
 
 const Database = () => {
@@ -14,7 +15,8 @@ const Database = () => {
     const [items, setItems] = useState([]);
     const [editingEntity, setEditingEntity] = useState(null);
     const [loading, setLoading] = useState(false);
-
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [selectedId, setSelectedId] = useState(null);
 
 
     // Sorting state
@@ -108,38 +110,6 @@ const Database = () => {
             console.error("Error fetching items:", err);
         }
     };
-
-
-    const handleDelete = async (id) => {
-        const token = localStorage.getItem('authToken'); // Get the token from localStorage
-        if (!token) {
-            console.error("No token found");
-            return;
-        }
-
-        let deleteEndpoint = "";
-
-        if (activeTab === "clients") deleteEndpoint = `/routes/clients/${id}`;
-        else if (activeTab === "vendors") deleteEndpoint = `/routes/vendors/${id}`;
-        else if (activeTab === "items") deleteEndpoint = `/routes/items/${id}`;
-
-        try {
-            await axios.delete(`http://localhost:4000${deleteEndpoint}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`, // Include Bearer token in the request header
-                },
-            });
-
-            // Refresh the data after deleting
-            if (activeTab === "clients") fetchClients();
-            else if (activeTab === "vendors") fetchVendors();
-            else if (activeTab === "items") fetchItems();
-        } catch (error) {
-            console.error("Error deleting:", error);
-        }
-    };
-
-
 
     const filteredData = () => {
         const query = searchQuery.toLowerCase();
@@ -331,11 +301,39 @@ const Database = () => {
                                                 </svg>
                                             </button>
 
-                                            <button className="px-2 py-1 text-center" onClick={() => handleDelete(client._id)}>
-                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" className="w-5 h-5">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                                            <button
+                                                className="px-2 py-1 text-center"
+                                                onClick={() => {
+                                                    setSelectedId(client._id);
+                                                    setIsDeleteModalOpen(true);
+                                                }}
+                                            >
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    viewBox="0 0 24 24"
+                                                    strokeWidth="2"
+                                                    stroke="currentColor"
+                                                    fill="none"
+                                                    className="w-5 h-5"
+                                                >
+                                                    <path
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                        d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
+                                                    />
                                                 </svg>
+
+
                                             </button>
+                                            <DeleteEntityModal
+                                                isOpen={isDeleteModalOpen}
+                                                onClose={() => setIsDeleteModalOpen(false)}
+                                                idToDelete={selectedId}
+                                                activeTab={activeTab}
+                                                fetchClients={fetchClients}
+                                                fetchVendors={fetchVendors}
+                                                fetchItems={fetchItems}
+                                            />
                                             <EditClientModal
                                                 show={isEditClientModalOpen}
                                                 onClose={() => setIsEditClientModalOpen(false)}
@@ -424,11 +422,24 @@ const Database = () => {
                                                     <path d="M16.98 3.02a2.87 2.87 0 1 1 4.06 4.06l-1.41 1.41-4.06-4.06 1.41-1.41zM3 17.25V21h3.75l11.29-11.29-3.75-3.75L3 17.25z" />
                                                 </svg>
                                             </button>
-                                            <button className="px-2 py-1 text-center" onClick={() => handleDelete(vendor._id)}>
+                                            <button className="px-2 py-1 text-center" onClick={() => {
+                                                setSelectedId(vendor._id);
+                                                setIsDeleteModalOpen(true);
+                                            }}
+                                            >
                                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" className="w-5 h-5">
                                                     <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
                                                 </svg>
                                             </button>
+                                            <DeleteEntityModal
+                                                isOpen={isDeleteModalOpen}
+                                                onClose={() => setIsDeleteModalOpen(false)}
+                                                idToDelete={selectedId}
+                                                activeTab={activeTab}
+                                                fetchClients={fetchClients}
+                                                fetchVendors={fetchVendors}
+                                                fetchItems={fetchItems}
+                                            />
                                             <EditVendorModal
                                                 show={isEditVendorModalOpen}
                                                 onClose={() => setIsEditVendorModalOpen(false)}
@@ -504,18 +515,31 @@ const Database = () => {
                                                     <path d="M16.98 3.02a2.87 2.87 0 1 1 4.06 4.06l-1.41 1.41-4.06-4.06 1.41-1.41zM3 17.25V21h3.75l11.29-11.29-3.75-3.75L3 17.25z" />
                                                 </svg>
                                             </button>
-                                            <button className="px-2 py-1 text-center" onClick={() => handleDelete(item._id)}>
+                                            <button className="px-2 py-1 text-center" onClick={() => {
+                                                setSelectedId(item._id);
+                                                setIsDeleteModalOpen(true);
+                                            }}
+                                            >
                                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" className="w-5 h-5">
                                                     <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
                                                 </svg>
                                             </button>
+                                            <DeleteEntityModal
+                                                isOpen={isDeleteModalOpen}
+                                                onClose={() => setIsDeleteModalOpen(false)}
+                                                idToDelete={selectedId}
+                                                activeTab={activeTab}
+                                                fetchClients={fetchClients}
+                                                fetchVendors={fetchVendors}
+                                                fetchItems={fetchItems}
+                                            />
                                         </td>
                                         <EditItemModal
-                                                show={isEditItemModalOpen}
-                                                onClose={() => setIsEditItemModalOpen(false)}
-                                                itemId={itemToEdit}
-                                                onUpdate={handleItemUpdate}
-                                            />
+                                            show={isEditItemModalOpen}
+                                            onClose={() => setIsEditItemModalOpen(false)}
+                                            itemId={itemToEdit}
+                                            onUpdate={handleItemUpdate}
+                                        />
                                     </tr>
                                 ))
                             ) : (
