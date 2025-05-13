@@ -173,7 +173,7 @@ const Report = () => {
                                 className="px-3 py-2 text-center bg-gray-200 cursor-pointer"
                                 onClick={() => handleSort('title')}
                             >
-                                Report Title
+                                Title
                                 {sortColumn === 'title' ? (sortOrder === 'asc' ? ' ▲' : ' ▼') : ''}
                             </th>
                             <th className="px-3 py-2 text-center bg-gray-200">Description</th>

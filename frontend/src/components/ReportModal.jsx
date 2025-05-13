@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-
+import { ReportModalValidation } from '../utils/ReportModalValidation';
 const ReportModal = ({ isOpen, onClose, fetchReports }) => {
     const [loading, setLoading] = useState(false);
     const [invoices, setInvoices] = useState([]);
+    const [errors, setErrors] = useState({});
 
     const [reportData, setReportData] = useState({
         title: '',
@@ -85,6 +86,7 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
             ...prevDetails,
             [name]: value,
         }));
+        setErrors(prev => ({ ...prev, [name]: "" }));
     };
 
     const fetchInvoices = async () => {
@@ -375,6 +377,13 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
 
     const handleSubmit = async (event) => {
         event.preventDefault();
+        const validationErrors = ReportModalValidation(reportData);
+
+        // Check if there are any errors
+        if (Object.keys(validationErrors).length > 0) {
+            setErrors(validationErrors);  // Set errors in state
+            return;
+        }
 
         setLoading(true);
 
@@ -421,14 +430,94 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
         }
     };
 
+
+    const resetReportForm = () => {
+    setReportData({
+       title: '',
+        description: '',
+        startDate: '',
+        endDate: '',
+        indicators: {
+            paymentStatus: {
+                numberOfPaidInvoices: 0,
+                numberOfUnpaidInvoices: 0,
+                percentPaid: 0,
+                percentUnpaid: 0,
+            },
+            overdueAnalysis: {
+                numberOfOnTimeInvoices: 0,
+                numberOfOverdueInvoices: 0,
+                percentOverdue: 0,
+                percentOnTime: 0,
+            },
+            invoicePatterns: {
+                averageDaysToPayment: 0,
+                medianDaysToPayment: 0,
+                modeOfPaymentDelays: 0,
+            },
+            invoiceEntities: {
+                numberOfIndividualClients: 0,
+                numberOfCompanyClients: 0,
+                numberOfIndividualVendors: 0,
+                numberOfCompanyVendors: 0,
+                numberOfProducts: 0,
+                numberOfServices: 0,
+                percentIndividualClients: 0,
+                percentCompanyClients: 0,
+                percentIndividualVendors: 0,
+                percentCompanyVendors: 0,
+                percentProducts: 0,
+                percentServices: 0,
+            },
+        },
+        selectedCheckboxes: {
+            paymentStatus: {
+                checkednumberOfPaidInvoices: false,
+                checkednumberOfUnpaidInvoices: false,
+                checkedpercentPaid: false,
+                checkedpercentUnpaid: false,
+            },
+            overdueAnalysis: {
+                checkednumberOfOnTimeInvoices: false,
+                checkednumberOfOverdueInvoices: false,
+                checkedPercentOverdue: false,
+                checkedpercentOnTime: false,
+            },
+            invoicePatterns: {
+                checkedaverageDaysToPayment: false,
+                checkedmedianDaysToPayment: false,
+                checkedmodeOfPaymentDelays: false,
+            },
+            invoiceEntities: {
+                checkednumberOfIndividualClients: false,
+                checkednumberOfCompanyClients: false,
+                checkednumberOfIndividualVendors: false,
+                checkednumberOfCompanyVendors: false,
+                checkednumberOfProducts: false,
+                checkednumberOfServices: false,
+                checkedpercentIndividualClients: false,
+                checkedpercentCompanyClients: false,
+                checkedpercentIndividualVendors: false,
+                checkedpercentCompanyVendors: false,
+                checkedpercentProducts: false,
+                checkedpercentServices: false,
+            },
+        },
+    });
+
+    setErrors({}); // Clear the errors
+
+    onClose(); // Close the modal after resetting
+};
+
     if (!isOpen) return null;
 
     return (
         <div className="fixed inset-0 bg-slate-800 bg-opacity-60 flex justify-center items-center z-50">
             <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
                 <div className="flex justify-between items-center">
-                    <h3 className="text-lg font-bold">Create Report</h3>
-                    <button className="text-gray-500 hover:text-gray-700" onClick={onClose}>
+                    <h3 className="text-lg font-bold">Create a new report</h3>
+                    <button className="text-gray-500 hover:text-gray-700" onClick={resetReportForm}>
                         ✕
                     </button>
                 </div>
@@ -444,13 +533,15 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
                             value={reportData.title}
                             onChange={handleInputChange}
                             placeholder="Enter report title"
-                            required
                             className="p-2 border border-gray-300 rounded"
                         />
+                        {errors.title && (
+                            <p className="text-red-500 text-xs text-center mt-2">{errors.title}</p>
+                        )}
                     </div>
 
                     {/* Date range */}
-                    <div className="flex space-x-4 pt-4 pb-4">
+                    <div className="flex space-x-4 pt-4 pb-2">
                         <div className="flex flex-col flex-1">
                             <label htmlFor="startDate" className="font-semibold text-gray-800 mb-2">Start Date</label>
                             <input
@@ -459,9 +550,11 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
                                 name="startDate"
                                 value={reportData.startDate}
                                 onChange={handleInputChange}
-                                required
                                 className="p-2 border border-gray-300 rounded"
                             />
+                            {errors.startDate && (
+                                <p className="text-red-500 text-xs text-center mt-2">{errors.startDate}</p>
+                            )}
                         </div>
                         <div className="flex flex-col flex-1">
                             <label htmlFor="endDate" className="font-semibold text-gray-800 mb-2">End Date</label>
@@ -471,23 +564,30 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
                                 name="endDate"
                                 value={reportData.endDate}
                                 onChange={handleInputChange}
-                                required
                                 className="p-2 border border-gray-300 rounded"
                             />
+                            {errors.endDate && (
+                                <p className="text-red-500 text-xs text-center mt-2">{errors.endDate}</p>
+                            )}
                         </div>
+
                     </div>
+                    {errors.date_order && (
+                        <p className="text-red-500 text-xs text-center mt-2">{errors.date_order}</p>
+                    )}
                     <div className="flex flex-col border-b-2 border-gray-400 pt-4 pb-4">
                         <div className="flex flex-col flex-1">
                             <label htmlFor="description" className="font-semibold text-gray-800 mb-2">Description</label>
-                            <input
-                                type="textarea"
+                            <textarea
                                 id="description"
                                 name="description"
                                 value={reportData.description}
                                 onChange={handleInputChange}
-                                required
                                 className="p-2 border border-gray-300 rounded"
                             />
+                            {errors.description && (
+                                <p className="text-red-500 text-xs text-center mt-2">{errors.description}</p>
+                            )}
                         </div>
 
                     </div>
@@ -780,7 +880,9 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
                             <span>Mode of days payment delays</span>
                         </div>
                     </div>
-
+                    {errors.selectedIndicators && (
+                        <p className="text-red-500 text-xs text-center mt-2">{errors.selectedIndicators}</p>
+                    )}
 
                     {/* Submit button */}
                     <div className="flex justify-center mt-2">
@@ -789,7 +891,7 @@ const ReportModal = ({ isOpen, onClose, fetchReports }) => {
                             disabled={loading}
                             className="mt-4 px-4 py-2 font-semibold bg-purple-500 text-white rounded-md hover:bg-purple-600 disabled:bg-gray-400"
                         >
-                            {loading ? 'Generating...' : 'Create Report'}
+                            {loading ? 'Submitting...' : 'Submit'}
                         </button>
                     </div>
                 </form>
