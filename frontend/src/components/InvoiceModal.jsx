@@ -149,26 +149,26 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
             });
 
             console.log('Invoice response:', response);
-             setInvoiceData({
-            invoiceNumber: '',
-            clientName: '',
-            clientEmail: '',
-            clientType: '',
-            clientPhoneNo: '',
-            clientAddress: '',
-            clientCifcnp: '',
-            vendorName: '',
-            vendorEmail: '',
-            vendorType: '',
-            vendorPhoneNo: '',
-            vendorAddress: '',
-            vendorCifcnp: '',
-            issue_date: '',
-            due_date: '',
-            items: [],
-            tax: 0,
-            total: 0,
-        });
+            setInvoiceData({
+                invoiceNumber: '',
+                clientName: '',
+                clientEmail: '',
+                clientType: '',
+                clientPhoneNo: '',
+                clientAddress: '',
+                clientCifcnp: '',
+                vendorName: '',
+                vendorEmail: '',
+                vendorType: '',
+                vendorPhoneNo: '',
+                vendorAddress: '',
+                vendorCifcnp: '',
+                issue_date: '',
+                due_date: '',
+                items: [],
+                tax: 0,
+                total: 0,
+            });
             await fetchInvoices();
             onClose();
         } catch (error) {
@@ -249,38 +249,41 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
         setShowClientsModal(true);
     };
 
-      const handleOpenVendorsModal = (e) => {
+    const handleOpenVendorsModal = (e) => {
         e.preventDefault();
         setShowVendorsModal(true);
     };
 
-  const handleOpenItemsModal = (e) => {
+    const handleOpenItemsModal = (e) => {
         e.preventDefault();
         setShowItemsModal(true);
     };
-   const resetForm = () => {
-    setInvoiceData({
-        invoiceNumber: '',
-        clientName: '',
-        clientEmail: '',
-        clientType: '',
-        clientPhoneNo: '',
-        clientAddress: '',
-        clientCifcnp: '',
-        vendorName: '',
-        vendorEmail: '',
-        vendorType: '',
-        vendorPhoneNo: '',
-        vendorAddress: '',
-        vendorCifcnp: '',
-        issue_date: '',
-        due_date: '',
-        items: [],
-        tax: 0,
-        total: 0,
-    });
-    onClose();  // Close the modal after resetting the form
-};
+    const resetForm = () => {
+        setInvoiceData({
+            invoiceNumber: '',
+            clientName: '',
+            clientEmail: '',
+            clientType: '',
+            clientPhoneNo: '',
+            clientAddress: '',
+            clientCifcnp: '',
+            vendorName: '',
+            vendorEmail: '',
+            vendorType: '',
+            vendorPhoneNo: '',
+            vendorAddress: '',
+            vendorCifcnp: '',
+            issue_date: '',
+            due_date: '',
+            items: [],
+            tax: 0,
+            total: 0,
+        });
+
+        setErrors({}); // ← clear the errors too
+        onClose();     // close modal after resetting
+    };
+
 
     if (!isOpen) return null;
     return (
@@ -308,7 +311,9 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                                     onChange={(e) => handleChange(e, 'issue_date')}
                                     className="w-50 mt-1 p-2 border border-gray-300 rounded-md"
                                 />
-
+                                {errors.issue_date && (
+                                    <p className="text-red-500 text-xs text-center mt-2">{errors.issue_date}</p>
+                                )}
                             </div>
 
                             <div className="w-1/2 pl-2 flex flex-col items-center">
@@ -320,11 +325,14 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                                     onChange={(e) => handleChange(e, 'due_date')}
                                     className="w-50 mt-1 p-2 border border-gray-300 rounded-md"
                                 />
+                                {errors.due_date && (
+                                    <p className="text-red-500 text-xs text-center mt-2">{errors.due_date}</p>
+                                )}
                             </div>
                         </div>
 
-                        {errors.due_date && (
-                            <p className="text-red-500 text-xs text-center mt-2">{errors.due_date}</p>
+                        {errors.date_order && (
+                            <p className="text-red-500 text-xs text-center mt-2">{errors.date_order}</p>
                         )}
                     </div>
 
@@ -415,7 +423,7 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
 
                             </div>
                             <div className="my-2 flex justify-center">
-                                <button type="button" className="mt-4 px-4 py-2 font-semibold bg-purple-500 text-white rounded-md hover:bg-purple-600 disabled:bg-gray-400"  onClick={handleOpenClientsModal}>
+                                <button type="button" className="mt-4 px-4 py-2 font-semibold bg-purple-500 text-white rounded-md hover:bg-purple-600 disabled:bg-gray-400" onClick={handleOpenClientsModal}>
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" />
                                     </svg>
@@ -528,13 +536,22 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                                     onVendorSelect={onVendorSelect}
                                     onClose={() => setShowVendorsModal(false)}
                                 />
+
                             </div>
 
                         </div>
 
 
                     </div>
-                    <div className="mt-6 border-b-2 border-gray-400 pb-4">
+                    <div className="pt-2 border-b-2 border-gray-400 pb-4">
+                        <div className="flex justify-center w-full pb-3">
+                            {errors.items && (
+                                <p className="text-red-500 text-xs mt-2 text-center">
+                                    {errors.items}
+                                </p>
+                            )}
+                        </div>
+
                         <table className="w-full border-collapse border border-gray-300">
                             {/* Table Header */}
                             <thead>
@@ -635,6 +652,8 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                                                 onClose={() => setShowItemsModal(false)}
                                             />
                                         </td>
+
+
                                     </tr>
                                 ))}
                             </tbody>

@@ -7,14 +7,26 @@ export const InvoiceModalValidation = (data) => {
         issue_date, due_date, clientName, clientAddress, clientPhoneNo, clientEmail,
         clientCifcnp, clientType, vendorName, vendorAddress,
         vendorPhoneNo, vendorEmail, vendorCifcnp, vendorType,
-        itemName, quantity, price
+        items
     } = data;
 
     // Ensure all strings are defined before calling .trim()
     const safeTrim = (value) => (value && typeof value === 'string' ? value.trim() : "");
 
-    // Due and issue date validation
-    if (due_date < issue_date) errors.due_date = "Due date cannot be before issue date.";
+    if (!safeTrim(issue_date)) {
+        errors.issue_date = "Issue date is required.";
+    }
+
+    if (!safeTrim(due_date)) {
+        errors.due_date = "Due date is required.";
+    }
+
+    if (safeTrim(issue_date) && safeTrim(due_date)) {
+        if (new Date(due_date) < new Date(issue_date)) {
+            errors.date_order = "Due date cannot be before issue date.";
+        }
+    }
+
 
     // Client Validations
     if (!safeTrim(clientName)) errors.clientName = "Client name is required.";
@@ -48,6 +60,11 @@ export const InvoiceModalValidation = (data) => {
     //if (!safeTrim(itemName)) errors.itemName = "Item name is required.";
     //if (!safeTrim(quantity) || isNaN(quantity) || parseFloat(quantity) <= 0) errors.quantity = "Valid quantity is required.";
     //if (!safeTrim(price) || isNaN(price) || parseFloat(price) <= 0) errors.price = "Valid price (greater than 0) is required.";
+
+    // Item Validations
+    if (!Array.isArray(items) || items.length === 0) {
+        errors.items = "At least one item must be added to the invoice!";
+    }
 
     return errors;
 };
