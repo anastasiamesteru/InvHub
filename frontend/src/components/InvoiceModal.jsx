@@ -25,7 +25,7 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
         clientName: '', clientAddress: '', clientPhoneNo: '', clientEmail: '', clientType: 'company', clientCifcnp: '',
         vendorName: '', vendorAddress: '', vendorPhoneNo: '', vendorEmail: '', vendorType: 'company', vendorCifcnp: '',
         issue_date: '', due_date: '', tax: 0, total: 0,
-        items: [{ itemName: '', quantity: 1, unitPrice: 0, um: '', type: 'Product' }],
+        items: [{ itemName: '', quantity: 1, unitPrice: 0, um: '', type: 'product' }],
     });
 
 
