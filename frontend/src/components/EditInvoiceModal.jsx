@@ -99,27 +99,25 @@ const EditInvoiceModal = ({ show, onClose, invoiceId, onUpdate }) => {
   };
 
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setInvoiceData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
+ const handleChange = (e, fieldName) => {
+  const newValue = e.target.value;
+  setInvoiceData(prev => ({
+    ...prev,
+    [fieldName]: newValue,
+  }));
+};
+
 
   const handleSave = async () => {
     const token = localStorage.getItem("authToken");
 
-    // If no token, show an alert and exit early
     if (!token) return alert("No token found.");
+    setLoading(true); 
 
-    setLoading(true); // Set loading state to true while saving
-
-    // Validate invoice data and check for errors
     const validationErrors = InvoiceModalValidation(invoiceData);
     if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors); // Set validation errors if any
-      setLoading(false); // Stop loading since validation failed
+      setErrors(validationErrors); 
+      setLoading(false); 
       return;
     }
 
@@ -134,26 +132,17 @@ const EditInvoiceModal = ({ show, onClose, invoiceId, onUpdate }) => {
       });
 
       if (!response.ok) {
-        // If the response is not OK, throw an error with the response message
         throw new Error(`Failed to update invoice: ${response.statusText}`);
       }
 
       const updatedInvoice = await response.json();
-
-      // Call the onUpdate function to update the parent component with the updated invoice
       onUpdate(updatedInvoice);
-
-      // Close the modal after updating
       onClose();
 
     } catch (error) {
-      // Catch any errors and log them
       console.error("Error saving invoice data:", error.message);
-
-      // Set the error message in state to display to the user
       setError(error.message);
     } finally {
-      // Stop loading after the operation is complete (success or error)
       setLoading(false);
     }
   };

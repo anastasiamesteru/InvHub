@@ -1,12 +1,15 @@
 
 import { useState, useEffect } from "react";
 import { ReportModalValidation } from "../utils/ReportModalValidation";
+import axios from 'axios';
 
 const EditReportModal = ({ show, onClose, reportId, onUpdate }) => {
 
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
+    const [invoices, setInvoices] = useState([]);
+
     const [reportData, setReportData] = useState({
         title: '',
         description: '',
@@ -87,43 +90,48 @@ const EditReportModal = ({ show, onClose, reportId, onUpdate }) => {
         }));
         setErrors(prev => ({ ...prev, [name]: "" }));
     };
-// Suppose you have your full invoice/payment data stored separately, e.g., in reportData.allInvoices
 
-const handleCheckboxChange = (event, category, indicator) => {
-  const { name, checked } = event.target;
+    const handleCheckboxChange = (event, category) => {
+        const { name, checked } = event.target;
 
-  setReportData((prevData) => {
-    // Update checkbox state
-    const updatedCheckboxes = {
-      ...prevData.selectedCheckboxes,
-      [category]: {
-        ...prevData.selectedCheckboxes[category],
-        [name]: checked,
-      },
+        setReportData(prevData => ({
+            ...prevData,
+            selectedCheckboxes: {
+                ...prevData.selectedCheckboxes,
+                [category]: {
+                    ...prevData.selectedCheckboxes[category],
+                    [name]: checked,
+                }
+            }
+        }));
     };
 
-    // Apply filters based on dates and checkboxes
-    const filteredInvoices = prevData.allInvoices.filter(inv => {
-      // Example: filter by date range
-      const startDate = new Date(prevData.startDate);
-      const endDate = new Date(prevData.endDate);
-      const invDate = new Date(inv.date);
+    const fetchInvoices = async () => {
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            console.error("No token found");
+            return;
+        }
 
-      // Only include invoices within the selected date range
-      return invDate >= startDate && invDate <= endDate;
-    });
-
-    // Now recalc indicators from filteredInvoices
-    const updatedIndicators = calculateIndicators(filteredInvoices, updatedCheckboxes);
-
-    return {
-      ...prevData,
-      selectedCheckboxes: updatedCheckboxes,
-      indicators: updatedIndicators,
+        try {
+            const response = await fetch('http://localhost:4000/routes/invoices/getall', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+            if (!response.ok) throw new Error('Failed to fetch invoices');
+            const data = await response.json();
+            setInvoices(data);
+        } catch (error) {
+            console.error("Error fetching invoices:", error);
+        }
     };
-  });
-};
 
+    useEffect(() => {
+        fetchInvoices();
+    }, []);
 
     useEffect(() => {
         if (reportId && show) {
@@ -152,51 +160,303 @@ const handleCheckboxChange = (event, category, indicator) => {
         }
     }, [reportId, show]);
 
-    const handleSave = async () => {
-        const token = localStorage.getItem("authToken");
+    const computeAndUpdateIndicators = (reportData) => {
+        const { startDate, endDate, selectedCheckboxes } = reportData;
 
-        if (!token) return alert("No token found.");
+        // Filter invoices based on the date range
+        const invoicesInRange = invoices.filter(invoice => {
+            const invoiceDate = new Date(invoice.issue_date);
+            return invoiceDate >= new Date(startDate) && invoiceDate <= new Date(endDate);
+        });
+
+        const totalInvoices = invoicesInRange.length;
+        const updatedIndicators = {};
+
+        // Payment Status Indicators
+        let numberOfPaidInvoices = 0;
+        let numberOfUnpaidInvoices = 0;
+        let percentPaid = 0;
+        let percentUnpaid = 0;
+        let x = 0;
+
+        if (selectedCheckboxes.paymentStatus && selectedCheckboxes.paymentStatus.checkednumberOfPaidInvoices) {
+            numberOfPaidInvoices = invoicesInRange.filter(invoice => invoice.paymentStatus === 'Paid').length;
+        }
+
+        if (selectedCheckboxes.paymentStatus && selectedCheckboxes.paymentStatus.checkednumberOfUnpaidInvoices) {
+            numberOfUnpaidInvoices = invoicesInRange.filter(invoice => invoice.paymentStatus !== 'Paid').length;
+        }
+
+        if (selectedCheckboxes.paymentStatus && selectedCheckboxes.paymentStatus.checkedpercentPaid) {
+            x = invoicesInRange.filter(invoice => invoice.paymentStatus === 'Paid').length;
+            percentPaid = totalInvoices > 0 ? (x / totalInvoices) * 100 : 0;
+        }
+
+        if (selectedCheckboxes.paymentStatus && selectedCheckboxes.paymentStatus.checkedpercentUnpaid) {
+            x = invoicesInRange.filter(invoice => invoice.paymentStatus === 'Unpaid').length;
+
+            percentUnpaid = totalInvoices > 0 ? (x / totalInvoices) * 100 : 0;
+        }
+
+        updatedIndicators.paymentStatus = {
+            numberOfPaidInvoices,
+            numberOfUnpaidInvoices,
+            percentPaid,
+            percentUnpaid,
+        };
+
+        let numberOfOnTimeInvoices = 0;
+        let numberOfOverdueInvoices = 0;
+        let percentOverdue = 0;
+        let percentOnTime = 0;
+
+        if (selectedCheckboxes.paymentStatus && selectedCheckboxes.overdueAnalysis.checkednumberOfOnTimeInvoices) {
+            // Count invoices with timeStatus as 'On Time'
+            numberOfOnTimeInvoices = invoicesInRange.filter(invoice => invoice.timeStatus === 'On Time').length;
+        }
+
+        if (selectedCheckboxes.paymentStatus && selectedCheckboxes.overdueAnalysis.checkednumberOfOverdueInvoices) {
+            // Count invoices with timeStatus as 'Overdue'
+            numberOfOverdueInvoices = invoicesInRange.filter(invoice => invoice.timeStatus === 'Overdue').length;
+        }
+
+        if (selectedCheckboxes.paymentStatus && selectedCheckboxes.overdueAnalysis.checkedpercentOnTime) {
+            // Calculate percentage of on-time invoices
+            const onTimeCount = invoicesInRange.filter(invoice => invoice.timeStatus === 'On Time').length;
+            percentOnTime = totalInvoices > 0 ? (onTimeCount / totalInvoices) * 100 : 0;
+        }
+
+        if (selectedCheckboxes.paymentStatus && selectedCheckboxes.overdueAnalysis.checkedPercentOverdue) {
+            // Calculate percentage of overdue invoices
+            const overdueCount = invoicesInRange.filter(invoice => invoice.timeStatus === 'Overdue').length;
+            percentOverdue = totalInvoices > 0 ? (overdueCount / totalInvoices) * 100 : 0;
+        }
+
+        // Updating the indicators
+        updatedIndicators.overdueAnalysis = {
+            numberOfOnTimeInvoices,
+            numberOfOverdueInvoices,
+            percentOverdue,
+            percentOnTime,
+        };
+
+
+
+
+
+        // Invoice Patterns Indicators
+        let averageDaysToPayment = 0;
+        let medianDaysToPayment = 0;
+        let modeOfPaymentDelays = 0;
+
+        if (selectedCheckboxes.invoicePatterns.checkedaverageDaysToPayment) {
+            const paidInvoices = invoicesInRange.filter(invoice =>
+                invoice.paymentStatus === 'Paid' && invoice.paymentDate && invoice.issue_date
+            );
+
+            const paymentDelays = paidInvoices.map(invoice => {
+                const delay = (new Date(invoice.paymentDate) - new Date(invoice.issue_date)) / (1000 * 60 * 60 * 24);
+                return Math.round(delay);
+            });
+
+            averageDaysToPayment = paymentDelays.length > 0
+                ? paymentDelays.reduce((sum, val) => sum + val, 0) / paymentDelays.length
+                : 0;
+        }
+
+        if (selectedCheckboxes.invoicePatterns.checkedmedianDaysToPayment) {
+            const paidInvoices = invoicesInRange.filter(invoice =>
+                invoice.paymentStatus === 'Paid' && invoice.paymentDate && invoice.issue_date
+            );
+
+            const paymentDelays = paidInvoices.map(invoice => {
+                const delay = (new Date(invoice.paymentDate) - new Date(invoice.issue_date)) / (1000 * 60 * 60 * 24);
+                return Math.round(delay);
+            });
+
+            function calculateMedian(arr) {
+                if (arr.length === 0) return 0;
+                const sorted = [...arr].sort((a, b) => a - b);
+                const mid = Math.floor(sorted.length / 2);
+                return sorted.length % 2 === 0
+                    ? (sorted[mid - 1] + sorted[mid]) / 2
+                    : sorted[mid];
+            }
+
+            medianDaysToPayment = calculateMedian(paymentDelays);
+        }
+
+        if (selectedCheckboxes.invoicePatterns.checkedmodeOfPaymentDelays) {
+            const paidInvoices = invoicesInRange.filter(invoice =>
+                invoice.paymentStatus === 'Paid' && invoice.paymentDate && invoice.issue_date
+            );
+
+            const paymentDelays = paidInvoices.map(invoice => {
+                const delay = (new Date(invoice.paymentDate) - new Date(invoice.issue_date)) / (1000 * 60 * 60 * 24);
+                return Math.round(delay);
+            });
+
+            function calculateMode(arr) {
+                if (arr.length === 0) return 0;
+                const freqMap = {};
+                arr.forEach(val => freqMap[val] = (freqMap[val] || 0) + 1);
+                let mode = arr[0], maxCount = 0;
+                for (const val in freqMap) {
+                    if (freqMap[val] > maxCount) {
+                        mode = val;
+                        maxCount = freqMap[val];
+                    }
+                }
+                return parseInt(mode);
+            }
+
+            modeOfPaymentDelays = calculateMode(paymentDelays);
+        }
+
+        // Update indicators for Invoice Patterns
+        updatedIndicators.invoicePatterns = {
+            averageDaysToPayment: Math.round(averageDaysToPayment),
+            medianDaysToPayment,
+            modeOfPaymentDelays,
+        };
+
+        // Invoice Entities Indicators
+        let numberOfIndividualClients = 0;
+        let numberOfCompanyClients = 0;
+        let numberOfIndividualVendors = 0;
+        let numberOfCompanyVendors = 0;
+        let numberOfProducts = 0;
+        let numberOfServices = 0;
+        let percentIndividualClients = 0;
+        let percentCompanyClients = 0;
+        let percentIndividualVendors = 0;
+        let percentCompanyVendors = 0;
+        let percentProducts = 0;
+        let percentServices = 0;
+
+        if (selectedCheckboxes.invoiceEntities?.checkednumberOfIndividualClients) {
+            numberOfIndividualClients = invoicesInRange.filter(invoice => invoice.clientType === 'individual').length;
+        }
+
+        if (selectedCheckboxes.invoiceEntities?.checkednumberOfCompanyClients) {
+            numberOfCompanyClients = invoicesInRange.filter(invoice => invoice.clientType === 'company').length;
+        }
+
+        if (selectedCheckboxes.invoiceEntities?.checkednumberOfIndividualVendors) {
+            numberOfIndividualVendors = invoicesInRange.filter(invoice => invoice.vendorType === 'individual').length;
+        }
+
+        if (selectedCheckboxes.invoiceEntities?.checkednumberOfCompanyVendors) {
+            numberOfCompanyVendors = invoicesInRange.filter(invoice => invoice.vendorType === 'company').length;
+        }
+
+        if (selectedCheckboxes.invoiceEntities?.checkednumberOfProducts || selectedCheckboxes.invoiceEntities?.checkednumberOfServices) {
+            invoicesInRange.forEach(invoice => {
+                invoice.items.forEach(item => {
+                    const type = item.type?.toLowerCase(); // ensure consistency
+                    if (type === 'product') numberOfProducts++;
+                    if (type === 'service') numberOfServices++;
+                });
+            });
+        }
+
+        percentIndividualClients = totalInvoices > 0 ? (numberOfIndividualClients / totalInvoices) * 100 : 0;
+        percentCompanyClients = totalInvoices > 0 ? (numberOfCompanyClients / totalInvoices) * 100 : 0;
+        percentIndividualVendors = totalInvoices > 0 ? (numberOfIndividualVendors / totalInvoices) * 100 : 0;
+        percentCompanyVendors = totalInvoices > 0 ? (numberOfCompanyVendors / totalInvoices) * 100 : 0;
+
+        const totalItems = numberOfProducts + numberOfServices;
+        percentProducts = totalItems > 0 ? (numberOfProducts / totalItems) * 100 : 0;
+        percentServices = totalItems > 0 ? (numberOfServices / totalItems) * 100 : 0;
+
+        updatedIndicators.invoiceEntities = {
+            numberOfIndividualClients,
+            numberOfCompanyClients,
+            numberOfIndividualVendors,
+            numberOfCompanyVendors,
+            numberOfProducts,
+            numberOfServices,
+            percentIndividualClients,
+            percentCompanyClients,
+            percentIndividualVendors,
+            percentCompanyVendors,
+            percentProducts,
+            percentServices,
+        };
+
+
+        return {
+            ...reportData,
+            indicators: updatedIndicators,
+        };
+    };
+
+
+    const handleSave = async (event) => {
+        event.preventDefault();
+
+        const validationErrors = ReportModalValidation(reportData);
+
+        // Check if there are any errors
+        if (Object.keys(validationErrors).length > 0) {
+            setErrors(validationErrors);  // Set errors in state
+            return;
+        }
 
         setLoading(true);
 
-        const validationErrors = ReportModalValidation(reportData);
-        if (Object.keys(validationErrors).length > 0) {
-            setErrors(validationErrors);
+        // Compute and update indicators before sending
+        const updatedReportData = computeAndUpdateIndicators(reportData);
+
+        const payload = {
+            reportNumber: updatedReportData.reportNumber,
+            description: updatedReportData.description,
+            title: updatedReportData.title,
+            startDate: updatedReportData.startDate,
+            endDate: updatedReportData.endDate,
+            indicators: updatedReportData.indicators,
+            selectedCheckboxes: updatedReportData.selectedCheckboxes
+        };
+
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            console.error("No token found");
             setLoading(false);
             return;
         }
 
         try {
-            const response = await fetch(`http://localhost:4000/routes/reports/${reportId}`, {
-                method: 'PUT',
+            const response = await axios.put(`http://localhost:4000/routes/reports/${reportId}`, payload, {
                 headers: {
-                    'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,  
                 },
-                body: JSON.stringify(reportData),
             });
 
-            if (!response.ok) {
+            console.log('Report update response:', response);
+        
+            const updatedReport = await response.data;
 
-                throw new Error(`Failed to update report: ${response.statusText}`);
-            }
-            const updatedReport = await response.json();
             onUpdate(updatedReport);
             onClose();
-
         } catch (error) {
-
-            console.error("Error saving report data:", error.message);
-            setError(error.message);
+            console.error('Error updating report data:', error);
+            if (error.response) {
+                console.error('Error response data:', error.response.data);
+                alert(`Error: ${error.response?.data?.message || error.message}`);
+            } else {
+                alert(`Error: ${error.message}`);
+            }
         } finally {
             setLoading(false);
         }
     };
 
 
+
     const handleSubmit = (e) => {
         e.preventDefault();
-        handleSave();
+        handleSave(e);
     };
 
     if (!show) return null;
