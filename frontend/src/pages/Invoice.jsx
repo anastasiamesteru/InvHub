@@ -256,6 +256,40 @@ const Invoice = () => {
         );
     };
 
+
+
+    const handleSendInvoiceEmail = (invoice) => {
+        const subject = encodeURIComponent(`Details regarding invoice #${invoice.invoiceNumber}`);
+const itemsList = invoice.items
+  ? invoice.items
+      .map(
+        item =>
+          `→ ${item.itemName || 'Unnamed Item'} (${item.quantity || 1} ${item.um || ''})`
+      )
+      .join('\n')
+  : 'Details not available';
+
+        const body = encodeURIComponent(
+            `Dear Sir or Madam,\n\n` +
+            `I hope this message finds you well.\n\n` +
+            `This is a friendly reminder regarding invoice #${invoice.invoiceNumber} for the following items:\n` +
+            `${itemsList}\n\n` +
+            `The amount due is €${invoice.total}, with a due date of ${formatDate(invoice.due_date)}.\n\n` +
+            `Please note that a late payment fee of 1% per day will be applied for payments received after the due date. Also, let us know if you have any questions or require any further information.\n\n` +
+            `Thank you for your loyalty and confidence in our services.`
+        );
+
+
+        const to = encodeURIComponent(invoice.clientEmail);  // Use email from invoice
+        const gmailLink = `https://mail.google.com/mail/?view=cm&fs=1&to=${to}&su=${subject}&body=${body}`;
+        window.open(
+            gmailLink,
+            "_blank",
+            "width=800,height=600,top=100,left=100,noopener,noreferrer"
+        );
+    };
+
+
     return (
         <div className="p-4 h-w-full h-screen">
             <div className="flex flex-col">
@@ -451,6 +485,18 @@ const Invoice = () => {
                                             invoiceToDelete={invoiceToDelete} // Pass the invoice ID to the modal
                                             onDeleteSuccess={handleDeleteSuccess} // Pass the success handler to update the invoice list
                                         />
+                                        <button
+                                            className="px-2 py-1 text-center"
+                                            onClick={() => handleSendInvoiceEmail(invoice)}
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                                strokeWidth="2" stroke="currentColor" className="size-5">
+                                                <path strokeLinecap="round" strokeLinejoin="round"
+                                                    d="M3 8l7.89 5.26a2.25 2.25 0 0 0 2.22 0L21 8M5 19.5h14a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19 4.5H5A2.25 2.25 0 0 0 2.75 6.75v10.5A2.25 2.25 0 0 0 5 19.5Z" />
+                                            </svg>
+                                        </button>
+
+
                                     </td>
                                 </tr>
                             ))
@@ -468,7 +514,7 @@ const Invoice = () => {
 
             {/* PDF Modal */}
             {selectedInvoice && (
-             <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 transition-opacity duration-300 ease-in-out">
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 transition-opacity duration-300 ease-in-out">
                     <div className="bg-white p-6 rounded-lg shadow-xl w-11/12 md:w-full lg:w-1/3 h-4/5 relative overflow-hidden">
 
                         {/* Close Button */}
