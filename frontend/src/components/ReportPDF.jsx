@@ -255,32 +255,32 @@ const ReportPDF = ({ reportData }) => {
             Number of Services: <Text style={styles.value}>{invoiceEntities.numberOfServices}</Text>
           </Text>
         )}
-        {invoiceEntities?.percentOfIndividualClients && invoiceEntities.percentOfIndividualClients !== 0 && (
+        {invoiceEntities?.percentIndividualClients && invoiceEntities.percentIndividualClients !== 0 && (
           <Text style={styles.text}>
             Percent of Individual Clients: <Text style={styles.value}>{invoiceEntities.percentOfIndividualClients.toFixed(2)}%</Text>
           </Text>
         )}
-        {invoiceEntities?.percentOfCompanyClients && invoiceEntities.percentOfCompanyClients !== 0 && (
+        {invoiceEntities?.percentCompanyClients && invoiceEntities.percentCompanyClients !== 0 && (
           <Text style={styles.text}>
             Percent of Company Clients: <Text style={styles.value}>{invoiceEntities.percentOfCompanyClients.toFixed(2)}%</Text>
           </Text>
         )}
-        {invoiceEntities?.percentOfIndividualVendors && invoiceEntities.percentOfIndividualVendors !== 0 && (
+        {invoiceEntities?.percentIndividualVendors && invoiceEntities.percentIndividualVendors !== 0 && (
           <Text style={styles.text}>
             Percent of Individual Vendors: <Text style={styles.value}>{invoiceEntities.percentOfIndividualVendors.toFixed(2)}%</Text>
           </Text>
         )}
-        {invoiceEntities?.percentOfCompanyVendors && invoiceEntities.percentOfCompanyVendors !== 0 && (
+        {invoiceEntities?.percentCompanyVendors && invoiceEntities.percentCompanyVendors !== 0 && (
           <Text style={styles.text}>
             Percent of Company Vendors: <Text style={styles.value}>{invoiceEntities.percentOfCompanyVendors.toFixed(2)}%</Text>
           </Text>
         )}
-        {invoiceEntities?.percentOfProducts && invoiceEntities.percentOfProducts !== 0 && (
+        {invoiceEntities?.percentProducts && invoiceEntities.percentProducts !== 0 && (
           <Text style={styles.text}>
             Percent of Products: <Text style={styles.value}>{invoiceEntities.percentOfProducts.toFixed(2)}%</Text>
           </Text>
         )}
-        {invoiceEntities?.percentOfServices && invoiceEntities.percentOfServices !== 0 && (
+        {invoiceEntities?.percentServices && invoiceEntities.percentServices !== 0 && (
           <Text style={styles.text}>
             Percent of Services: <Text style={styles.value}>{invoiceEntities.percentOfServices.toFixed(2)}%</Text>
           </Text>

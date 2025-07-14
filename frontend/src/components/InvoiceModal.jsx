@@ -148,7 +148,7 @@ const InvoiceModal = ({ isOpen, onClose, fetchInvoices }) => {
                 },
             });
 
-            console.log('Invoice response:', response);
+           // console.log('Invoice response:', response);
             setInvoiceData({
                 invoiceNumber: '',
                 clientName: '',
