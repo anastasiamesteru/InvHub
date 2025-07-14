@@ -257,32 +257,32 @@ const ReportPDF = ({ reportData }) => {
         )}
         {invoiceEntities?.percentIndividualClients && invoiceEntities.percentIndividualClients !== 0 && (
           <Text style={styles.text}>
-            Percent of Individual Clients: <Text style={styles.value}>{invoiceEntities.percentOfIndividualClients.toFixed(2)}%</Text>
+            Percent of Individual Clients: <Text style={styles.value}>{invoiceEntities.percentIndividualClients.toFixed(2)}%</Text>
           </Text>
         )}
         {invoiceEntities?.percentCompanyClients && invoiceEntities.percentCompanyClients !== 0 && (
           <Text style={styles.text}>
-            Percent of Company Clients: <Text style={styles.value}>{invoiceEntities.percentOfCompanyClients.toFixed(2)}%</Text>
+            Percent of Company Clients: <Text style={styles.value}>{invoiceEntities.percentCompanyClients.toFixed(2)}%</Text>
           </Text>
         )}
         {invoiceEntities?.percentIndividualVendors && invoiceEntities.percentIndividualVendors !== 0 && (
           <Text style={styles.text}>
-            Percent of Individual Vendors: <Text style={styles.value}>{invoiceEntities.percentOfIndividualVendors.toFixed(2)}%</Text>
+            Percent of Individual Vendors: <Text style={styles.value}>{invoiceEntities.percentIndividualVendors.toFixed(2)}%</Text>
           </Text>
         )}
         {invoiceEntities?.percentCompanyVendors && invoiceEntities.percentCompanyVendors !== 0 && (
           <Text style={styles.text}>
-            Percent of Company Vendors: <Text style={styles.value}>{invoiceEntities.percentOfCompanyVendors.toFixed(2)}%</Text>
+            Percent of Company Vendors: <Text style={styles.value}>{invoiceEntities.percentCompanyVendors.toFixed(2)}%</Text>
           </Text>
         )}
         {invoiceEntities?.percentProducts && invoiceEntities.percentProducts !== 0 && (
           <Text style={styles.text}>
-            Percent of Products: <Text style={styles.value}>{invoiceEntities.percentOfProducts.toFixed(2)}%</Text>
+            Percent of Products: <Text style={styles.value}>{invoiceEntities.percentProducts.toFixed(2)}%</Text>
           </Text>
         )}
         {invoiceEntities?.percentServices && invoiceEntities.percentServices !== 0 && (
           <Text style={styles.text}>
-            Percent of Services: <Text style={styles.value}>{invoiceEntities.percentOfServices.toFixed(2)}%</Text>
+            Percent of Services: <Text style={styles.value}>{invoiceEntities.percentServices.toFixed(2)}%</Text>
           </Text>
         )}
       </View>
